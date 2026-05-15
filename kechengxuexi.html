@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>场景化数智教学服务平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background:#f5f7fa; }
+  .nav-active { color:#2563eb; border-bottom:2px solid #2563eb; }
+  .chapter-item { transition: all 0.2s; }
+  .chapter-header:hover { background: #f8fafc; }
+  .chapter-item.active .chapter-header { background: #eff6ff; border-right: 3px solid #2563eb; }
+  .chapter-item.active .chapter-title { color: #2563eb; font-weight: 600; }
+  .section-item { transition: all 0.2s; }
+  .section-item:hover { background: #f8fafc; }
+  .section-item.active { background: #eef2ff; border-left: 3px solid #6366f1; }
+  .section-item.active .section-title { color: #4f46e5; font-weight: 600; }
+  .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+  .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+  .fade-in { animation: fadeIn 0.3s ease-in-out; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .expand-enter { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .expand-enter.open { max-height: 500px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- 顶部导航栏 -->
+<header class="bg-white shadow-sm relative z-20">
+  <div class="h-16 flex items-center justify-between px-8">
+    <!-- 左侧 -->
+    <div class="flex items-center space-x-10">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-md flex items-center justify-center text-white">
+          <i class="fa fa-cubes"></i>
+        </div>
+        <span class="font-semibold text-gray-800">场景化数智教学服务平台</span>
+      </div>
+      <nav class="flex items-center space-x-8 h-16">
+        <a class="flex items-center nav-active h-full cursor-pointer"><i class="fa fa-home mr-2"></i>门户首页</a>
+        <a class="flex items-center text-gray-600 hover:text-blue-600 h-full cursor-pointer"><i class="fa fa-comments-o mr-2"></i>我的服务台</a>
+        <a class="flex items-center text-gray-600 hover:text-blue-600 h-full cursor-pointer"><i class="fa fa-th mr-2"></i>应用服务中心</a>
+      </nav>
+    </div>
+    <!-- 右侧 -->
+    <div class="flex items-center space-x-6">
+      <div id="headerDateTime" class="text-sm text-gray-500"></div>
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <div class="w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">教</div>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">1</span>
+        </div>
+        <div class="text-sm">
+          <div class="text-gray-800 font-medium">李老师</div>
+          <div class="text-gray-400 text-xs">清华大学</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- 主体：左侧菜单 + 右侧内容 -->
+<div class="flex" style="height: calc(100vh - 64px);">
+
+  <!-- 左侧章节菜单 -->
+  <aside id="sidebar" class="w-72 bg-white shadow-sm flex flex-col flex-shrink-0 border-r border-gray-100 transition-all duration-300">
+    <!-- 课程信息头 -->
+    <div id="sidebarHeader" class="px-5 py-4 border-b border-gray-100">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2 mb-1">
+          <div class="w-8 h-8 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-md flex items-center justify-center text-white text-xs font-bold">数</div>
+          <div id="sidebarHeaderContent">
+            <h2 class="text-sm font-bold text-gray-800">《数据分析基础》</h2>
+            <span class="px-1.5 py-0.5 bg-purple-50 text-purple-600 text-xs rounded">#体系课</span>
+          </div>
+        </div>
+        <!-- 折叠按钮 -->
+        <button id="toggleSidebar" class="p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" onclick="toggleSidebar()">
+          <i class="fa fa-angle-left"></i>
+        </button>
+      </div>
+      <div id="sidebarInfo" class="flex items-center mt-2 text-xs text-gray-400">
+        <span>共 6 章 · 24 节</span>
+        <span class="mx-2">|</span>
+        <span>学习进度 35%</span>
+      </div>
+      <!-- 进度条 -->
+      <div id="sidebarProgress" class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+        <div class="bg-blue-500 h-1.5 rounded-full" style="width:35%"></div>
+      </div>
+    </div>
+
+    <!-- 章节列表 -->
+    <div class="flex-1 overflow-y-auto sidebar-scroll py-2" id="chapterList">
+      <!-- 数据由JS动态生成 -->
+    </div>
+  </aside>
+
+  <!-- 右侧内容区 -->
+  <main class="flex-1 overflow-y-auto px-6 py-6" id="mainContent">
+    <!-- 内容由JS动态生成 -->
+  </main>
+</div>
+
+<script>
+// 课程数据（含每个小节的独立内容）
+const courseData = [
+  {
+    id: 1,
+    title: '第一章 数据分析概述',
+    icon: 'fa-book',
+    sections: [
+      {
+        id: '1-1', title: '1.1 什么是数据分析', type: 'video', duration: '15分钟', status: 'done',
+        slideTitle: '第一章 · 数据分析概述',
+        slideSubtitle: '什么是数据分析',
+        slideContent: '数据分析是指用适当的统计分析方法对收集来的大量数据进行分析，提取有用信息和形成结论而对数据加以详细研究和概括总结的过程。',
+        objectives: ['理解数据分析的定义与内涵', '了解数据分析的价值和意义', '掌握数据分析的基本思维方式']
+      },
+      {
+        id: '1-2', title: '1.2 数据分析的应用场景', type: 'video', duration: '20分钟', status: 'done',
+        slideTitle: '第一章 · 数据分析概述',
+        slideSubtitle: '数据分析的应用场景',
+        slideContent: '数据分析广泛应用于商业智能、用户行为分析、金融风控、医疗健康、智慧城市等各个领域。通过数据分析可以帮助企业和组织做出更科学的决策。',
+        objectives: ['了解数据分析在各行业的应用', '掌握典型业务场景分析方法', '能够识别数据分析机会点']
+      },
+      {
+        id: '1-3', title: '1.3 数据分析工具介绍', type: 'reading', duration: '10分钟', status: 'done',
+        slideTitle: '第一章 · 数据分析概述',
+        slideSubtitle: '主流数据分析工具',
+        slideContent: '常见的数据分析工具包括Excel、SQL、Python、R、Tableau、Power BI等。不同工具适用于不同的分析场景和数据规模。',
+        objectives: ['熟悉主流数据分析工具', '了解各工具的适用场景', '能够根据需求选择合适工具']
+      },
+      {
+        id: '1-4', title: '1.4 章节小测', type: 'quiz', duration: '8分钟', status: 'done',
+        slideTitle: '第一章 · 章节小测',
+        slideSubtitle: '数据分析概述测验',
+        slideContent: '本次小测将检验你对数据分析基本概念、应用场景及工具使用的掌握情况，共 3 道题目，请认真作答。',
+        objectives: ['巩固本章知识要点', '检测学习效果', '发现薄弱环节']
+      }
+    ],
+    quizTitle: '数据分析概述单元测验',
+    quizQuestions: [
+      { q: '1. 数据分析的核心目标是什么？', type: '单选', options: ['A. 数据收集与存储', 'B. 提取有用信息并支持决策', 'C. 数据可视化展示', 'D. 数据清洗'] },
+      { q: '2. 以下哪个不是数据分析工具？', type: '单选', options: ['A. Python', 'B. Tableau', 'C. Photoshop', 'D. Excel'] },
+      { q: '3. 简述数据分析在商业中的应用', type: '简答' }
+    ],
+    quizSubmitted: '40/42',
+    quizCompleted: true,
+    quizScore: 92,
+    chapterDescription: '本章介绍数据分析的基本概念、常见应用场景和主流工具，帮助初学者建立对数据分析的整体认知。',
+    chapterObjectives: ['理解数据分析的定义与核心价值', '掌握数据分析的基本流程与方法', '了解常见数据分析工具的使用场景', '培养数据驱动的思维模式'],
+    userAnswers: [
+      { qIdx: 0, answer: 'B', correct: true },
+      { qIdx: 1, answer: 'C', correct: true },
+      { qIdx: 2, answer: '数据分析在商业中广泛应用于用户行为分析、市场趋势预测、运营优化、风险管理等场景，通过数据帮助企业做出更科学的决策。' }
+    ]
+  },
+  {
+    id: 2,
+    title: '第二章 描述性统计',
+    icon: 'fa-bar-chart',
+    sections: [
+      {
+        id: '2-1', title: '2.1 集中趋势度量', type: 'video', duration: '18分钟', status: 'done',
+        slideTitle: '第二章 · 描述性统计',
+        slideSubtitle: '集中趋势度量',
+        slideContent: '集中趋势度量包括均值、中位数和众数三种。均值受极端值影响较大，中位数更稳健，众数适合分类数据。',
+        objectives: ['掌握均值、中位数、众数的计算', '理解三种指标的适用场景', '能够选择合适的集中趋势指标']
+      },
+      {
+        id: '2-2', title: '2.2 离散程度度量', type: 'video', duration: '22分钟', status: 'done',
+        slideTitle: '第二章 · 描述性统计',
+        slideSubtitle: '离散程度度量',
+        slideContent: '离散程度反映了数据的波动性，常用指标包括极差、方差、标准差、变异系数等。离散程度越大，数据分布越分散。',
+        objectives: ['掌握方差、标准差的计算方法', '理解离散程度的含义', '能够分析数据的波动特征']
+      },
+      {
+        id: '2-3', title: '2.3 数据可视化基础', type: 'video', duration: '25分钟', status: 'done',
+        slideTitle: '第二章 · 描述性统计',
+        slideSubtitle: '数据可视化基础',
+        slideContent: '数据可视化是将抽象的数据通过图形化方式呈现的技术。常见图表包括柱状图、折线图、饼图、散点图、箱线图等。',
+        objectives: ['掌握常见图表类型及用途', '了解数据可视化的基本原则', '能够选择合适的可视化方式']
+      },
+      {
+        id: '2-4', title: '2.4 章节小测', type: 'quiz', duration: '20分钟', status: 'done',
+        slideTitle: '第二章 · 章节小测',
+        slideSubtitle: '描述性统计测验',
+        slideContent: '本次小测将检验你对描述性统计知识的掌握情况，共 4 道题目。请先完成前面的所有学习内容后再进行测验。',
+        objectives: ['巩固描述统计知识', '检测图表运用能力', '查漏补缺']
+      }
+    ],
+    quizTitle: '描述性统计单元测验',
+    quizQuestions: [
+      { q: '1. 均值和中位数的主要区别？', type: '单选', options: ['A. 均值更稳健', 'B. 均值受极端值影响大，中位数更稳健', 'C. 中位数更适合数值数据', 'D. 两者完全相同'] },
+      { q: '2. 标准差越大说明什么？', type: '单选', options: ['A. 数据越集中', 'B. 数据越分散', 'C. 数据越准确', 'D. 数据量越大'] },
+      { q: '3. 哪种图表适合展示分布？', type: '单选', options: ['A. 柱状图', 'B. 折线图', 'C. 箱线图', 'D. 饼图'] },
+      { q: '4. 简述描述性统计的作用', type: '简答' }
+    ],
+    quizSubmitted: '38/42',
+    quizCompleted: true,
+    quizScore: 88,
+    chapterDescription: '本章学习描述性统计方法，包括集中趋势和离散程度的度量指标，以及数据可视化的基础知识。',
+    chapterObjectives: ['掌握集中趋势度量方法', '理解离散程度指标', '能够运用可视化工具展示数据'],
+    userAnswers: [
+      { qIdx: 0, answer: 'B', correct: true },
+      { qIdx: 1, answer: 'B', correct: true },
+      { qIdx: 2, answer: 'A', correct: false },
+      { qIdx: 3, answer: '描述性统计是对数据进行总结和描述的统计方法，包括集中趋势、离散程度和分布形态等指标，帮助我们快速了解数据特征。' }
+    ]
+  },
+  {
+    id: 3,
+    title: '第三章 假设检验',
+    icon: 'fa-flask',
+    sections: [
+      {
+        id: '3-1', title: '3.1 假设检验基本概念', type: 'video', duration: '20分钟', status: 'current',
+        slideTitle: '第三章 · 假设检验',
+        slideSubtitle: '假设检验基本概念',
+        slideContent: '假设检验是一种统计推断方法，通过样本数据来判断关于总体的假设是否成立。基本流程包括：提出假设、选择检验方法、计算检验统计量、做出判断。',
+        objectives: ['理解原假设与备择假设', '掌握第一类与第二类错误', '熟悉假设检验基本流程']
+      },
+      {
+        id: '3-2', title: '3.2 P值与显著性水平', type: 'reading', duration: '15分钟', status: 'not_started',
+        slideTitle: '第三章 · 假设检验',
+        slideSubtitle: 'P值与显著性水平',
+        slideContent: '在统计假设检验中，p值表示在原假设为真的前提下，观察到当前样本结果或更极端结果的概率。当p值小于预先设定的显著性水平（如0.05）时，我们拒绝原假设。',
+        objectives: ['掌握P值的计算与解释', '理解显著性水平的含义', '能够正确使用P值判断结果']
+      },
+      {
+        id: '3-3', title: '3.3 T检验与Z检验', type: 'video', duration: '25分钟', status: 'not_started',
+        slideTitle: '第三章 · 假设检验',
+        slideSubtitle: 'T检验与Z检验',
+        slideContent: 'T检验和Z检验都是用于均值比较的统计方法。Z检验适用于大样本或已知总体方差的情况，T检验适用于小样本且总体方差未知的场景。',
+        objectives: ['区分T检验与Z检验的适用条件', '掌握两种检验方法的使用', '能够进行均值比较分析']
+      },
+      {
+        id: '3-4', title: '3.4 章节小测', type: 'quiz', duration: '13分钟', status: 'not_started',
+        slideTitle: '第三章 · 章节小测',
+        slideSubtitle: '假设检验测验',
+        slideContent: '本次测验将检验你对假设检验的掌握情况，包含基本概念、P值应用、T检验与Z检验的使用等知识点。',
+        objectives: ['综合检验假设检验知识', '验证实际应用能力', '评估学习效果']
+      }
+    ],
+    quizTitle: '假设检验单元测验',
+    quizQuestions: [
+      { q: '1. p值小于显著性水平意味着？', type: '单选', options: ['A. 接受原假设', 'B. 拒绝原假设，结果具有统计显著性', 'C. 数据存在偏差', 'D. 样本量不足'] },
+      { q: '2. 哪种场景适合 T 检验？', type: '单选', options: ['A. 大样本（n>100）', 'B. 总体方差已知', 'C. 小样本（n<30）且总体方差未知', 'D. 比例数据'] },
+      { q: '3. 简述 A/B 测试基本流程', type: '简答' }
+    ],
+    quizSubmitted: '32/42',
+    quizCompleted: false,
+    quizScore: null,
+    chapterDescription: '本章学习假设检验的基本原理和方法，包括P值、显著性水平、T检验与Z检验等统计推断方法。',
+    chapterObjectives: ['理解假设检验的基本流程', '掌握P值的计算与解释', '能够正确选择检验方法'],
+    userAnswers: []
+  },
+  {
+    id: 4,
+    title: '第四章 回归分析',
+    icon: 'fa-line-chart',
+    sections: [
+      {
+        id: '4-1', title: '4.1 线性回归', type: 'video', duration: '25分钟', status: 'not_started',
+        slideTitle: '第四章 · 回归分析',
+        slideSubtitle: '线性回归',
+        slideContent: '线性回归是最基础的预测模型，通过拟合一条直线描述自变量与因变量的线性关系。最小二乘法是最常用的参数估计方法。',
+        objectives: ['理解线性回归的数学原理', '掌握最小二乘法', '能够建立简单线性回归模型']
+      },
+      {
+        id: '4-2', title: '4.2 多元回归', type: 'video', duration: '30分钟', status: 'not_started',
+        slideTitle: '第四章 · 回归分析',
+        slideSubtitle: '多元回归',
+        slideContent: '多元回归用于分析一个因变量与多个自变量之间的关系，能够更全面地刻画现实中的复杂问题。需注意多重共线性问题。',
+        objectives: ['掌握多元回归建模方法', '理解多重共线性', '能够解释回归系数含义']
+      },
+      {
+        id: '4-3', title: '4.3 回归模型评估', type: 'reading', duration: '15分钟', status: 'not_started',
+        slideTitle: '第四章 · 回归分析',
+        slideSubtitle: '回归模型评估',
+        slideContent: '常用的回归模型评估指标包括R²、调整R²、MSE、RMSE、MAE等，需要结合残差分析评估模型的拟合优度与泛化能力。',
+        objectives: ['掌握常用评估指标', '能够进行残差分析', '学会模型优化方法']
+      },
+      {
+        id: '4-4', title: '4.4 章节小测', type: 'quiz', duration: '4题', status: 'not_started',
+        slideTitle: '第四章 · 章节小测',
+        slideSubtitle: '回归分析测验',
+        slideContent: '本次测验包含线性回归、多元回归以及模型评估等知识点，共 4 道题目。',
+        objectives: ['巩固回归分析知识', '检验建模能力', '提升模型评估水平']
+      }
+    ],
+    quizTitle: '回归分析单元测验',
+    quizQuestions: [
+      { q: '1. R²值的含义是什么？', type: '单选', options: ['A. 模型的误差大小', 'B. 自变量对因变量的解释程度', 'C. 样本数量', 'D. 回归系数的符号'] },
+      { q: '2. 多重共线性如何检测？', type: '单选', options: ['A. R²值', 'B. VIF方差膨胀因子', 'C. p值', 'D. 标准差'] },
+      { q: '3. 线性回归与逻辑回归的区别？', type: '单选', options: ['A. 线性回归用于分类，逻辑回归用于预测', 'B. 线性回归用于连续值，逻辑回归用于分类', 'C. 两者完全相同', 'D. 逻辑回归不需要训练'] },
+      { q: '4. 简述回归模型的优化方法', type: '简答' }
+    ],
+    quizSubmitted: '0/42',
+    quizCompleted: false,
+    quizScore: null,
+    chapterDescription: '本章学习回归分析方法，包括线性回归、多元回归以及模型评估方法。',
+    chapterObjectives: ['理解线性回归原理', '掌握多元回归建模', '能够进行模型评估与优化'],
+    userAnswers: []
+  },
+  {
+    id: 5,
+    title: '第五章 分类算法',
+    icon: 'fa-sitemap',
+    sections: [
+      {
+        id: '5-1', title: '5.1 决策树', type: 'video', duration: '20分钟', status: 'not_started',
+        slideTitle: '第五章 · 分类算法',
+        slideSubtitle: '决策树',
+        slideContent: '决策树通过树形结构对数据进行分类。常用算法包括ID3、C4.5、CART等，通过信息增益、信息增益比、基尼系数等指标选择分裂特征。',
+        objectives: ['理解决策树构建原理', '掌握三种经典算法', '能够训练决策树模型']
+      },
+      {
+        id: '5-2', title: '5.2 随机森林', type: 'video', duration: '22分钟', status: 'not_started',
+        slideTitle: '第五章 · 分类算法',
+        slideSubtitle: '随机森林',
+        slideContent: '随机森林是一种集成学习方法，通过构建多棵决策树并综合其预测结果，提高模型的稳定性和准确性，有效防止过拟合。',
+        objectives: ['理解集成学习思想', '掌握Bagging方法', '能够应用随机森林']
+      },
+      {
+        id: '5-3', title: '5.3 KNN算法', type: 'video', duration: '18分钟', status: 'not_started',
+        slideTitle: '第五章 · 分类算法',
+        slideSubtitle: 'KNN算法',
+        slideContent: 'K近邻算法（KNN）是一种基于实例的学习方法，通过计算样本间的距离，选取最近的K个邻居进行投票决定分类结果。',
+        objectives: ['理解KNN基本思想', '掌握距离度量方法', '学会K值选择技巧']
+      },
+      {
+        id: '5-4', title: '5.4 模型评估指标', type: 'reading', duration: '12分钟', status: 'not_started',
+        slideTitle: '第五章 · 分类算法',
+        slideSubtitle: '模型评估指标',
+        slideContent: '分类模型的评估指标包括准确率、精确率、召回率、F1分数、ROC曲线与AUC等。需要根据业务场景选择合适的评估指标。',
+        objectives: ['掌握混淆矩阵相关指标', '理解ROC与AUC', '能够综合评估分类模型']
+      },
+      {
+        id: '5-5', title: '5.5 章节小测', type: 'quiz', duration: '5题', status: 'not_started',
+        slideTitle: '第五章 · 章节小测',
+        slideSubtitle: '分类算法测验',
+        slideContent: '本次测验综合考察决策树、随机森林、KNN等分类算法以及模型评估指标的掌握情况。',
+        objectives: ['综合检验分类算法知识', '提升模型评估能力', '加深算法理解']
+      }
+    ],
+    quizTitle: '分类算法单元测验',
+    quizQuestions: [
+      { q: '1. 决策树的分裂标准有哪些？', type: '单选', options: ['A. 信息增益、信息增益比、基尼系数', 'B. 均值、方差', 'C. 准确率、召回率', 'D. R²、MSE'] },
+      { q: '2. 随机森林如何防止过拟合？', type: '单选', options: ['A. 增加树的深度', 'B. 构建多棵树综合预测', 'C. 减少样本量', 'D. 使用单一特征'] },
+      { q: '3. KNN中K值如何选择？', type: '单选', options: ['A. K越大越好', 'B. K越小越好', 'C. 交叉验证选择最优K', 'D. K固定为10'] },
+      { q: '4. 什么是准确率与召回率？', type: '单选', options: ['A. 两者是同一个指标', 'B. 准确率是预测正确占比，召回率是正样本被找出的比例', 'C. 召回率一定大于准确率', 'D. 两者都用于回归模型'] },
+      { q: '5. 简述集成学习的基本思想', type: '简答' }
+    ],
+    quizSubmitted: '0/42',
+    quizCompleted: false,
+    quizScore: null,
+    chapterDescription: '本章学习常见分类算法，包括决策树、随机森林、KNN等，以及模型评估指标。',
+    chapterObjectives: ['掌握主流分类算法原理', '理解集成学习思想', '能够综合评估分类模型'],
+    userAnswers: []
+  },
+  {
+    id: 6,
+    title: '第六章 综合实战项目',
+    icon: 'fa-rocket',
+    sections: [
+      {
+        id: '6-1', title: '6.1 项目需求分析', type: 'reading', duration: '10分钟', status: 'not_started',
+        slideTitle: '第六章 · 综合实战项目',
+        slideSubtitle: '项目需求分析',
+        slideContent: '数据分析项目的第一步是明确业务需求，理解问题本质，识别关键指标，并将业务问题转化为可量化的分析问题。',
+        objectives: ['掌握需求分析方法', '能够抽象业务问题', '学会定义分析目标']
+      },
+      {
+        id: '6-2', title: '6.2 数据采集与清洗', type: 'video', duration: '30分钟', status: 'not_started',
+        slideTitle: '第六章 · 综合实战项目',
+        slideSubtitle: '数据采集与清洗',
+        slideContent: '数据采集包括数据来源识别、爬取、采集方法。数据清洗处理缺失值、异常值、重复值，保证数据质量，为后续建模奠定基础。',
+        objectives: ['掌握常见数据采集方法', '学会处理缺失值与异常值', '提升数据预处理能力']
+      },
+      {
+        id: '6-3', title: '6.3 数据建模与分析', type: 'video', duration: '35分钟', status: 'not_started',
+        slideTitle: '第六章 · 综合实战项目',
+        slideSubtitle: '数据建模与分析',
+        slideContent: '根据业务需求选择合适的分析方法或模型，进行特征工程、模型训练、参数调优与模型验证，最终输出分析结果。',
+        objectives: ['掌握建模完整流程', '学会特征工程方法', '提升调参能力']
+      },
+      {
+        id: '6-4', title: '6.4 报告撰写与展示', type: 'video', duration: '20分钟', status: 'not_started',
+        slideTitle: '第六章 · 综合实战项目',
+        slideSubtitle: '报告撰写与展示',
+        slideContent: '一份好的数据分析报告需要结构清晰、逻辑严密、图文并茂。通过故事化的方式呈现数据洞察，让非技术人员也能理解结论。',
+        objectives: ['学会撰写分析报告', '掌握数据叙事技巧', '提升展示表达能力']
+      },
+      {
+        id: '6-5', title: '6.5 综合测评', type: 'quiz', duration: '6题', status: 'not_started',
+        slideTitle: '第六章 · 综合测评',
+        slideSubtitle: '实战能力综合评估',
+        slideContent: '本次综合测评将全面考察从需求分析、数据处理、建模分析到结果展示的完整数据分析能力，包含 6 道综合性题目。',
+        objectives: ['综合检验数据分析能力', '评估实战应用水平', '总结学习成果']
+      }
+    ],
+    quizTitle: '综合实战测评',
+    quizQuestions: [
+      { q: '1. 数据清洗的关键步骤有哪些？', type: '单选', options: ['A. 仅处理缺失值', 'B. 处理缺失值、异常值、重复值', 'C. 仅删除异常值', 'D. 不需要清洗'] },
+      { q: '2. 如何选择合适的分析方法？', type: '单选', options: ['A. 随机选择', 'B. 根据业务需求和数据特征', 'C. 只用最复杂的方法', 'D. 咨询他人'] },
+      { q: '3. 数据可视化的原则是什么？', type: '单选', options: ['A. 图表越复杂越好', 'B. 清晰、简洁、准确传达信息', 'C. 使用最多颜色', 'D. 图表越多越好'] },
+      { q: '4. 如何评估分析结果的可靠性？', type: '单选', options: ['A. 只看R²值', 'B. 综合多种指标和交叉验证', 'C. 仅凭经验判断', 'D. 不需要评估'] },
+      { q: '5. 完成数据分析报告并提交', type: '简答' },
+      { q: '6. 项目复盘与改进思路', type: '简答' }
+    ],
+    quizSubmitted: '0/42',
+    quizCompleted: false,
+    quizScore: null,
+    chapterDescription: '本章为综合实战项目，从需求分析到报告撰写，完成一个完整的数据分析项目。',
+    chapterObjectives: ['掌握完整的数据分析流程', '提升实战应用能力', '能够独立完成数据分析报告'],
+    userAnswers: []
+  }
+];
+
+// 当前选中状态
+let currentChapterId = 1;
+let currentSectionId = '1-1';
+let isViewingChapter = true; // 是否查看主章节内容
+let sidebarCollapsed = false; // 侧边栏是否折叠
+
+// 切换侧边栏
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('toggleSidebar');
+  const icon = toggleBtn.querySelector('i');
+  const sidebarHeaderContent = document.getElementById('sidebarHeaderContent');
+  const sidebarInfo = document.getElementById('sidebarInfo');
+  const sidebarProgress = document.getElementById('sidebarProgress');
+  const sidebarHeader = document.getElementById('sidebarHeader');
+  
+  if (sidebarCollapsed) {
+    sidebar.classList.remove('w-72');
+    sidebar.classList.add('w-12');
+    icon.classList.remove('fa-angle-left');
+    icon.classList.add('fa-angle-right');
+    // 隐藏多余的内容
+    sidebarHeaderContent.style.display = 'none';
+    sidebarInfo.style.display = 'none';
+    sidebarProgress.style.display = 'none';
+    sidebarHeader.classList.remove('px-5', 'py-4');
+    sidebarHeader.classList.add('px-1', 'py-3');
+  } else {
+    sidebar.classList.remove('w-12');
+    sidebar.classList.add('w-72');
+    icon.classList.remove('fa-angle-right');
+    icon.classList.add('fa-angle-left');
+    // 显示内容
+    sidebarHeaderContent.style.display = '';
+    sidebarInfo.style.display = '';
+    sidebarProgress.style.display = '';
+    sidebarHeader.classList.remove('px-1', 'py-3');
+    sidebarHeader.classList.add('px-5', 'py-4');
+  }
+  renderChapterList();
+}
+
+// 获取状态图标
+function getStatusIcon(status) {
+  if (status === 'done') return '<i class="fa fa-check-circle text-green-500 text-xs"></i>';
+  if (status === 'current') return '<span class="w-2 h-2 bg-blue-500 rounded-full inline-block animate-pulse"></span>';
+  return '<i class="fa fa-circle-o text-gray-300 text-xs"></i>';
+}
+
+// 获取类型图标
+function getTypeIcon(type) {
+  if (type === 'video') return '<i class="fa fa-play-circle text-blue-400 text-xs"></i>';
+  if (type === 'reading') return '<i class="fa fa-file-text-o text-orange-400 text-xs"></i>';
+  if (type === 'quiz') return '<i class="fa fa-pencil-square-o text-purple-400 text-xs"></i>';
+  return '<i class="fa fa-file-o text-gray-400 text-xs"></i>';
+}
+
+// 获取章节完成进度（包含主章节自身+所有子小节）：学习中不算完成
+function getChapterProgress(chapter) {
+  const total = chapter.sections.length + 1; // +1 for the chapter itself
+  // 只统计状态为done的
+  const done = chapter.sections.filter(s => s.status === 'done').length;
+  const chapterDone = chapter.quizCompleted ? 1 : 0;
+  const totalDone = done + chapterDone;
+  return { done: totalDone, total, percent: Math.round((totalDone / total) * 100) };
+}
+
+// 渲染左侧章节菜单
+function renderChapterList() {
+  const container = document.getElementById('chapterList');
+  let html = '';
+
+  if (sidebarCollapsed) {
+    // 折叠状态：只显示小图标
+    courseData.forEach(chapter => {
+      const isChapterActive = chapter.id === currentChapterId && isViewingChapter;
+      const iconClass = chapter.quizCompleted 
+        ? '<i class="fa fa-check-circle text-green-500 text-sm"></i>'
+        : `<i class="fa fa-folder text-gray-400 ${isChapterActive ? 'text-blue-500' : ''} text-sm"></i>`;
+      html += `
+        <div class="chapter-item ${isChapterActive ? 'active' : ''} flex justify-center py-2">
+          <div class="chapter-header cursor-pointer ${isChapterActive ? 'bg-blue-50' : ''} p-2 rounded-md" onclick="selectChapter(${chapter.id})" title="${chapter.title}">
+            ${iconClass}
+          </div>
+        </div>
+      `;
+      // 添加子章节图标
+      chapter.sections.forEach(section => {
+        const isSectionActive = section.id === currentSectionId && chapter.id === currentChapterId && !isViewingChapter;
+        html += `
+          <div class="flex justify-center py-1">
+            <div class="section-item ${isSectionActive ? 'active' : ''} cursor-pointer p-2 rounded-md ${isSectionActive ? 'bg-blue-50' : ''}" onclick="selectSection(${chapter.id}, '${section.id}', event)" title="${section.title}">
+              ${getTypeIcon(section.type)}
+            </div>
+          </div>
+        `;
+      });
+    });
+  } else {
+    // 展开状态：正常显示
+    courseData.forEach(chapter => {
+      const isChapterActive = chapter.id === currentChapterId && isViewingChapter;
+      const isCurrentChapter = chapter.id === currentChapterId;
+      const progress = getChapterProgress(chapter);
+
+      html += `
+        <div class="chapter-item ${isChapterActive ? 'active' : ''}">
+          <!-- 章节标题 -->
+          <div class="chapter-header cursor-pointer ${isChapterActive ? 'bg-blue-50' : ''}" onclick="selectChapter(${chapter.id})">
+            <div class="px-4 py-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2 flex-1 min-w-0">
+                  <span class="chapter-title text-sm ${isCurrentChapter ? 'text-blue-600 font-semibold' : 'text-gray-700'} truncate">${chapter.title}</span>
+                  ${chapter.quizCompleted ? '<i class="fa fa-check-circle text-green-500 text-sm flex-shrink-0"></i>' : ''}
+                </div>
+                <i class="fa fa-angle-down text-gray-400 text-xs flex-shrink-0 ml-2 transition-transform"></i>
+              </div>
+              <!-- 进度条 -->
+              <div class="flex items-center mt-2 ml-6">
+                <div class="flex-1 bg-gray-100 rounded-full h-1 mr-2">
+                  <div class="h-1 rounded-full ${progress.percent === 100 ? 'bg-green-500' : 'bg-blue-400'}" style="width:${progress.percent}%"></div>
+                </div>
+                <span class="text-xs text-gray-400 flex-shrink-0">${progress.done}/${progress.total}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 小节列表（始终展开）-->
+          <div class="pb-2 bg-gray-50/30">
+            ${chapter.sections.map(section => {
+              const isSectionActive = section.id === currentSectionId && chapter.id === currentChapterId && !isViewingChapter;
+              return `
+              <div class="section-item ${isSectionActive ? 'active' : ''} flex items-center px-4 py-2.5 ml-4 mr-2 rounded-md cursor-pointer" onclick="selectSection(${chapter.id}, '${section.id}', event)">
+                <span class="mr-2 flex-shrink-0">${getStatusIcon(section.status)}</span>
+                <span class="mr-2 flex-shrink-0">${getTypeIcon(section.type)}</span>
+                <span class="section-title text-xs ${isSectionActive ? 'text-indigo-600 font-semibold' : section.status === 'current' ? 'text-blue-600' : section.status === 'done' ? 'text-gray-600' : section.status === 'not_started' ? 'text-gray-400' : 'text-gray-400'} truncate flex-1">${section.title}</span>
+                <span class="text-xs text-gray-300 flex-shrink-0 ml-1">${section.duration}</span>
+              </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+// 渲染右侧内容区
+function renderMainContent() {
+  const container = document.getElementById('mainContent');
+  const chapter = courseData.find(c => c.id === currentChapterId);
+  if (!chapter) return;
+
+  const chapterShortName = chapter.title.replace(/第[一二三四五六]章 /, '');
+  if (isViewingChapter) {
+    renderChapterView(container, chapter, chapterShortName);
+  } else {
+    renderSectionView(container, chapter, chapterShortName);
+  }
+}
+
+// 渲染主章节视图
+function renderChapterView(container, chapter, chapterShortName) {
+  const isQuizCompleted = chapter.quizCompleted;
+  const correctMap = {
+    '1. 数据分析的核心目标是什么？': 'B',
+    '2. 以下哪个不是数据分析工具？': 'C',
+    '1. 均值和中位数的主要区别？': 'B',
+    '2. 标准差越大说明什么？': 'B',
+    '3. 哪种图表适合展示分布？': 'C',
+    '1. p值小于显著性水平意味着？': 'B',
+    '2. 哪种场景适合 T 检验？': 'C',
+    '1. R²值的含义是什么？': 'B',
+    '2. 多重共线性如何检测？': 'B',
+    '3. 线性回归与逻辑回归的区别？': 'B',
+    '1. 决策树的分裂标准有哪些？': 'A',
+    '2. 随机森林如何防止过拟合？': 'B',
+    '3. KNN中K值如何选择？': 'C',
+    '4. 什么是准确率与召回率？': 'B',
+    '1. 数据清洗的关键步骤有哪些？': 'B',
+    '2. 如何选择合适的分析方法？': 'B',
+    '3. 数据可视化的原则是什么？': 'B',
+    '4. 如何评估分析结果的可靠性？': 'B'
+  };
+
+  // 主章节的幻灯片内容
+  const slideTitle = chapter.title;
+  const slideSubtitle = chapter.title.replace(/第[一二三四五六]章 /, '');
+  const slideContent = chapter.chapterDescription;
+  // 获取该章节的整体状态：已完成的定义是已完成测验
+  const chapterStatus = chapter.quizCompleted ? 'done' : 'not_started';
+
+  const html = `
+    <div class="fade-in flex flex-col" style="min-height: calc(100vh - 64px - 48px);">
+      <!-- 课程标题 -->
+      <div class="mb-4 flex-shrink-0">
+        <div class="flex items-center justify-between flex-wrap">
+          <div class="flex items-center space-x-3">
+            <div class="w-1 h-5 bg-blue-500 rounded"></div>
+            <h1 class="text-xl font-bold text-gray-800">《数据分析基础》</h1>
+            <span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded">#体系课</span>
+            <span class="text-gray-400">&gt;</span>
+            <span class="text-blue-600 font-medium">${chapterShortName}</span>
+          </div>
+          <button onclick="window.location.href='kechengqiantaixiangqingtixike.html'" class="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm transition-all">
+            <i class="fa fa-arrow-left mr-2"></i>返回首页
+          </button>
+        </div>
+        <p class="text-gray-500 text-sm mt-2 ml-4">当前正在学习：${chapter.title}</p>
+      </div>
+
+      <!-- 学习目标（按章节） -->
+      <div class="bg-white rounded-lg p-5 mb-5 shadow-sm flex-shrink-0">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center">
+            <i class="fa fa-check-square text-blue-500 mr-2"></i>
+            <span class="font-semibold text-gray-800">学习目标</span>
+            <span class="ml-2 text-xs text-gray-400">· ${chapter.title}</span>
+          </div>
+          <div class="flex items-center space-x-2 text-xs">
+            ${chapterStatus === 'done' ? '<span class="px-2 py-1 bg-green-50 text-green-600 rounded"><i class="fa fa-check mr-1"></i>已完成</span>' : ''}
+            ${chapterStatus === 'current' ? '<span class="px-2 py-1 bg-blue-50 text-blue-600 rounded"><i class="fa fa-circle-o-notch mr-1"></i>学习中</span>' : ''}
+            ${chapterStatus === 'not_started' ? '<span class="px-2 py-1 bg-gray-100 text-gray-500 rounded"><i class="fa fa-circle-o mr-1"></i>未开始</span>' : ''}
+          </div>
+        </div>
+        <ol class="text-gray-600 text-sm space-y-1 ml-6 list-decimal">
+          ${chapter.chapterObjectives.map(obj => `<li>${obj}</li>`).join('')}
+        </ol>
+      </div>
+
+      <!-- 双栏：左侧幻灯片 / 右侧测验 -->
+      <div class="grid grid-cols-3 gap-5 flex-1">
+
+        <!-- 左侧 -->
+        <div class="col-span-2 bg-white rounded-lg shadow-sm p-5 flex flex-col">
+          <!-- 黑色幻灯片区 -->
+          <div class="bg-slate-900 rounded-lg p-12 text-center text-white flex-1 flex flex-col justify-center">
+            <p class="text-sm text-gray-300 mb-4">${slideTitle}</p>
+            <h2 class="text-4xl font-bold my-10">${slideSubtitle}</h2>
+            <p class="text-gray-300 text-sm mt-12 px-8">${slideContent}</p>
+
+            <div class="flex items-center justify-center mt-16 text-sm">
+              <button class="text-pink-400 hover:text-pink-300"><i class="fa fa-thumb-tack mr-1"></i>插入标记</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧测验 -->
+        <div class="col-span-1 flex flex-col">
+          <div class="bg-white rounded-lg shadow-sm p-5 flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-3 flex-shrink-0">
+              <div class="flex items-center">
+                <span class="mr-2">📝</span>
+                <span class="font-semibold text-gray-800">测验</span>
+              </div>
+              ${isQuizCompleted ? `<span class="text-sm font-semibold text-orange-500"><i class="fa fa-star mr-1"></i>${chapter.quizScore} 分</span>` : '<span class="text-xs text-gray-400">未测验</span>'}
+            </div>
+
+            <div class="border-t pt-4 flex-1 flex flex-col">
+              <h3 class="font-medium text-gray-800 mb-1">${chapter.quizTitle}</h3>
+              <p class="text-xs text-gray-400 mb-4">共 ${chapter.quizQuestions.length} 题 · 来源：节点随堂测验</p>
+
+              <ul class="space-y-3 flex-1 overflow-y-auto" id="quizList">
+                ${chapter.quizQuestions.map((question, idx) => {
+                  const userAnswer = chapter.userAnswers?.find(a => a.qIdx === idx);
+                  if (question.type === '单选') {
+                    return `
+                      <li class="p-3 bg-gray-50 rounded-md text-sm" data-question-idx="${idx}">
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-gray-700 font-medium text-xs">${question.q}</span>
+                          <span class="px-2 py-0.5 bg-blue-50 text-blue-500 text-xs rounded flex-shrink-0 ml-2">${question.type}</span>
+                        </div>
+                        <div class="space-y-1.5">
+                          ${question.options.map(opt => {
+                            const optLetter = opt.charAt(0);
+                            let optClass = 'border-gray-100 text-gray-600';
+                            let dotClass = 'border-gray-300';
+                            if (isQuizCompleted && userAnswer) {
+                              if (optLetter === userAnswer.answer && optLetter === correctMap[question.q]) {
+                                optClass = 'border-green-300 bg-green-50 text-green-700';
+                                dotClass = 'bg-green-500 border-green-500';
+                              } else if (optLetter === userAnswer.answer && optLetter !== correctMap[question.q]) {
+                                optClass = 'border-red-300 bg-red-50 text-red-700';
+                                dotClass = 'bg-red-500 border-red-500';
+                              } else if (optLetter === correctMap[question.q] && optLetter !== userAnswer.answer) {
+                                optClass = 'border-green-300 bg-green-50 text-green-700';
+                                dotClass = 'bg-green-500 border-green-500';
+                              }
+                            }
+                            return `
+                              <div class="quiz-option flex items-center gap-2 p-2 border ${optClass} rounded text-xs ${isQuizCompleted ? 'cursor-default' : 'cursor-pointer'}" data-question-idx="${idx}" data-option="${optLetter}">
+                                <span class="w-4 h-4 rounded-full border-2 ${dotClass} flex-shrink-0"></span>
+                                <span>${opt}</span>
+                                ${isQuizCompleted && userAnswer && optLetter === userAnswer.answer && !userAnswer.correct ? '<span class="ml-auto text-red-500 text-xs">（你的选择）</span>' : ''}
+                                ${isQuizCompleted && optLetter === correctMap[question.q] ? '<span class="ml-auto text-green-500 text-xs">（正确答案）</span>' : ''}
+                              </div>
+                            `;
+                          }).join('')}
+                        </div>
+                      </li>
+                    `;
+                  } else if (question.type === '简答') {
+                    return `
+                      <li class="p-3 bg-gray-50 rounded-md text-sm" data-question-idx="${idx}">
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-gray-700 font-medium text-xs">${question.q}</span>
+                          <span class="px-2 py-0.5 bg-green-50 text-green-600 text-xs rounded flex-shrink-0 ml-2">${question.type}</span>
+                        </div>
+                        ${isQuizCompleted && userAnswer ? `<div class="p-2 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-pre-wrap">${userAnswer.answer}</div>` : '<textarea class="w-full p-2 border border-gray-200 rounded text-xs text-gray-600 resize-none" rows="3" placeholder="请输入答案..." data-question-idx="${idx}"></textarea>'}
+                      </li>
+                    `;
+                  }
+                  return '';
+                }).join('')}
+              </ul>
+
+              <div class="mt-4 flex gap-2 flex-shrink-0">
+                ${isQuizCompleted ? `
+                  <button class="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-md font-medium transition-colors text-sm">重新答题</button>
+                  <button class="flex-1 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-colors text-sm">查看</button>
+                ` : `
+                  <button class="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-colors" id="submitQuiz">提交</button>
+                `}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+  container.innerHTML = html;
+
+  // 绑定选项点击事件（仅未完成时）
+  if (!isQuizCompleted) {
+    document.querySelectorAll('.quiz-option').forEach(option => {
+      option.addEventListener('click', function() {
+        const questionIdx = this.getAttribute('data-question-idx');
+        const selectedOpt = this.getAttribute('data-option');
+        
+        // 清除同题其他选项的选中状态
+        document.querySelectorAll(`.quiz-option[data-question-idx="${questionIdx}"]`).forEach(opt => {
+          opt.classList.remove('selected');
+          const dot = opt.querySelector('span:first-child');
+          if (dot) {
+            dot.classList.remove('border-indigo-500', 'bg-indigo-500');
+            dot.style.backgroundImage = '';
+          }
+        });
+        
+        // 标记当前选项
+        this.classList.add('selected');
+        const currentDot = this.querySelector('span:first-child');
+        if (currentDot) {
+          currentDot.classList.remove('border-gray-300');
+          currentDot.classList.add('border-indigo-500', 'bg-indigo-500');
+          currentDot.style.backgroundImage = 'radial-gradient(circle, #fff 30%, transparent 30%)';
+        }
+      });
+    });
+  }
+}
+
+// 点击主章节：切换主章节视图和子章节视图
+function selectChapter(id) {
+  if (id === currentChapterId) {
+    // 同一章节，切换是否查看主章节内容
+    isViewingChapter = !isViewingChapter;
+  } else {
+    // 不同章节，切换到该章节，默认查看子章节
+    currentChapterId = id;
+    isViewingChapter = true;
+    const chapter = courseData.find(c => c.id === id);
+    if (chapter && chapter.sections.length > 0) {
+      currentSectionId = chapter.sections[0].id;
+    }
+  }
+  renderChapterList();
+  renderMainContent();
+}
+
+
+// 渲染小节视图
+function renderSectionView(container, chapter, chapterShortName) {
+  const section = chapter.sections.find(s => s.id === currentSectionId) || chapter.sections[0];
+  const isQuizCompleted = chapter.quizCompleted;
+  const correctMap = {
+    '1. 数据分析的核心目标是什么？': 'B',
+    '2. 以下哪个不是数据分析工具？': 'C',
+    '1. 均值和中位数的主要区别？': 'B',
+    '2. 标准差越大说明什么？': 'B',
+    '3. 哪种图表适合展示分布？': 'C',
+    '1. p值小于显著性水平意味着？': 'B',
+    '2. 哪种场景适合 T 检验？': 'C',
+    '1. R²值的含义是什么？': 'B',
+    '2. 多重共线性如何检测？': 'B',
+    '3. 线性回归与逻辑回归的区别？': 'B',
+    '1. 决策树的分裂标准有哪些？': 'A',
+    '2. 随机森林如何防止过拟合？': 'B',
+    '3. KNN中K值如何选择？': 'C',
+    '4. 什么是准确率与召回率？': 'B',
+    '1. 数据清洗的关键步骤有哪些？': 'B',
+    '2. 如何选择合适的分析方法？': 'B',
+    '3. 数据可视化的原则是什么？': 'B',
+    '4. 如何评估分析结果的可靠性？': 'B'
+  };
+
+  const html = `
+    <div class="fade-in flex flex-col" style="min-height: calc(100vh - 64px - 48px);">
+      <!-- 课程标题 -->
+      <div class="mb-4 flex-shrink-0">
+        <div class="flex items-center justify-between flex-wrap">
+          <div class="flex items-center space-x-3">
+            <div class="w-1 h-5 bg-blue-500 rounded"></div>
+            <h1 class="text-xl font-bold text-gray-800">《数据分析基础》</h1>
+            <span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs rounded">#体系课</span>
+            <span class="text-gray-400">&gt;</span>
+            <span class="text-gray-600">${chapterShortName}</span>
+            <span class="text-gray-400">&gt;</span>
+            <span class="text-blue-600 font-medium">${section.title}</span>
+          </div>
+          <button onclick="window.location.href='kechengqiantaixiangqingtixike.html'" class="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm transition-all">
+            <i class="fa fa-arrow-left mr-2"></i>返回首页
+          </button>
+        </div>
+        <p class="text-gray-500 text-sm mt-2 ml-4">当前正在学习：${section.title}（${section.duration}）</p>
+      </div>
+
+      <!-- 学习目标（按小节） -->
+      <div class="bg-white rounded-lg p-5 mb-5 shadow-sm flex-shrink-0">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center">
+            <i class="fa fa-check-square text-blue-500 mr-2"></i>
+            <span class="font-semibold text-gray-800">学习目标</span>
+            <span class="ml-2 text-xs text-gray-400">· ${section.title}</span>
+          </div>
+          <div class="flex items-center space-x-2 text-xs">
+            ${section.status === 'done' ? '<span class="px-2 py-1 bg-green-50 text-green-600 rounded"><i class="fa fa-check mr-1"></i>已完成</span>' : ''}
+            ${section.status === 'current' ? '<span class="px-2 py-1 bg-blue-50 text-blue-600 rounded"><i class="fa fa-circle-o-notch mr-1"></i>学习中</span>' : ''}
+            ${section.status === 'not_started' ? '<span class="px-2 py-1 bg-gray-100 text-gray-500 rounded"><i class="fa fa-circle-o mr-1"></i>未开始</span>' : ''}
+          </div>
+        </div>
+        <ol class="text-gray-600 text-sm space-y-1 ml-6 list-decimal">
+          ${section.objectives.map(obj => `<li>${obj}</li>`).join('')}
+        </ol>
+      </div>
+
+      <!-- 双栏：左侧幻灯片 / 右侧测验 -->
+      <div class="grid grid-cols-3 gap-5 flex-1">
+
+        <!-- 左侧 -->
+        <div class="col-span-2 bg-white rounded-lg shadow-sm p-5 flex flex-col">
+          <!-- 黑色幻灯片区 -->
+          <div class="bg-slate-900 rounded-lg p-12 text-center text-white flex-1 flex flex-col justify-center">
+            <p class="text-sm text-gray-300 mb-4">${section.slideTitle}</p>
+            <h2 class="text-4xl font-bold my-10">${section.slideSubtitle}</h2>
+            <p class="text-gray-300 text-sm mt-12 px-8">${section.slideContent}</p>
+
+            <div class="flex items-center justify-center mt-16 text-sm">
+              <button class="text-pink-400 hover:text-pink-300"><i class="fa fa-thumb-tack mr-1"></i>插入标记</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧测验 -->
+        <div class="col-span-1 flex flex-col">
+          <div class="bg-white rounded-lg shadow-sm p-5 flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-3 flex-shrink-0">
+              <div class="flex items-center">
+                <span class="mr-2">📝</span>
+                <span class="font-semibold text-gray-800">测验</span>
+              </div>
+              ${isQuizCompleted ? `<span class="text-sm font-semibold text-orange-500"><i class="fa fa-star mr-1"></i>${chapter.quizScore} 分</span>` : '<span class="text-xs text-gray-400">未测验</span>'}
+            </div>
+
+            <div class="border-t pt-4 flex-1 flex flex-col">
+              <h3 class="font-medium text-gray-800 mb-1">${chapter.quizTitle}</h3>
+              <p class="text-xs text-gray-400 mb-4">共 ${chapter.quizQuestions.length} 题 · 来源：节点随堂测验</p>
+
+              <ul class="space-y-3 flex-1 overflow-y-auto" id="quizList">
+                ${chapter.quizQuestions.map((question, idx) => {
+                  const userAnswer = chapter.userAnswers?.find(a => a.qIdx === idx);
+                  if (question.type === '单选') {
+                    return `
+                      <li class="p-3 bg-gray-50 rounded-md text-sm" data-question-idx="${idx}">
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-gray-700 font-medium text-xs">${question.q}</span>
+                          <span class="px-2 py-0.5 bg-blue-50 text-blue-500 text-xs rounded flex-shrink-0 ml-2">${question.type}</span>
+                        </div>
+                        <div class="space-y-1.5">
+                          ${question.options.map(opt => {
+                            const optLetter = opt.charAt(0);
+                            let optClass = 'border-gray-100 text-gray-600';
+                            let dotClass = 'border-gray-300';
+                            if (isQuizCompleted && userAnswer) {
+                              if (optLetter === userAnswer.answer && optLetter === correctMap[question.q]) {
+                                optClass = 'border-green-300 bg-green-50 text-green-700';
+                                dotClass = 'bg-green-500 border-green-500';
+                              } else if (optLetter === userAnswer.answer && optLetter !== correctMap[question.q]) {
+                                optClass = 'border-red-300 bg-red-50 text-red-700';
+                                dotClass = 'bg-red-500 border-red-500';
+                              } else if (optLetter === correctMap[question.q] && optLetter !== userAnswer.answer) {
+                                optClass = 'border-green-300 bg-green-50 text-green-700';
+                                dotClass = 'bg-green-500 border-green-500';
+                              }
+                            }
+                            return `
+                              <div class="quiz-option flex items-center gap-2 p-2 border ${optClass} rounded text-xs ${isQuizCompleted ? 'cursor-default' : 'cursor-pointer'}" data-question-idx="${idx}" data-option="${optLetter}">
+                                <span class="w-4 h-4 rounded-full border-2 ${dotClass} flex-shrink-0"></span>
+                                <span>${opt}</span>
+                                ${isQuizCompleted && userAnswer && optLetter === userAnswer.answer && !userAnswer.correct ? '<span class="ml-auto text-red-500 text-xs">（你的选择）</span>' : ''}
+                                ${isQuizCompleted && optLetter === correctMap[question.q] ? '<span class="ml-auto text-green-500 text-xs">（正确答案）</span>' : ''}
+                              </div>
+                            `;
+                          }).join('')}
+                        </div>
+                      </li>
+                    `;
+                  } else if (question.type === '简答') {
+                    return `
+                      <li class="p-3 bg-gray-50 rounded-md text-sm" data-question-idx="${idx}">
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-gray-700 font-medium text-xs">${question.q}</span>
+                          <span class="px-2 py-0.5 bg-green-50 text-green-600 text-xs rounded flex-shrink-0 ml-2">${question.type}</span>
+                        </div>
+                        ${isQuizCompleted && userAnswer ? `<div class="p-2 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-pre-wrap">${userAnswer.answer}</div>` : '<textarea class="w-full p-2 border border-gray-200 rounded text-xs text-gray-600 resize-none" rows="3" placeholder="请输入答案..." data-question-idx="${idx}"></textarea>'}
+                      </li>
+                    `;
+                  }
+                  return '';
+                }).join('')}
+              </ul>
+
+              <div class="mt-4 flex gap-2 flex-shrink-0">
+                ${isQuizCompleted ? `
+                  <button class="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-md font-medium transition-colors text-sm">重新答题</button>
+                  <button class="flex-1 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-colors text-sm">查看</button>
+                ` : `
+                  <button class="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-colors" id="submitQuiz">提交</button>
+                `}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+  container.innerHTML = html;
+
+  // 绑定选项点击事件（仅未完成时）
+  if (!isQuizCompleted) {
+    document.querySelectorAll('.quiz-option').forEach(option => {
+      option.addEventListener('click', function() {
+        const questionIdx = this.getAttribute('data-question-idx');
+        const selectedOpt = this.getAttribute('data-option');
+        
+        // 清除同题其他选项的选中状态
+        document.querySelectorAll(`.quiz-option[data-question-idx="${questionIdx}"]`).forEach(opt => {
+          opt.classList.remove('selected');
+          const dot = opt.querySelector('span:first-child');
+          if (dot) {
+            dot.classList.remove('border-indigo-500', 'bg-indigo-500');
+            dot.style.backgroundImage = '';
+          }
+        });
+        
+        // 标记当前选项
+        this.classList.add('selected');
+        const currentDot = this.querySelector('span:first-child');
+        if (currentDot) {
+          currentDot.classList.remove('border-gray-300');
+          currentDot.classList.add('border-indigo-500', 'bg-indigo-500');
+          currentDot.style.backgroundImage = 'radial-gradient(circle, #fff 30%, transparent 30%)';
+        }
+      });
+    });
+  }
+}
+
+// 点击小节：切换当前小节
+function selectSection(chapterId, sectionId, event) {
+  if (event) event.stopPropagation();
+  currentChapterId = chapterId;
+  currentSectionId = sectionId;
+  isViewingChapter = false; // 选中子章节时设置为子章节视图
+  renderChapterList();
+  renderMainContent();
+}
+
+// 获取所有小节的扁平列表
+function getFlatSectionList() {
+  const list = [];
+  courseData.forEach(chapter => {
+    chapter.sections.forEach(section => {
+      list.push({ chapterId: chapter.id, sectionId: section.id });
+    });
+  });
+  return list;
+}
+
+// 上一节
+function prevSection() {
+  const list = getFlatSectionList();
+  const idx = list.findIndex(i => i.chapterId === currentChapterId && i.sectionId === currentSectionId);
+  if (idx > 0) {
+    const prev = list[idx - 1];
+    selectSection(prev.chapterId, prev.sectionId);
+  }
+}
+
+// 下一节
+function nextSection() {
+  const list = getFlatSectionList();
+  const idx = list.findIndex(i => i.chapterId === currentChapterId && i.sectionId === currentSectionId);
+  if (idx < list.length - 1 && idx !== -1) {
+    const next = list[idx + 1];
+    selectSection(next.chapterId, next.sectionId);
+  }
+}
+
+// 更新顶部时间
+function updateDateTime() {
+  const now = new Date();
+  const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const weekDay = weekDays[now.getDay()];
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const el = document.getElementById('headerDateTime');
+  if (el) {
+    el.textContent = `${year}年${month}月${day}日 ${weekDay} ${hours}:${minutes}:${seconds}`;
+  }
+}
+updateDateTime();
+setInterval(updateDateTime, 1000);
+
+// 初始化渲染
+renderChapterList();
+renderMainContent();
+</script>
+
+<!-- ========== HTML 备注工具 v3.0 开始 ========== -->
+<script type="application/json" id="annotation-tool-data">{
+  "annotations": [],
+  "meta": {
+    "savedAt": "2026-05-15T01:57:45.097Z",
+    "savedAtLocal": "2026/5/15 09:57:45",
+    "version": "3.0"
+  }
+}</script>
+<script data-annotation-tool="true">
+(function(){
+'use strict';
+var LOG='[备注工具]';console.log(LOG,'v3.0 加载');
+var SID='annotation-tool-data',TKEY='annotation-tool-toolbar-pos',LKEY='annotation-tool-manual-layer',VER='3.0';
+var annotations=[],metaInfo={},enabled=false,nextId=1;
+var dragState=null,toolbarDrag=null,suppressNextClick=false,initDone=false;
+var originalHTMLSnapshot='',lastHidden=[];
+var manualLayer=null,fileHandle=null,autoSaveTimer=null,lastSaveTime=0;
+
+/* ========== 存储 Key ========== */
+function hashStr(s){var h=5381;for(var i=0;i<s.length;i++)h=((h*33)^s.charCodeAt(i))>>>0;return h.toString(36);}
+function getStorageKey(){
+    var path=location.pathname||'inline';
+    var fp=hashStr((document.title||'')+(document.body?(document.body.innerText||'').slice(0,500):''));
+    return 'ann-data::'+path+'::'+fp;
+}
+
+/* ========== 数据加载（智能合并） ========== */
+function loadData(){
+    var embedded={annotations:[],meta:{}},local={annotations:[],meta:{}};
+    /* 1. 内嵌 JSON */
+    var s=document.getElementById(SID);
+    if(s){try{
+        var r=JSON.parse((s.textContent||'').trim()||'{}');
+        if(Array.isArray(r))embedded.annotations=r;
+        else{embedded.annotations=r.annotations||[];embedded.meta=r.meta||{};}
+    }catch(e){console.warn(LOG,'内嵌解析失败',e);}}
+    /* 2. localStorage */
+    try{
+        var ls=localStorage.getItem(getStorageKey());
+        if(ls){var d=JSON.parse(ls);local.annotations=d.annotations||[];local.meta=d.meta||{};}
+    }catch(e){}
+    /* 3. 智能合并：取时间戳新者；按 id 合并 */
+    var emTime=new Date(embedded.meta.savedAt||0).getTime();
+    var lcTime=new Date(local.meta.savedAt||0).getTime();
+    if(local.annotations.length===0)annotations=embedded.annotations;
+    else if(embedded.annotations.length===0)annotations=local.annotations;
+    else if(lcTime>=emTime){annotations=local.annotations;console.log(LOG,'采用 localStorage（更新）');}
+    else{annotations=embedded.annotations;console.log(LOG,'采用内嵌 JSON（更新）');}
+    metaInfo=lcTime>=emTime?local.meta:embedded.meta;
+    /* 兼容字段 */
+    if(annotations.length)nextId=Math.max.apply(null,annotations.map(function(a){return a.id;}))+1;
+    annotations.forEach(function(a){
+        if(!a.scope)a.scope={layer:'page',layerKey:''};
+        if(!a.scope.layerKey)a.scope.layerKey=a.scope.layer==='page'?'':'legacy';
+    });
+    console.log(LOG,'已加载',annotations.length,'条');
+}
+
+/* ========== 自动保存（500ms 防抖） ========== */
+function autoSave(){
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer=setTimeout(function(){
+        var data={annotations:annotations,meta:{savedAt:new Date().toISOString(),savedAtLocal:new Date().toLocaleString(),version:VER}};
+        try{localStorage.setItem(getStorageKey(),JSON.stringify(data));lastSaveTime=Date.now();showSaveStatus('✓ 已自动保存');}
+        catch(e){console.error(LOG,'localStorage 失败',e);showSaveStatus('⚠ 保存失败');}
+        if(fileHandle)writeToFile();
+        else maybeHintBind();
+    },500);
+}
+function showSaveStatus(msg){
+    var el=document.getElementById('ann-save-status');if(!el)return;
+    el.textContent=msg;el.style.opacity='1';
+    clearTimeout(showSaveStatus._t);
+    showSaveStatus._t=setTimeout(function(){el.style.opacity='0.4';},2500);
+}
+var bindHinted=false;
+function maybeHintBind(){
+    if(bindHinted||!supportsFS())return;
+    if(annotations.length<2)return;
+    bindHinted=true;
+    showHint('💡 已自动保存到本机。点击 📎 可绑定文件，让备注永久写入 HTML',5000);
+}
+
+/* ========== 文件系统 API ========== */
+function supportsFS(){return 'showOpenFilePicker' in window;}
+function bindFile(){
+    if(!supportsFS()){alert('当前浏览器不支持文件直写功能\n请使用 Chrome / Edge 88+ 浏览器');return;}
+    (async function(){
+        try{
+            var [h]=await window.showOpenFilePicker({types:[{description:'HTML',accept:{'text/html':['.html','.htm']}}]});
+            var p=await h.requestPermission({mode:'readwrite'});
+            if(p!=='granted'){alert('未获得读写权限');return;}
+            fileHandle=h;await saveHandleToIDB(h);
+            showHint('✅ 已绑定：'+h.name+'\n之后所有修改将自动写回此文件',3500);
+            updateBindBtn();await writeToFile();
+        }catch(e){if(e.name!=='AbortError')alert('绑定失败：'+e.message);}
+    })();
+}
+function unbindFile(){
+    if(!confirm('解除文件绑定？\n之后修改仅保存到本地浏览器。'))return;
+    fileHandle=null;clearHandleFromIDB();updateBindBtn();showHint('已解除绑定');
+}
+function writeToFile(){
+    if(!fileHandle)return;
+    return (async function(){
+        try{
+            var f=await fileHandle.getFile();var html=await f.text();
+            var json=JSON.stringify({annotations:annotations,meta:{savedAt:new Date().toISOString(),savedAtLocal:new Date().toLocaleString(),version:VER}},null,2);
+            var reg=/<script[^>]*id=["']annotation-tool-data["'][^>]*>[\s\S]*?<\/script>/i;
+            var tag='<script type="application/json" id="annotation-tool-data">'+json+'<\/script>';
+            html=reg.test(html)?html.replace(reg,tag):html.replace(/<\/body>/i,tag+'\n</body>');
+            var w=await fileHandle.createWritable();await w.write(html);await w.close();
+            showSaveStatus('✓ 已写入文件 '+new Date().toLocaleTimeString().slice(0,5));
+        }catch(e){console.error(LOG,'写文件失败',e);showSaveStatus('⚠ 写文件失败');}
+    })();
+}
+function openIDB(){return new Promise(function(res,rej){var r=indexedDB.open('ann-tool',1);r.onupgradeneeded=function(){r.result.createObjectStore('handles');};r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
+async function saveHandleToIDB(h){try{var db=await openIDB();db.transaction('handles','readwrite').objectStore('handles').put(h,location.pathname);}catch(e){}}
+async function loadHandleFromIDB(){try{var db=await openIDB();return await new Promise(function(res){var rq=db.transaction('handles','readonly').objectStore('handles').get(location.pathname);rq.onsuccess=function(){res(rq.result);};rq.onerror=function(){res(null);};});}catch(e){return null;}}
+async function clearHandleFromIDB(){try{var db=await openIDB();db.transaction('handles','readwrite').objectStore('handles').delete(location.pathname);}catch(e){}}
+async function tryRestoreHandle(){
+    if(!supportsFS())return;
+    var h=await loadHandleFromIDB();if(!h)return;
+    try{
+        var p=await h.queryPermission({mode:'readwrite'});
+        if(p==='granted'){fileHandle=h;updateBindBtn();showSaveStatus('✓ 已恢复绑定：'+h.name);console.log(LOG,'恢复文件绑定：',h.name);}
+        else if(p==='prompt'){showRestorePrompt(h);}
+    }catch(e){}
+}
+function showRestorePrompt(h){
+    var bar=document.createElement('div');bar.className='ann-restore';
+    bar.innerHTML='<span>📎 检测到曾绑定文件 <b>'+h.name+'</b>，恢复绑定？</span><button class="ok">恢复</button><button class="no">忽略</button>';
+    document.body.appendChild(bar);
+    bar.querySelector('.ok').onclick=async function(){
+        try{var p=await h.requestPermission({mode:'readwrite'});if(p==='granted'){fileHandle=h;updateBindBtn();showHint('✅ 恢复成功');bar.remove();}else alert('未授权');}
+        catch(e){alert(e.message);}
+    };
+    bar.querySelector('.no').onclick=function(){bar.remove();};
+}
+function updateBindBtn(){
+    var btn=document.getElementById('ann-bind');if(!btn)return;
+    if(fileHandle){btn.textContent='📎 已绑定';btn.classList.add('bound');btn.title='已绑定：'+fileHandle.name+'（点击解绑）';}
+    else{btn.textContent='📎 绑定';btn.classList.remove('bound');btn.title='绑定 HTML 文件，自动写回（Chrome/Edge）';}
+}
+
+/* ========== 工具/通用 ========== */
+function cssEscape(s){return (window.CSS&&CSS.escape)?CSS.escape(s):String(s).replace(/([^\w-])/g,'\\$1');}
+function isToolEl(n){if(!n||n.nodeType!==1)return false;var c=n.className;if(typeof c!=='string')c=(c&&c.baseVal)||'';return /\bann-/.test(c)||(n.id&&/^ann-/.test(n.id));}
+function isVisible(el){if(!el)return false;var s=window.getComputedStyle(el);if(s.display==='none'||s.visibility==='hidden'||parseFloat(s.opacity||'1')===0)return false;var r=el.getBoundingClientRect();return r.width>0&&r.height>0;}
+function txt(el,n){if(!el)return '';var t=(el.innerText||el.textContent||'').replace(/\s+/g,' ').trim();return n?t.slice(0,n):t;}
+
+/* ========== 弹窗检测 ========== */
+var MODAL_EXPLICIT='[role="dialog"],[role="alertdialog"],[aria-modal="true"]';
+var MODAL_FUZZY='[class*="modal" i],[class*="dialog" i],[class*="drawer" i],[class*="popup" i],[class*="layer" i],[class*="sheet" i],[class*="overlay" i],[class*="lightbox" i],[id*="modal" i],[id*="dialog" i],[id*="popup" i]';
+function detectLayers(){
+    var layers=[],seen=[];
+    try{
+        var all=[],ex=document.querySelectorAll(MODAL_EXPLICIT),fz=document.querySelectorAll(MODAL_FUZZY);
+        for(var i=0;i<ex.length;i++)all.push(ex[i]);
+        for(var i=0;i<fz.length;i++)all.push(fz[i]);
+        var fixedNodes=document.querySelectorAll('div,section,aside,form');
+        for(var i=0;i<fixedNodes.length;i++){
+            var s=window.getComputedStyle(fixedNodes[i]);if(s.position!=='fixed')continue;
+            var r=fixedNodes[i].getBoundingClientRect();if(r.width<200||r.height<100)continue;
+            if(r.width*r.height<window.innerWidth*window.innerHeight*0.08)continue;
+            all.push(fixedNodes[i]);
+        }
+        for(var i=0;i<all.length;i++){
+            var n=all[i];if(!n||isToolEl(n)||!isVisible(n))continue;if(seen.indexOf(n)>=0)continue;
+            var r=n.getBoundingClientRect();if(r.width<150||r.height<80)continue;
+            var cls=typeof n.className==='string'?n.className:'';if(/^(ann-|\s)/.test(cls))continue;
+            if(/(^|\s)(mask|backdrop|modal-mask|dialog-mask|ant-modal-mask|el-overlay|modal-backdrop)(\s|$)/i.test(cls)&&txt(n,10).length===0)continue;
+            var skip=false;
+            for(var j=0;j<seen.length;j++){
+                if(seen[j].contains(n)){seen.splice(j,1);layers.splice(j,1);j--;}
+                else if(n.contains(seen[j])){skip=true;break;}
+            }
+            if(skip)continue;
+            seen.push(n);layers.push({el:n,z:parseInt(window.getComputedStyle(n).zIndex)||0,key:layerKey(n)});
+        }
+    }catch(e){}
+    layers.sort(function(a,b){return a.z-b.z;});return layers;
+}
+function layerKey(el){
+    if(!el)return '';
+    if(el.dataset&&el.dataset.annLayerKey)return el.dataset.annLayerKey;
+    if(el.id)return 'id:'+el.id;
+    var cls=(typeof el.className==='string'?el.className:'').slice(0,50),title='';
+    try{var t=el.querySelector('[class*="title" i],[class*="header" i],[role="heading"],h1,h2,h3');if(t)title=txt(t,60);}catch(e){}
+    var key='lk:'+hashStr(cls+'|'+title+'|'+txt(el,150));
+    try{el.dataset.annLayerKey=key;}catch(e){}
+    return key;
+}
+function layerTitle(el){try{var t=el.querySelector('[class*="title" i],[class*="header" i],[role="heading"],h1,h2,h3');if(t&&txt(t,40))return txt(t,40);}catch(e){}return txt(el,30)||'未命名图层';}
+function getActiveScope(){
+    var stack=detectLayers();
+    if(manualLayer==='page')return {layer:'page',layerKey:'',depth:0,el:null,name:'主页（手动）'};
+    if(manualLayer&&manualLayer.indexOf('layer:')===0){
+        var t=manualLayer.slice(6);
+        for(var i=0;i<stack.length;i++)if(stack[i].key===t)return {layer:'modal',layerKey:t,depth:i+1,el:stack[i].el,name:'图层 L'+(i+1)+'（手动）'};
+        manualLayer=null;try{localStorage.removeItem(LKEY);}catch(e){}
+    }
+    if(!stack.length)return {layer:'page',layerKey:'',depth:0,el:null,name:'主页'};
+    var top=stack[stack.length-1];
+    return {layer:'modal',layerKey:top.key,depth:stack.length,el:top.el,name:'图层 L'+stack.length+'：'+layerTitle(top.el)};
+}
+function detectScopeAt(anchorEl){
+    var stack=detectLayers();
+    if(!stack.length||!anchorEl)return {layer:'page',layerKey:'',depth:0,el:null};
+    for(var i=stack.length-1;i>=0;i--)if(stack[i].el.contains(anchorEl))return {layer:'modal',layerKey:stack[i].key,depth:i+1,el:stack[i].el};
+    return {layer:'page',layerKey:'',depth:0,el:null};
+}
+
+/* ========== 锚定 ========== */
+function isAnchor(n){if(!n||n===document.body||n===document.documentElement||isToolEl(n))return false;var s=window.getComputedStyle(n);if(s.position==='fixed')return true;if(n.matches&&n.matches(MODAL_EXPLICIT))return true;if(n.id){var r=n.getBoundingClientRect();if(r.width>=300&&r.height>=150)return true;}return false;}
+function findAnchor(el){while(el&&el!==document.body){if(isAnchor(el))return el;el=el.parentElement;}return document.body;}
+function buildSelector(el){
+    if(!el||el===document.body)return 'body';if(el.id)return '#'+cssEscape(el.id);
+    var parts=[],n=el;
+    while(n&&n!==document.body&&parts.length<6){
+        var t=n.tagName.toLowerCase();
+        if(n.id){parts.unshift('#'+cssEscape(n.id));break;}
+        var p=n.parentElement;
+        if(p){var sb=Array.prototype.filter.call(p.children,function(c){return c.tagName===n.tagName;});if(sb.length>1)t+=':nth-of-type('+(sb.indexOf(n)+1)+')';}
+        parts.unshift(t);n=n.parentElement;
+    }
+    return parts.join('>')||'body';
+}
+function resolveAnchor(sel){if(!sel||sel==='body')return document.body;try{return document.querySelector(sel)||document.body;}catch(e){return document.body;}}
+function ensurePositioned(c){if(c===document.body)return;if(window.getComputedStyle(c).position==='static')c.style.position='relative';}
+function locateAt(cx,cy,px,py){
+    var stack=document.elementsFromPoint?document.elementsFromPoint(cx,cy):[document.elementFromPoint(cx,cy)];
+    var el=null;for(var i=0;i<stack.length;i++){if(stack[i]&&!isToolEl(stack[i])){el=stack[i];break;}}
+    var c=findAnchor(el||document.body),sel=buildSelector(c),rx,ry;
+    if(c===document.body){rx=px;ry=py;}else{var r=c.getBoundingClientRect();rx=cx-r.left+(c.scrollLeft||0);ry=cy-r.top+(c.scrollTop||0);}
+    return {container:c,selector:sel,relX:rx,relY:ry,elementAtPoint:el};
+}
+
+/* ========== 样式 ========== */
+function injectStyle(){
+    if(document.getElementById('annotation-tool-style'))return;
+    var css=[
+    '.ann-toolbar{position:fixed!important;z-index:2147483646!important;background:#fff!important;border-radius:28px!important;box-shadow:0 4px 16px rgba(0,0,0,.18)!important;padding:8px!important;display:flex!important;gap:6px!important;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif!important;align-items:center!important;margin:0!important;user-select:none!important;flex-wrap:nowrap!important;}',
+    '.ann-toolbar.dragging{opacity:.85!important;}',
+    '.ann-drag-handle{width:20px!important;height:28px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:move!important;color:#9ca3af!important;font-weight:bold!important;border-radius:14px!important;flex-shrink:0!important;}',
+    '.ann-drag-handle:hover{background:#f3f4f6!important;}',
+    '.ann-btn{padding:8px 12px!important;border:none!important;border-radius:20px!important;cursor:pointer!important;font-size:13px!important;background:#f5f7fa!important;color:#374151!important;white-space:nowrap!important;line-height:1!important;}',
+    '.ann-btn:hover{background:#e5e7eb!important;}',
+    '.ann-btn.active{background:#3b82f6!important;color:#fff!important;}',
+    '.ann-btn.export{background:#e0f2fe!important;color:#0369a1!important;}',
+    '.ann-btn.export:hover{background:#bae6fd!important;}',
+    '.ann-btn.bound{background:#10b981!important;color:#fff!important;}',
+    '.ann-btn.bound:hover{background:#059669!important;}',
+    '.ann-layer{font-size:12px!important;color:#374151!important;background:#fef3c7!important;padding:6px 10px!important;border-radius:14px!important;cursor:pointer!important;max-width:160px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}',
+    '.ann-layer:hover{background:#fde68a!important;}',
+    '.ann-layer.page{background:#dbeafe!important;color:#1d4ed8!important;}',
+    '.ann-count{font-size:12px!important;color:#6b7280!important;padding:4px 10px!important;cursor:pointer!important;border-radius:12px!important;background:#f5f7fa!important;}',
+    '.ann-count:hover{background:#e5e7eb!important;}',
+    '.ann-count.has-hidden{color:#b45309!important;background:#fef3c7!important;font-weight:bold!important;}',
+    '.ann-save-status{font-size:11px!important;color:#10b981!important;padding:0 6px!important;transition:opacity .3s!important;min-width:80px!important;text-align:center!important;}',
+    '.ann-badge{position:absolute!important;min-width:26px!important;height:26px!important;padding:0 4px!important;border-radius:13px!important;background:#ef4444!important;color:#fff!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:12px!important;font-weight:bold!important;cursor:grab!important;z-index:2147483640!important;box-shadow:0 2px 8px rgba(239,68,68,.45)!important;user-select:none!important;font-family:-apple-system,sans-serif!important;border:2px solid #fff!important;box-sizing:border-box!important;line-height:1!important;}',
+    '.ann-badge.modal{background:#f59e0b!important;box-shadow:0 2px 8px rgba(245,158,11,.45)!important;}',
+    '.ann-badge.dragging{opacity:.6!important;}',
+    'body.ann-on{cursor:crosshair!important;}',
+    '.ann-popup{position:fixed!important;background:#fff!important;border-radius:8px!important;box-shadow:0 8px 24px rgba(0,0,0,.18)!important;padding:12px!important;width:380px!important;max-width:90vw!important;z-index:2147483645!important;font-family:-apple-system,sans-serif!important;font-size:13px!important;box-sizing:border-box!important;}',
+    '.ann-popup textarea{width:100%!important;min-height:90px!important;padding:8px!important;border:1px solid #e5e7eb!important;border-radius:4px!important;font-size:13px!important;box-sizing:border-box!important;resize:vertical!important;font-family:inherit!important;color:#111!important;background:#fff!important;}',
+    '.ann-popup textarea:focus{outline:none!important;border-color:#3b82f6!important;}',
+    '.ann-popup-row{display:flex!important;justify-content:flex-end!important;gap:6px!important;margin-top:8px!important;}',
+    '.ann-popup button{padding:5px 14px!important;border:none!important;border-radius:4px!important;cursor:pointer!important;font-size:12px!important;}',
+    '.ann-popup .pb-cancel{background:#f3f4f6!important;color:#374151!important;}',
+    '.ann-popup .pb-ok{background:#3b82f6!important;color:#fff!important;}',
+    '.ann-popup .pb-del{background:#fee2e2!important;color:#dc2626!important;margin-right:auto!important;}',
+    '.ann-popup .pb-edit{background:#eef2ff!important;color:#4f46e5!important;}',
+    '.ann-meta{font-size:11px!important;color:#9ca3af!important;margin-bottom:6px!important;line-height:1.6!important;}',
+    '.ann-tag{display:inline-block!important;padding:2px 8px!important;border-radius:10px!important;margin:2px 4px 2px 0!important;font-size:11px!important;max-width:260px!important;overflow:hidden!important;text-overflow:ellipsis!important;vertical-align:middle!important;white-space:nowrap!important;}',
+    '.ann-tag.page{background:#dbeafe!important;color:#1d4ed8!important;}',
+    '.ann-tag.modal{background:#fef3c7!important;color:#b45309!important;}',
+    '.ann-tag.loc{background:#ecfdf5!important;color:#047857!important;}',
+    '.ann-view{white-space:pre-wrap!important;word-break:break-word!important;margin:6px 0 8px!important;color:#374151!important;line-height:1.55!important;max-height:220px!important;overflow:auto!important;}',
+    '.ann-layer-list{max-height:300px!important;overflow:auto!important;margin:8px 0!important;border:1px solid #e5e7eb!important;border-radius:6px!important;}',
+    '.ann-layer-item{padding:10px 12px!important;border-bottom:1px solid #f3f4f6!important;cursor:pointer!important;font-size:13px!important;}',
+    '.ann-layer-item:hover{background:#f9fafb!important;}',
+    '.ann-layer-item.cur{background:#eff6ff!important;color:#1d4ed8!important;font-weight:bold!important;}',
+    '.ann-layer-item small{display:block!important;color:#9ca3af!important;font-size:11px!important;margin-top:3px!important;font-weight:normal!important;}',
+    '.ann-hint{position:fixed!important;top:20px!important;left:50%!important;transform:translateX(-50%)!important;background:rgba(17,24,39,.92)!important;color:#fff!important;padding:10px 18px!important;border-radius:20px!important;font-size:13px!important;z-index:2147483647!important;max-width:80vw!important;text-align:center!important;white-space:pre-line!important;}',
+    '.ann-restore{position:fixed!important;top:20px!important;right:20px!important;background:#fff!important;border:1px solid #e5e7eb!important;border-radius:8px!important;padding:10px 14px!important;box-shadow:0 4px 12px rgba(0,0,0,.1)!important;z-index:2147483647!important;font-size:13px!important;display:flex!important;align-items:center!important;gap:8px!important;font-family:-apple-system,sans-serif!important;}',
+    '.ann-restore button{padding:4px 10px!important;border:none!important;border-radius:4px!important;cursor:pointer!important;font-size:12px!important;}',
+    '.ann-restore .ok{background:#10b981!important;color:#fff!important;}',
+    '.ann-restore .no{background:#f3f4f6!important;color:#374151!important;}'
+    ].join('\n');
+    var s=document.createElement('style');s.id='annotation-tool-style';s.textContent=css;
+    (document.head||document.documentElement).appendChild(s);
+}
+
+/* ========== 工具栏 ========== */
+function getSavedPos(){try{var s=localStorage.getItem(TKEY);if(!s)return null;var p=JSON.parse(s);if(typeof p.left==='number'&&typeof p.top==='number')return p;}catch(e){}return null;}
+function savePos(l,t){try{localStorage.setItem(TKEY,JSON.stringify({left:l,top:t}));}catch(e){}}
+function clampBar(b){var r=b.getBoundingClientRect(),l=parseFloat(b.style.left),t=parseFloat(b.style.top);if(isNaN(l)||isNaN(t))return;b.style.left=Math.max(4,Math.min(l,window.innerWidth-r.width-4))+'px';b.style.top=Math.max(4,Math.min(t,window.innerHeight-r.height-4))+'px';}
+function createToolbar(){
+    if(document.getElementById('ann-toolbar')||!document.body)return;
+    var bar=document.createElement('div');bar.className='ann-toolbar';bar.id='ann-toolbar';
+    bar.innerHTML='<div class="ann-drag-handle" id="ann-drag-handle" title="拖动工具栏">⋮⋮</div>'+
+        '<button class="ann-btn" id="ann-toggle">🔖 启用</button>'+
+        '<span class="ann-layer page" id="ann-layer" title="点击切换图层">📍 主页</span>'+
+        '<span class="ann-count" id="ann-count" title="点击查看隐藏备注">0 条</span>'+
+        '<button class="ann-btn" id="ann-bind" title="绑定 HTML 文件，自动写回">📎 绑定</button>'+
+        '<button class="ann-btn export" id="ann-export" title="导出副本（兜底）">📥 导出</button>'+
+        '<span class="ann-save-status" id="ann-save-status"></span>';
+    var sv=getSavedPos();
+    if(sv){bar.style.left=sv.left+'px';bar.style.top=sv.top+'px';}else{bar.style.right='20px';bar.style.bottom='20px';}
+    document.body.appendChild(bar);
+    if(!sv){var r=bar.getBoundingClientRect();bar.style.left=r.left+'px';bar.style.top=r.top+'px';bar.style.right='auto';bar.style.bottom='auto';}
+    clampBar(bar);
+    document.getElementById('ann-toggle').addEventListener('click',toggleEnabled);
+    document.getElementById('ann-export').addEventListener('click',exportFile);
+    document.getElementById('ann-count').addEventListener('click',showHiddenList);
+    document.getElementById('ann-layer').addEventListener('click',showLayerPicker);
+    document.getElementById('ann-bind').addEventListener('click',function(){fileHandle?unbindFile():bindFile();});
+    document.getElementById('ann-drag-handle').addEventListener('mousedown',onToolbarDown);
+    try{var ml=localStorage.getItem(LKEY);if(ml)manualLayer=ml;}catch(e){}
+    if(!supportsFS()){var bb=document.getElementById('ann-bind');bb.style.display='none';}
+}
+function onToolbarDown(e){e.preventDefault();e.stopPropagation();var b=document.getElementById('ann-toolbar');if(!b)return;var r=b.getBoundingClientRect();toolbarDrag={sx:e.clientX,sy:e.clientY,sl:r.left,st:r.top,moved:false};b.classList.add('dragging');}
+function onToolbarMove(e){if(!toolbarDrag)return;var dx=e.clientX-toolbarDrag.sx,dy=e.clientY-toolbarDrag.sy;if(!toolbarDrag.moved&&Math.hypot(dx,dy)<3)return;toolbarDrag.moved=true;var b=document.getElementById('ann-toolbar');b.style.left=(toolbarDrag.sl+dx)+'px';b.style.top=(toolbarDrag.st+dy)+'px';}
+function onToolbarUp(){if(!toolbarDrag)return;var b=document.getElementById('ann-toolbar');if(b){b.classList.remove('dragging');clampBar(b);if(toolbarDrag.moved)savePos(parseFloat(b.style.left),parseFloat(b.style.top));}toolbarDrag=null;}
+
+/* ========== 图层指示 ========== */
+function updateLayerIndicator(){
+    var el=document.getElementById('ann-layer');if(!el)return;
+    var a=getActiveScope();
+    el.className='ann-layer'+(a.layer==='page'?' page':'');
+    el.textContent='📍 '+a.name;el.title='当前层级：'+a.name+'\n点击手动切换';
+}
+function showLayerPicker(){
+    closePopups();var stack=detectLayers(),active=getActiveScope();
+    var p=document.createElement('div');p.className='ann-popup';p.style.left='50%';p.style.top='50%';p.style.transform='translate(-50%,-50%)';
+    var html='<div class="ann-meta">🧭 选择当前图层<br>自动识别：<b>'+active.name+'</b></div><div class="ann-layer-list">';
+    html+='<div class="ann-layer-item'+(manualLayer==null?' cur':'')+'" data-v="auto"><b>🤖 自动识别</b><small>让工具自动判断</small></div>';
+    html+='<div class="ann-layer-item'+(manualLayer==='page'?' cur':'')+'" data-v="page"><b>🏠 主页</b><small>只显示主页备注</small></div>';
+    if(stack.length){stack.forEach(function(l,i){var cur=manualLayer==='layer:'+l.key;html+='<div class="ann-layer-item'+(cur?' cur':'')+'" data-v="layer:'+l.key+'"><b>📋 图层 L'+(i+1)+'：'+layerTitle(l.el)+'</b><small>'+((typeof l.el.className==='string'?l.el.className:'').slice(0,60)||'(无 class)')+'</small></div>';});}
+    else{html+='<div style="padding:12px;color:#9ca3af;font-size:12px;text-align:center">未检测到弹窗图层</div>';}
+    html+='</div><div class="ann-popup-row"><button class="pb-cancel">关闭</button></div>';
+    p.innerHTML=html;document.body.appendChild(p);
+    p.querySelector('.pb-cancel').onclick=function(){p.remove();};
+    Array.prototype.forEach.call(p.querySelectorAll('.ann-layer-item'),function(it){
+        it.onclick=function(){var v=it.dataset.v;if(v==='auto'){manualLayer=null;try{localStorage.removeItem(LKEY);}catch(e){}}else{manualLayer=v;try{localStorage.setItem(LKEY,v);}catch(e){}}p.remove();renderBadges();updateLayerIndicator();showHint('✅ 已切换到：'+getActiveScope().name);};
+    });
+}
+
+/* ========== 交互 ========== */
+function updateCount(){var el=document.getElementById('ann-count');if(!el)return;var t=annotations.length,h=lastHidden.length;if(h>0){el.textContent=(t-h)+'/'+t+' 条';el.classList.add('has-hidden');}else{el.textContent=t+' 条';el.classList.remove('has-hidden');}}
+function toggleEnabled(){enabled=!enabled;var btn=document.getElementById('ann-toggle');if(enabled){btn.classList.add('active');btn.textContent='🔖 关闭';document.body.classList.add('ann-on');showHint('已启用 · 当前层级：'+getActiveScope().name,2500);}else{btn.classList.remove('active');btn.textContent='🔖 启用';document.body.classList.remove('ann-on');closePopups();}}
+function showHint(m,d){d=d||2200;var o=document.querySelector('.ann-hint');if(o)o.remove();var el=document.createElement('div');el.className='ann-hint';el.textContent=m;document.body.appendChild(el);setTimeout(function(){if(el.parentNode)el.remove();},d);}
+function getSeqById(id){var s=annotations.slice().sort(function(a,b){return a.id-b.id;});for(var i=0;i<s.length;i++)if(s[i].id===id)return i+1;return 0;}
+function shouldShow(ann,active){if(!ann.scope)return active.layer==='page';if(ann.scope.layer!==active.layer)return false;if(active.layer==='page')return true;return ann.scope.layerKey===active.layerKey;}
+function renderBadges(){
+    var old=document.querySelectorAll('.ann-badge');for(var i=0;i<old.length;i++)old[i].remove();
+    var sorted=annotations.slice().sort(function(a,b){return a.id-b.id;});
+    lastHidden=[];var active=getActiveScope();
+    sorted.forEach(function(ann,idx){
+        var seq=idx+1;
+        if(!shouldShow(ann,active)){lastHidden.push({ann:ann,seq:seq,reason:ann.scope.layer==='page'?'主页备注（当前在弹窗）':'其他图层'});return;}
+        var c=ann.anchor?resolveAnchor(ann.anchor):document.body;
+        if(c!==document.body&&!isVisible(c)){lastHidden.push({ann:ann,seq:seq,reason:'锚点不可见'});return;}
+        ensurePositioned(c);
+        var x=ann.relX!=null?ann.relX:(ann.x||0),y=ann.relY!=null?ann.relY:(ann.y||0);
+        var b=document.createElement('div');b.className='ann-badge'+(ann.scope&&ann.scope.layer==='modal'?' modal':'');
+        b.dataset.id=ann.id;b.style.left=x+'px';b.style.top=y+'px';b.textContent=seq;b.title='备注 #'+seq;
+        b.addEventListener('mousedown',onBadgeDown);b.addEventListener('click',onBadgeClick);
+        c.appendChild(b);
+    });
+    updateCount();updateLayerIndicator();
+}
+function showHiddenList(){
+    closePopups();var active=getActiveScope();
+    if(!lastHidden.length){showHint('当前无隐藏备注 · 层级：'+active.name,2200);return;}
+    var p=document.createElement('div');p.className='ann-popup';p.style.left='50%';p.style.top='50%';p.style.transform='translate(-50%,-50%)';
+    var html='<div class="ann-meta">🙈 隐藏 '+lastHidden.length+' 条（当前层：'+active.name+'）</div><div class="ann-layer-list">';
+    lastHidden.forEach(function(h){var pv=(h.ann.content||'').replace(/\s+/g,' ').slice(0,50);html+='<div class="ann-layer-item" data-id="'+h.ann.id+'"><b>#'+h.seq+'</b> '+pv+'<small>'+h.reason+'</small></div>';});
+    html+='</div><div class="ann-popup-row"><button class="pb-cancel">关闭</button></div>';
+    p.innerHTML=html;document.body.appendChild(p);
+    p.querySelector('.pb-cancel').onclick=function(){p.remove();};
+    Array.prototype.forEach.call(p.querySelectorAll('.ann-layer-item'),function(it){it.onclick=function(){var ann=annotations.find(function(a){return a.id===parseInt(it.dataset.id);});if(!ann)return;p.remove();showHiddenDetail(ann);};});
+}
+function showHiddenDetail(ann){
+    var p=document.createElement('div');p.className='ann-popup';p.style.left='50%';p.style.top='50%';p.style.transform='translate(-50%,-50%)';
+    var seq=getSeqById(ann.id);
+    p.innerHTML='<div class="ann-meta">备注 #'+seq+' · 当前不可见<br>'+ann.createdAt+'</div><div class="ann-view"></div><div class="ann-popup-row">'+(enabled?'<button class="pb-del">删除</button>':'')+'<button class="pb-cancel">关闭</button></div>';
+    p.querySelector('.ann-view').textContent=ann.content;document.body.appendChild(p);
+    p.querySelector('.pb-cancel').onclick=function(){p.remove();};
+    if(enabled)p.querySelector('.pb-del').onclick=function(){if(confirm('确定删除？')){annotations=annotations.filter(function(a){return a.id!==ann.id;});p.remove();renderBadges();autoSave();}};
+}
+function onBadgeDown(e){e.stopPropagation();e.preventDefault();var id=parseInt(e.currentTarget.dataset.id),ann=annotations.find(function(a){return a.id===id;});if(!ann)return;var c=e.currentTarget.parentElement,r=c.getBoundingClientRect();var cx=ann.relX!=null?ann.relX:(ann.x||0),cy=ann.relY!=null?ann.relY:(ann.y||0);dragState={id:id,container:c,sx:e.clientX,sy:e.clientY,ox:e.clientX-r.left+(c.scrollLeft||0)-cx,oy:e.clientY-r.top+(c.scrollTop||0)-cy,moved:false};}
+function onDocMove(e){
+    if(toolbarDrag){onToolbarMove(e);return;}
+    if(!dragState)return;
+    if(Math.hypot(e.clientX-dragState.sx,e.clientY-dragState.sy)>5){
+        dragState.moved=true;
+        var ann=annotations.find(function(a){return a.id===dragState.id;});
+        var c=dragState.container,r=c.getBoundingClientRect();
+        var nx=Math.max(0,e.clientX-r.left+(c.scrollLeft||0)-dragState.ox);
+        var ny=Math.max(0,e.clientY-r.top+(c.scrollTop||0)-dragState.oy);
+        if(ann.anchor||ann.relX!=null){ann.relX=nx;ann.relY=ny;}else{ann.x=nx;ann.y=ny;}
+        var b=document.querySelector('.ann-badge[data-id="'+dragState.id+'"]');if(b){b.style.left=nx+'px';b.style.top=ny+'px';b.classList.add('dragging');}
+    }
+}
+function onDocUp(){if(toolbarDrag){onToolbarUp();return;}if(!dragState)return;var b=document.querySelector('.ann-badge[data-id="'+dragState.id+'"]');if(b)b.classList.remove('dragging');if(dragState.moved){suppressNextClick=true;autoSave();}dragState=null;}
+function onBadgeClick(e){if(suppressNextClick){suppressNextClick=false;e.stopPropagation();return;}e.stopPropagation();var ann=annotations.find(function(a){return a.id===parseInt(e.currentTarget.dataset.id);});if(ann)showViewPopup(ann,e.currentTarget);}
+function onDocClick(e){if(!enabled)return;if(e.target.closest('.ann-toolbar')||e.target.closest('.ann-badge')||e.target.closest('.ann-popup')||e.target.closest('.ann-restore'))return;showEditPopup(null,e.clientX,e.clientY,e.pageX,e.pageY);}
+function closePopups(){var ps=document.querySelectorAll('.ann-popup');for(var i=0;i<ps.length;i++)ps[i].remove();}
+function showEditPopup(ann,cx,cy,px,py){
+    closePopups();
+    if(ann&&cx==null){var bd=document.querySelector('.ann-badge[data-id="'+ann.id+'"]');if(bd){var r=bd.getBoundingClientRect();cx=r.right+8;cy=r.top;}else{cx=window.innerWidth/2-190;cy=window.innerHeight/2-100;}}
+    var p=document.createElement('div');p.className='ann-popup';
+    p.style.left=Math.max(4,Math.min(cx,window.innerWidth-390))+'px';p.style.top=Math.max(4,Math.min(cy,window.innerHeight-260))+'px';
+    var seq=ann?getSeqById(ann.id):(annotations.length+1);
+    var preview='';
+    if(!ann){
+        var pc=locateAt(cx,cy,px,py);var scope=detectScopeAt(pc.elementAtPoint||pc.container);
+        if(manualLayer==='page')scope={layer:'page',layerKey:''};
+        else if(manualLayer&&manualLayer.indexOf('layer:')===0)scope={layer:'modal',layerKey:manualLayer.slice(6)};
+        var cls=scope.layer==='modal'?'modal':'page',name=scope.layer==='modal'?'图层备注':'主页备注';
+        preview='<div style="margin-bottom:6px"><span class="ann-tag '+cls+'">🏷️ '+name+'</span><span class="ann-tag loc">📍 '+pc.selector+'</span></div>';
+    }
+    p.innerHTML='<div class="ann-meta">'+(ann?'编辑 #'+seq:'新增 #'+seq)+'</div>'+preview+'<textarea placeholder="请输入备注内容..."></textarea><div class="ann-popup-row">'+(ann?'<button class="pb-del">删除</button>':'')+'<button class="pb-cancel">取消</button><button class="pb-ok">'+(ann?'保存':'添加')+'</button></div>';
+    document.body.appendChild(p);
+    var ta=p.querySelector('textarea');ta.value=ann?ann.content:'';ta.focus();
+    p.querySelector('.pb-cancel').onclick=function(){p.remove();};
+    p.querySelector('.pb-ok').onclick=function(){
+        var v=ta.value.trim();if(!v){alert('不能为空');return;}
+        var now=new Date().toLocaleString();
+        if(ann){ann.content=v;ann.updatedAt=now;}
+        else{
+            var loc=locateAt(cx,cy,px,py),scope=detectScopeAt(loc.elementAtPoint||loc.container);
+            if(manualLayer==='page')scope={layer:'page',layerKey:''};
+            else if(manualLayer&&manualLayer.indexOf('layer:')===0)scope={layer:'modal',layerKey:manualLayer.slice(6)};
+            annotations.push({id:nextId++,anchor:loc.selector,relX:loc.relX,relY:loc.relY,scope:{layer:scope.layer,layerKey:scope.layerKey},content:v,createdAt:now});
+        }
+        p.remove();renderBadges();autoSave();
+    };
+    if(ann)p.querySelector('.pb-del').onclick=function(){if(confirm('确定删除？')){annotations=annotations.filter(function(a){return a.id!==ann.id;});p.remove();renderBadges();autoSave();}};
+}
+function showViewPopup(ann,badge){
+    closePopups();var r=badge.getBoundingClientRect(),seq=getSeqById(ann.id);
+    var p=document.createElement('div');p.className='ann-popup';p.style.left=(r.right+8)+'px';p.style.top=r.top+'px';
+    var tags='';if(ann.scope){var cls=ann.scope.layer==='modal'?'modal':'page';tags+='<span class="ann-tag '+cls+'">🏷️ '+(ann.scope.layer==='modal'?'图层备注':'主页备注')+'</span>';}
+    if(ann.anchor&&ann.anchor!=='body')tags+='<span class="ann-tag loc">📍 '+ann.anchor+'</span>';
+    p.innerHTML='<div class="ann-meta">备注 #'+seq+' · '+ann.createdAt+(tags?'<br>'+tags:'')+'</div><div class="ann-view"></div><div class="ann-popup-row">'+(enabled?'<button class="pb-del">删除</button><button class="pb-edit">编辑</button>':'')+'<button class="pb-cancel">关闭</button></div>';
+    p.querySelector('.ann-view').textContent=ann.content;document.body.appendChild(p);
+    var pr=p.getBoundingClientRect();if(pr.right>window.innerWidth)p.style.left=(r.left-pr.width-8)+'px';if(pr.bottom>window.innerHeight)p.style.top=Math.max(4,window.innerHeight-pr.height-4)+'px';
+    p.querySelector('.pb-cancel').onclick=function(){p.remove();};
+    if(enabled){p.querySelector('.pb-edit').onclick=function(){showEditPopup(ann);};p.querySelector('.pb-del').onclick=function(){if(confirm('确定删除？')){annotations=annotations.filter(function(a){return a.id!==ann.id;});p.remove();renderBadges();autoSave();}};}
+}
+
+/* ========== 导出（兜底） ========== */
+function exportFile(){
+    closePopups();
+    var data={annotations:annotations,meta:{savedAt:new Date().toISOString(),savedAtLocal:new Date().toLocaleString(),version:VER}};
+    var json=JSON.stringify(data,null,2),html=originalHTMLSnapshot;
+    var reg=/<script[^>]*id=["']annotation-tool-data["'][^>]*>[\s\S]*?<\/script>/i;
+    var tag='<script type="application/json" id="annotation-tool-data">'+json+'<\/script>';
+    html=reg.test(html)?html.replace(reg,tag):html.replace(/<\/body>/i,tag+'\n</body>');
+    var blob=new Blob(['<!DOCTYPE html>\n'+html],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob);
+    var a=document.createElement('a'),name=(location.pathname.split('/').pop()||'page.html').replace(/\.html?$/i,'');
+    a.href=url;a.download=name+'_带备注.html';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+    showHint('✅ 已下载副本');
+}
+
+/* ========== 启动 ========== */
+function init(){
+    if(initDone)return;initDone=true;
+    try{
+        originalHTMLSnapshot=document.documentElement.outerHTML;
+        loadData();injectStyle();createToolbar();renderBadges();
+        document.addEventListener('mousemove',onDocMove);
+        document.addEventListener('mouseup',onDocUp);
+        document.addEventListener('click',onDocClick,true);
+        window.addEventListener('resize',function(){var b=document.getElementById('ann-toolbar');if(b)clampBar(b);});
+        setInterval(function(){var a=getActiveScope(),ind=document.getElementById('ann-layer');if(ind&&ind.dataset.lastKey!==a.layerKey+':'+a.layer){ind.dataset.lastKey=a.layerKey+':'+a.layer;renderBadges();}},400);
+        if(window.MutationObserver){var mo=new MutationObserver(function(muts){for(var i=0;i<muts.length;i++){if(isToolEl(muts[i].target))continue;clearTimeout(init._t);init._t=setTimeout(renderBadges,150);return;}});mo.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','hidden','aria-hidden']});}
+        tryRestoreHandle();
+        console.log(LOG,'✅ 启动完成 · 共',annotations.length,'条 · 层级：',getActiveScope().name);
+        if(annotations.length>0)showSaveStatus('✓ 已加载 '+annotations.length+' 条');
+    }catch(e){console.error(LOG,'失败',e);}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+window.addEventListener('load',init);
+setTimeout(function(){if(!initDone&&document.body)init();},1000);
+})();
+</script>
+<!-- ========== HTML 备注工具 v3.0 结束 ========== -->
+
+</body>
+</html>
