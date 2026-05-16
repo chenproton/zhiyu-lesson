@@ -1,0 +1,514 @@
+import type { Course, CourseStats, AdminCourseStats, SystemCourseNode, QuizQuestion } from './types'
+
+export const courseStats: CourseStats = {
+  totalCourses: 19,
+  systemCourses: 19,
+  granularCourses: 6,
+  knowledgePoints: 1266,
+}
+
+export const granularCourseStats: AdminCourseStats = {
+  total: 6,
+  draft: 2,
+  pending: 1,
+  rejected: 1,
+  published: 2,
+}
+
+export const systemCourseStats: AdminCourseStats = {
+  total: 13,
+  draft: 3,
+  pending: 2,
+  rejected: 1,
+  published: 7,
+}
+
+export const courses: Course[] = [
+  {
+    id: '1',
+    code: '2048580206462566401',
+    name: 'SQL注入漏洞检测与利用',
+    type: 'system',
+    category: '公共基础课',
+    major: '岗位优化测试专业02',
+    teacher: '王老师',
+    industry: '电子信息',
+    version: 'v1',
+    updateDate: '2026-04-27',
+    nodeCount: 15,
+    lessonCount: 30,
+    resourceCount: 45,
+    viewCount: 4952,
+    studyCount: 16882,
+    status: 'published',
+    coverColor: 'from-blue-800 to-blue-500',
+    courseTag: '体系课',
+  },
+  {
+    id: '2',
+    code: '2047126214624739330',
+    name: 'API未授权访问漏洞检测与利用',
+    type: 'granular',
+    category: '数智化通识课',
+    major: '岗位优化测试专业01',
+    teacher: '马老师',
+    industry: '软件测试工程师',
+    version: 'v1',
+    updateDate: '2026-04-23',
+    nodeCount: 1,
+    lessonCount: 1,
+    resourceCount: 3,
+    viewCount: 3166,
+    studyCount: 15223,
+    status: 'published',
+    coverColor: 'from-orange-900 to-red-500',
+    courseTag: '颗粒课',
+  },
+  {
+    id: '3',
+    code: '2048581102063910913',
+    name: '渗透测试实验室搭建',
+    type: 'system',
+    category: '专业基础课',
+    major: '岗位优化测试专业02',
+    teacher: '李老师',
+    industry: '电子信息',
+    version: 'v1',
+    updateDate: '2026-04-27',
+    nodeCount: 10,
+    lessonCount: 30,
+    resourceCount: 12,
+    viewCount: 2522,
+    studyCount: 14132,
+    status: 'pending',
+    coverColor: 'from-emerald-900 to-cyan-500',
+    courseTag: '体系课',
+  },
+  {
+    id: '4',
+    code: '2047126930722455554',
+    name: '文件上传漏洞检测与利用',
+    type: 'granular',
+    category: '专业核心课',
+    major: '岗位优化测试专业01',
+    teacher: '张老师',
+    industry: '软件测试工程师',
+    version: 'v1',
+    updateDate: '2026-04-23',
+    nodeCount: 1,
+    lessonCount: 1,
+    resourceCount: 5,
+    viewCount: 1688,
+    studyCount: 11320,
+    status: 'published',
+    coverColor: 'from-slate-700 to-slate-400',
+    courseTag: '颗粒课',
+  },
+  {
+    id: '5',
+    code: '2048580206462566402',
+    name: 'XSS跨站脚本攻击原理与防御',
+    type: 'system',
+    category: '公共基础课',
+    major: '软件工程专业',
+    teacher: '赵老师',
+    industry: '计算机行业',
+    version: 'v1',
+    updateDate: '2026-04-25',
+    nodeCount: 12,
+    lessonCount: 24,
+    resourceCount: 38,
+    viewCount: 3850,
+    studyCount: 14200,
+    status: 'draft',
+    coverColor: 'from-violet-800 to-violet-500',
+    courseTag: '体系课',
+  },
+  {
+    id: '6',
+    code: '2047126214624739331',
+    name: 'CSRF漏洞检测与防护',
+    type: 'granular',
+    category: '数智化通识课',
+    major: '人工智能专业',
+    teacher: '刘老师',
+    industry: '计算机行业',
+    version: 'v1',
+    updateDate: '2026-04-22',
+    nodeCount: 1,
+    lessonCount: 1,
+    resourceCount: 4,
+    viewCount: 2100,
+    studyCount: 9800,
+    status: 'draft',
+    coverColor: 'from-pink-800 to-pink-500',
+    courseTag: '颗粒课',
+  },
+]
+
+export const granularCourses = courses.filter((c) => c.type === 'granular')
+export const systemCourses = courses.filter((c) => c.type === 'system')
+
+// ========== Batch & Approval (from zhiyu-scene) ==========
+
+export interface Batch {
+  id: string
+  name: string
+  code: string
+  departmentId: string
+  departmentName: string
+  professionId?: string
+  professionName?: string
+  workflowId: string
+  workflowName: string
+  scenarioCount: number
+  createdAt: string
+}
+
+export interface ApprovalWorkflow {
+  id: string
+  name: string
+  description: string
+  steps: ApprovalStep[]
+  createdAt: string
+}
+
+export interface ApprovalStep {
+  id: string
+  order: number
+  name: string
+  approverRole: string
+}
+
+export interface ApprovalItem {
+  id: string
+  scenarioId: string
+  scenarioName: string
+  scenarioCode: string
+  version: string
+  positionName?: string
+  batchId: string
+  batchName: string
+  submitterId: string
+  submitterName: string
+  currentStep: number
+  totalSteps: number
+  status: "pending" | "approved" | "rejected"
+  submittedAt: string
+  comments?: string
+  rejectReason?: string
+}
+
+export const approvalWorkflows: ApprovalWorkflow[] = [
+  {
+    id: "wf-1",
+    name: "教研组长审批",
+    description: "仅需教研组长审批即可通过",
+    steps: [
+      { id: "step-1", order: 1, name: "教研组长审批", approverRole: "教研组长" },
+    ],
+    createdAt: "2024-01-01",
+  },
+  {
+    id: "wf-2",
+    name: "校企联合审批",
+    description: "需经教研组长、系主任、企业导师三级审批",
+    steps: [
+      { id: "step-1", order: 1, name: "教研组长审批", approverRole: "教研组长" },
+      { id: "step-2", order: 2, name: "系主任审批", approverRole: "系主任" },
+      { id: "step-3", order: 3, name: "企业导师审批", approverRole: "企业导师" },
+    ],
+    createdAt: "2024-01-01",
+  },
+  {
+    id: "wf-3",
+    name: "部门审批",
+    description: "教研组长和系主任两级审批",
+    steps: [
+      { id: "step-1", order: 1, name: "教研组长审批", approverRole: "教研组长" },
+      { id: "step-2", order: 2, name: "系主任审批", approverRole: "系主任" },
+    ],
+    createdAt: "2024-01-05",
+  },
+]
+
+export const batches: Batch[] = [
+  {
+    id: "batch-1",
+    name: "2026春季网络安全课程开发",
+    code: "DH2DW3",
+    departmentId: "dept-1",
+    departmentName: "信息工程系",
+    professionId: "prof-2",
+    professionName: "网络安全",
+    workflowId: "wf-2",
+    workflowName: "多级校企联合审批",
+    scenarioCount: 12,
+    createdAt: "2026-01-15",
+  },
+  {
+    id: "batch-2",
+    name: "2026春季渗透测试课程建设",
+    code: "A1B2C3",
+    departmentId: "dept-1",
+    departmentName: "信息工程系",
+    professionId: "prof-1",
+    professionName: "软件测试",
+    workflowId: "wf-1",
+    workflowName: "单级教研组长审批",
+    scenarioCount: 8,
+    createdAt: "2026-01-10",
+  },
+  {
+    id: "batch-3",
+    name: "2025秋季漏洞检测课程",
+    code: "X9Y8Z7",
+    departmentId: "dept-2",
+    departmentName: "计算机系",
+    professionId: "prof-3",
+    professionName: "计算机科学",
+    workflowId: "wf-3",
+    workflowName: "两级部门审批",
+    scenarioCount: 6,
+    createdAt: "2025-09-01",
+  },
+]
+
+export const approvalItems: ApprovalItem[] = [
+  {
+    id: "approval-1",
+    scenarioId: "course-1",
+    scenarioName: "SQL注入漏洞检测与利用",
+    scenarioCode: "SC-2026-0001",
+    version: "v2.1",
+    positionName: "渗透测试工程师",
+    batchId: "batch-2",
+    batchName: "2026春季渗透测试课程建设",
+    submitterId: "user-1",
+    submitterName: "张老师",
+    currentStep: 1,
+    totalSteps: 1,
+    status: "pending",
+    submittedAt: "2026-04-18",
+  },
+  {
+    id: "approval-2",
+    scenarioId: "course-2",
+    scenarioName: "API未授权访问漏洞检测与利用",
+    scenarioCode: "SC-2026-0004",
+    version: "v3.0",
+    positionName: "安全测试工程师",
+    batchId: "batch-1",
+    batchName: "2026春季网络安全课程开发",
+    submitterId: "user-2",
+    submitterName: "李老师",
+    currentStep: 2,
+    totalSteps: 3,
+    status: "pending",
+    submittedAt: "2026-04-15",
+  },
+  {
+    id: "approval-3",
+    scenarioId: "course-3",
+    scenarioName: "渗透测试实验室搭建",
+    scenarioCode: "SC-2026-0003",
+    version: "v1.2",
+    positionName: "渗透测试工程师",
+    batchId: "batch-2",
+    batchName: "2026春季渗透测试课程建设",
+    submitterId: "user-2",
+    submitterName: "李老师",
+    currentStep: 1,
+    totalSteps: 1,
+    status: "rejected",
+    submittedAt: "2026-04-10",
+    comments: "请补充实验室环境配置相关的任务节点",
+    rejectReason: "课程任务链不完整，缺少环境配置环节，请补充后再提交。",
+  },
+  {
+    id: "approval-4",
+    scenarioId: "course-5",
+    scenarioName: "XSS跨站脚本攻击原理与防御",
+    scenarioCode: "SC-2025-0005",
+    version: "v2.0",
+    positionName: "安全开发工程师",
+    batchId: "batch-3",
+    batchName: "2025秋季漏洞检测课程",
+    submitterId: "user-3",
+    submitterName: "王老师",
+    currentStep: 2,
+    totalSteps: 2,
+    status: "approved",
+    submittedAt: "2026-03-20",
+    comments: "内容完整，审核通过。",
+  },
+]
+
+
+// ====== 体系课节点 Mock 数据 ======
+
+export const mockSystemCourseNodes: SystemCourseNode[] = [
+  {
+    id: 'node-1',
+    courseId: '1',
+    parentId: null,
+    name: '数据分析概述',
+    order: 1,
+    type: 'normal',
+    teachingGoals: '1. 了解数据分析的基本概念\n2. 掌握数据分析的基本流程\n3. 熟悉常用数据分析工具',
+    knowledgePoints: [
+      { name: '数据分析', linked: true },
+      { name: '数据清洗', linked: true },
+    ],
+    duration: 45,
+    resources: [
+      { id: 'res-1', name: '数据分析基础-第一章.pdf', type: 'PDF', size: 2.4, url: '#' },
+    ],
+    quizzes: [],
+    homeworks: [],
+    status: 'published',
+  },
+  {
+    id: 'node-2',
+    courseId: '1',
+    parentId: null,
+    name: '假设检验',
+    order: 2,
+    type: 'normal',
+    teachingGoals: '1. **掌握**假设检验的基本流程与方法论\n2. **熟练运用** P 值进行结果验证\n3. **能独立完成**简单业务场景下的假设检验',
+    knowledgePoints: [
+      { name: '假设检验', linked: true },
+      { name: 'P值与显著性', linked: true },
+      { name: '自定义概念A', linked: false },
+    ],
+    duration: 60,
+    resources: [
+      { id: 'res-2', name: '数据分析基础-第三章.pdf', type: 'PDF', size: 2.4, url: '#' },
+      { id: 'res-3', name: '假设检验案例演示.pptx', type: 'PPT', size: 5.1, url: '#' },
+    ],
+    quizzes: [
+      {
+        id: 'quiz-1',
+        title: '假设检验单元测验',
+        type: 'question_bank',
+        questions: [
+          { id: 'q1', type: 'single', question: '假设检验中，p值小于显著性水平意味着？', options: [{ key: 'A', text: '接受原假设' }, { key: 'B', text: '拒绝原假设，结果显著' }, { key: 'C', text: '数据存在偏差' }, { key: 'D', text: '样本量不足' }], answer: 'B', score: 10 },
+          { id: 'q2', type: 'single', question: '下列哪种场景适合使用 T 检验？', options: [{ key: 'A', text: '大样本（n>100）' }, { key: 'B', text: '总体方差已知' }, { key: 'C', text: '小样本且总体方差未知' }, { key: 'D', text: '比例数据' }], answer: 'C', score: 10 },
+          { id: 'q3', type: 'essay', question: '请简述 A/B 测试的基本流程。', score: 20 },
+        ],
+        timeLimit: 120,
+      },
+    ],
+    homeworks: [],
+    status: 'draft',
+  },
+  {
+    id: 'node-2-1',
+    courseId: '1',
+    parentId: 'node-2',
+    name: 'P值与显著性',
+    order: 1,
+    type: 'clone',
+    sourceId: 'gk-1',
+    sourceName: 'P值与显著性',
+    teachingGoals: '1. 理解P值的统计含义\n2. 掌握显著性水平的设定方法',
+    knowledgePoints: [
+      { name: 'P值与显著性', linked: true },
+    ],
+    duration: 30,
+    resources: [],
+    quizzes: [],
+    homeworks: [],
+    status: 'draft',
+  },
+  {
+    id: 'node-2-2',
+    courseId: '1',
+    parentId: 'node-2',
+    name: 'T 检验实战',
+    order: 2,
+    type: 'quote',
+    sourceId: 'gk-2',
+    sourceName: 'T检验实战案例',
+    teachingGoals: '1. 掌握T检验的适用场景\n2. 能使用工具完成T检验',
+    knowledgePoints: [
+      { name: 'T 检验', linked: true },
+    ],
+    duration: 30,
+    resources: [
+      { id: 'res-4', name: 'T检验实战数据集.csv', type: 'CSV', size: 0.5, url: '#' },
+    ],
+    quizzes: [],
+    homeworks: [],
+    status: 'published',
+  },
+  {
+    id: 'node-3',
+    courseId: '1',
+    parentId: null,
+    name: '回归分析',
+    order: 3,
+    type: 'normal',
+    teachingGoals: '',
+    knowledgePoints: [],
+    duration: undefined,
+    resources: [],
+    quizzes: [],
+    homeworks: [],
+    status: 'draft',
+  },
+  {
+    id: 'node-4',
+    courseId: '1',
+    parentId: null,
+    name: '数据可视化',
+    order: 4,
+    type: 'normal',
+    teachingGoals: '',
+    knowledgePoints: [],
+    duration: undefined,
+    resources: [],
+    quizzes: [],
+    homeworks: [],
+    status: 'draft',
+  },
+]
+
+// 题库 Mock 数据
+export const mockQuestionBank: QuizQuestion[] = [
+  { id: 'qb-1', type: 'single', question: 'React Hooks 识别', options: [{ key: 'A', text: 'useState 是用来处理副作用的' }, { key: 'B', text: 'useEffect 是用来管理状态的' }, { key: 'C', text: 'useState 返回 [state, setState]' }, { key: 'D', text: 'useRef 不能用来访问 DOM' }], answer: 'C', score: 10 },
+  { id: 'qb-2', type: 'single', question: 'CSS flex 属性', options: [{ key: 'A', text: 'flex: 1 等同于 flex: 1 1 auto' }, { key: 'B', text: 'justify-content 用于设置交叉轴对齐' }, { key: 'C', text: 'align-items 用于设置主轴对齐' }, { key: 'D', text: 'flex-direction: column 表示横向排列' }], answer: 'A', score: 10 },
+  { id: 'qb-3', type: 'judge', question: 'Virtual DOM 性能判断', answer: '正确', score: 10 },
+  { id: 'qb-4', type: 'multiple', question: 'JS 基本数据类型', options: [{ key: 'A', text: 'string' }, { key: 'B', text: 'number' }, { key: 'C', text: 'boolean' }, { key: 'D', text: 'object' }], answer: 'A,B,C', score: 10 },
+  { id: 'qb-5', type: 'essay', question: 'React 生命周期理解', score: 10 },
+  { id: 'qb-6', type: 'single', question: 'HTTP 状态码', options: [{ key: 'A', text: '200 表示未授权' }, { key: 'B', text: '404 表示未找到资源' }, { key: 'C', text: '500 表示重定向' }, { key: 'D', text: '301 表示服务器错误' }], answer: 'B', score: 5 },
+]
+
+
+// ====== 知识图谱 Mock 数据 ======
+
+export const mockKnowledgeGraphNodes: import('./types').KnowledgeGraphNode[] = [
+  { id: 'kg-1', label: '假设检验', x: 400, y: 250, type: 'core', description: '统计推断的核心方法之一' },
+  { id: 'kg-2', label: 'P值', x: 280, y: 180, type: 'related', description: '衡量统计显著性的关键指标' },
+  { id: 'kg-3', label: '显著性水平', x: 520, y: 180, type: 'related', description: '判断结果是否显著的阈值' },
+  { id: 'kg-4', label: 'T检验', x: 200, y: 320, type: 'related', description: '用于小样本均值比较的检验方法' },
+  { id: 'kg-5', label: '卡方检验', x: 600, y: 320, type: 'related', description: '用于分类变量独立性检验' },
+  { id: 'kg-6', label: 'A/B测试', x: 320, y: 380, type: 'extended', description: '互联网产品常用的实验方法' },
+  { id: 'kg-7', label: '置信区间', x: 480, y: 380, type: 'extended', description: '估计不确定范围的方法' },
+  { id: 'kg-8', label: '回归分析', x: 400, y: 120, type: 'extended', description: '探索变量间关系的方法' },
+  { id: 'kg-9', label: '正态分布', x: 150, y: 220, type: 'extended', description: '统计学中最重要的分布' },
+  { id: 'kg-10', label: '中心极限定理', x: 650, y: 220, type: 'extended', description: '大样本理论的基石' },
+]
+
+export const mockKnowledgeGraphEdges: import('./types').KnowledgeGraphEdge[] = [
+  { from: 'kg-1', to: 'kg-2', label: '包含' },
+  { from: 'kg-1', to: 'kg-3', label: '依赖' },
+  { from: 'kg-1', to: 'kg-4', label: '应用' },
+  { from: 'kg-1', to: 'kg-5', label: '应用' },
+  { from: 'kg-2', to: 'kg-3', label: '对比' },
+  { from: 'kg-1', to: 'kg-6', label: '实践' },
+  { from: 'kg-1', to: 'kg-7', label: '关联' },
+  { from: 'kg-1', to: 'kg-8', label: '前置' },
+  { from: 'kg-4', to: 'kg-9', label: '前提' },
+  { from: 'kg-4', to: 'kg-10', label: '理论基础' },
+]

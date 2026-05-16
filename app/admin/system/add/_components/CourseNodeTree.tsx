@@ -1,0 +1,346 @@
+"use client"
+
+import { useState, useMemo, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Plus, MoreHorizontal, GripVertical, BookOpen } from "lucide-react"
+import type { SystemCourseNode, NodeRefType } from "@/lib/types"
+import { NODE_REF_TYPE_LABELS, NODE_REF_TYPE_COLORS } from "@/lib/types"
+
+interface CourseNodeTreeProps {
+  nodes: SystemCourseNode[]
+  selectedNodeId: string | null
+  onSelect: (nodeId: string) => void
+  onAddNode: (parentId: string | null, name: string, order: number) => void
+  onUpdateNode: (nodeId: string, updates: Partial<SystemCourseNode>) => void
+  onDeleteNode: (nodeId: string) => void
+  onReorderNodes: (nodeId: string, targetNodeId: string) => void
+}
+
+interface TreeItem {
+  node: SystemCourseNode
+  level: number
+  children: TreeItem[]
+}
+
+function buildTree(nodes: SystemCourseNode[]): TreeItem[] {
+  const map = new Map<string, TreeItem>()
+  const roots: TreeItem[] = []
+
+  // Sort by order
+  const sorted = [...nodes].sort((a, b) => a.order - b.order)
+
+  sorted.forEach((node) => {
+    map.set(node.id, { node, level: 0, children: [] })
+  })
+
+  sorted.forEach((node) => {
+    const item = map.get(node.id)!
+    if (node.parentId && map.has(node.parentId)) {
+      const parent = map.get(node.parentId)!
+      item.level = parent.level + 1
+      parent.children.push(item)
+    } else {
+      roots.push(item)
+    }
+  })
+
+  return roots
+}
+
+function getSiblings(nodes: SystemCourseNode[], nodeId: string): SystemCourseNode[] {
+  const node = nodes.find((n) => n.id === nodeId)
+  if (!node) return []
+  return nodes
+    .filter((n) => n.parentId === node.parentId)
+    .sort((a, b) => a.order - b.order)
+}
+
+export default function CourseNodeTree({
+  nodes,
+  selectedNodeId,
+  onSelect,
+  onAddNode,
+  onUpdateNode,
+  onDeleteNode,
+  onReorderNodes,
+}: CourseNodeTreeProps) {
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
+  const [newNodeName, setNewNodeName] = useState("")
+  const [newNodeParent, setNewNodeParent] = useState<string>("root")
+  const [newNodeOrder, setNewNodeOrder] = useState(1)
+  const [editNodeName, setEditNodeName] = useState("")
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
+
+  const tree = useMemo(() => buildTree(nodes), [nodes])
+
+  const openAddDialog = useCallback(
+    (parentId: string | null = null) => {
+      const siblings = nodes.filter((n) => n.parentId === parentId)
+      const nextOrder = siblings.length > 0 ? Math.max(...siblings.map((n) => n.order)) + 1 : 1
+      setNewNodeName("")
+      setNewNodeParent(parentId ?? "root")
+      setNewNodeOrder(nextOrder)
+      setAddDialogOpen(true)
+    },
+    [nodes]
+  )
+
+  const openEditDialog = useCallback((nodeId: string) => {
+    const node = nodes.find((n) => n.id === nodeId)
+    if (!node) return
+    setEditingNodeId(nodeId)
+    setEditNodeName(node.name)
+    setEditDialogOpen(true)
+  }, [nodes])
+
+  const handleConfirmAdd = () => {
+    if (!newNodeName.trim()) return
+    const parentId = newNodeParent === "root" ? null : newNodeParent
+    onAddNode(parentId, newNodeName.trim(), newNodeOrder)
+    setAddDialogOpen(false)
+  }
+
+  const handleConfirmEdit = () => {
+    if (!editingNodeId || !editNodeName.trim()) return
+    onUpdateNode(editingNodeId, { name: editNodeName.trim() })
+    setEditDialogOpen(false)
+    setEditingNodeId(null)
+  }
+
+  const handleDelete = (nodeId: string) => {
+    if (confirm("确定删除该节点吗？删除后其所有子节点也将被删除。")) {
+      onDeleteNode(nodeId)
+    }
+  }
+
+  const handleDragStart = (e: React.DragEvent, nodeId: string) => {
+    setDraggingId(nodeId)
+    e.dataTransfer.effectAllowed = "move"
+  }
+
+  const handleDragOver = (e: React.DragEvent, nodeId: string) => {
+    e.preventDefault()
+    if (draggingId && draggingId !== nodeId) {
+      setDragOverId(nodeId)
+    }
+  }
+
+  const handleDragLeave = () => {
+    setDragOverId(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault()
+    if (draggingId && draggingId !== targetId) {
+      onReorderNodes(draggingId, targetId)
+    }
+    setDraggingId(null)
+    setDragOverId(null)
+  }
+
+  const renderTreeNode = (item: TreeItem, indexPath: string) => {
+    const { node, level, children } = item
+    const isActive = selectedNodeId === node.id
+    const isDragging = draggingId === node.id
+    const isDragOver = dragOverId === node.id
+    const seq = indexPath
+
+    return (
+      <div key={node.id}>
+        <div
+          className={`
+            tree-node flex items-center gap-1.5 px-2 py-1.5 rounded cursor-pointer text-sm
+            transition-colors select-none
+            ${isActive ? "bg-blue-50 text-blue-600 border-l-2 border-blue-500" : "text-gray-600 hover:bg-gray-50"}
+            ${isDragging ? "opacity-40" : ""}
+            ${isDragOver ? "border-t-2 border-blue-500" : ""}
+          `}
+          style={{ paddingLeft: `${12 + level * 16}px` }}
+          draggable
+          onDragStart={(e) => handleDragStart(e, node.id)}
+          onDragOver={(e) => handleDragOver(e, node.id)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, node.id)}
+          onClick={() => onSelect(node.id)}
+        >
+          <span className="text-gray-300 cursor-grab opacity-0 hover:opacity-50 transition-opacity">
+            <GripVertical className="w-3 h-3" />
+          </span>
+          <span className="text-gray-400 text-xs w-6 shrink-0">{seq}</span>
+          <span className="flex-1 truncate" title={node.name}>
+            {node.name}
+          </span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS[node.type]}`}>
+            {NODE_REF_TYPE_LABELS[node.type]}
+          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="text-gray-400 hover:text-gray-700 text-xs px-1 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="w-3.5 h-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="text-xs">
+              <DropdownMenuItem onClick={() => openEditDialog(node.id)}>
+                ✏ 编辑名称
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openAddDialog(node.id)}>
+                + 添加子节点
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-500"
+                onClick={() => handleDelete(node.id)}
+              >
+                🗑 删除
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        {children.length > 0 && (
+          <div className="border-l border-gray-100 ml-4">
+            {children.map((child, idx) => renderTreeNode(child, `${seq}.${idx + 1}`))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <aside className="w-64 shrink-0">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-gray-800 flex items-center gap-1.5">
+            <BookOpen className="w-4 h-4 text-blue-500" />
+            课程目录
+          </h3>
+        </div>
+        <div className="space-y-0.5 text-sm">
+          {tree.map((item, idx) => renderTreeNode(item, String(idx + 1)))}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full mt-3 text-xs"
+          onClick={() => openAddDialog(null)}
+        >
+          <Plus className="w-3.5 h-3.5 mr-1" />
+          添加节点
+        </Button>
+        <p className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400">
+          💡 拖拽节点可调整顺序
+        </p>
+      </div>
+
+      {/* Add Node Dialog */}
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>添加节点</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>节点名称 <span className="text-red-500">*</span></Label>
+              <Input
+                value={newNodeName}
+                onChange={(e) => setNewNodeName(e.target.value)}
+                placeholder="请输入节点名称"
+                maxLength={50}
+                className="mt-1"
+              />
+              <p className="text-xs text-gray-400 text-right mt-1">
+                {newNodeName.length} / 50
+              </p>
+            </div>
+            <div>
+              <Label>上级节点</Label>
+              <Select value={newNodeParent} onValueChange={setNewNodeParent}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="选择上级节点" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="root">— 无（顶级节点）—</SelectItem>
+                  {nodes.map((n) => (
+                    <SelectItem key={n.id} value={n.id}>
+                      {n.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>显示顺序 <span className="text-red-500">*</span></Label>
+              <Input
+                type="number"
+                min={1}
+                value={newNodeOrder}
+                onChange={(e) => setNewNodeOrder(Number(e.target.value))}
+                className="mt-1"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                💡 已建议顺序号 <span className="text-blue-500 font-medium">{newNodeOrder}</span>
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleConfirmAdd}>确认添加</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Node Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>编辑节点名称</DialogTitle>
+          </DialogHeader>
+          <div className="py-2">
+            <Label>节点名称</Label>
+            <Input
+              value={editNodeName}
+              onChange={(e) => setEditNodeName(e.target.value)}
+              placeholder="请输入节点名称"
+              maxLength={50}
+              className="mt-1"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleConfirmEdit}>保存</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </aside>
+  )
+}
