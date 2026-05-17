@@ -24,7 +24,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Plus, MoreHorizontal, GripVertical, BookOpen } from "lucide-react"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import {
+  Plus,
+  MoreHorizontal,
+  GripVertical,
+  BookOpen,
+  Search,
+  CheckCircle2,
+  Lock,
+  Copy,
+  Link2,
+} from "lucide-react"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
 import { NODE_REF_TYPE_LABELS, NODE_REF_TYPE_COLORS } from "@/lib/types"
 
@@ -32,7 +45,7 @@ interface CourseNodeTreeProps {
   nodes: SystemCourseNode[]
   selectedNodeId: string | null
   onSelect: (nodeId: string) => void
-  onAddNode: (parentId: string | null, name: string, order: number) => void
+  onAddNode: (parentId: string | null, name: string, order: number, type?: NodeRefType, sourceId?: string, sourceName?: string) => void
   onUpdateNode: (nodeId: string, updates: Partial<SystemCourseNode>) => void
   onDeleteNode: (nodeId: string) => void
   onReorderNodes: (nodeId: string, targetNodeId: string) => void
@@ -44,11 +57,22 @@ interface TreeItem {
   children: TreeItem[]
 }
 
+/* ---------- mock grain course pool ---------- */
+const MOCK_GRAIN_COURSES = [
+  { id: "grain-1", name: "P值与显著性", description: "统计推断基础概念", source: "统计学院", duration: 2 },
+  { id: "grain-2", name: "T检验实战", description: "小样本均值检验方法", source: "数据分析系", duration: 4 },
+  { id: "grain-3", name: "SQL注入防御", description: "Web安全防护技术", source: "网络安全系", duration: 3 },
+  { id: "grain-4", name: "XSS攻击原理", description: "跨站脚本攻击分析", source: "网络安全系", duration: 2 },
+  { id: "grain-5", name: "组件封装实践", description: "前端组件化开发规范", source: "前端工程系", duration: 3 },
+  { id: "grain-6", name: "状态管理进阶", description: "React/Vue 状态管理", source: "前端工程系", duration: 4 },
+  { id: "grain-7", name: "回归分析入门", description: "线性回归与非线性回归", source: "统计学院", duration: 5 },
+  { id: "grain-8", name: "数据可视化", description: "常用图表制作与美化", source: "数据分析系", duration: 3 },
+]
+
 function buildTree(nodes: SystemCourseNode[]): TreeItem[] {
   const map = new Map<string, TreeItem>()
   const roots: TreeItem[] = []
 
-  // Sort by order
   const sorted = [...nodes].sort((a, b) => a.order - b.order)
 
   sorted.forEach((node) => {
@@ -69,14 +93,6 @@ function buildTree(nodes: SystemCourseNode[]): TreeItem[] {
   return roots
 }
 
-function getSiblings(nodes: SystemCourseNode[], nodeId: string): SystemCourseNode[] {
-  const node = nodes.find((n) => n.id === nodeId)
-  if (!node) return []
-  return nodes
-    .filter((n) => n.parentId === node.parentId)
-    .sort((a, b) => a.order - b.order)
-}
-
 export default function CourseNodeTree({
   nodes,
   selectedNodeId,
@@ -89,14 +105,29 @@ export default function CourseNodeTree({
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
+
+  /* add dialog state */
   const [newNodeName, setNewNodeName] = useState("")
   const [newNodeParent, setNewNodeParent] = useState<string>("root")
   const [newNodeOrder, setNewNodeOrder] = useState(1)
+  const [addMode, setAddMode] = useState<NodeRefType>("normal")
+  const [sourceSearch, setSourceSearch] = useState("")
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
+
   const [editNodeName, setEditNodeName] = useState("")
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
 
   const tree = useMemo(() => buildTree(nodes), [nodes])
+
+  const filteredSources = MOCK_GRAIN_COURSES.filter((g) =>
+    !sourceSearch ||
+    g.name.includes(sourceSearch) ||
+    g.description.includes(sourceSearch) ||
+    g.source.includes(sourceSearch)
+  )
+
+  const selectedSource = MOCK_GRAIN_COURSES.find((g) => g.id === selectedSourceId)
 
   const openAddDialog = useCallback(
     (parentId: string | null = null) => {
@@ -105,6 +136,9 @@ export default function CourseNodeTree({
       setNewNodeName("")
       setNewNodeParent(parentId ?? "root")
       setNewNodeOrder(nextOrder)
+      setAddMode("normal")
+      setSourceSearch("")
+      setSelectedSourceId(null)
       setAddDialogOpen(true)
     },
     [nodes]
@@ -121,8 +155,20 @@ export default function CourseNodeTree({
   const handleConfirmAdd = () => {
     if (!newNodeName.trim()) return
     const parentId = newNodeParent === "root" ? null : newNodeParent
-    onAddNode(parentId, newNodeName.trim(), newNodeOrder)
+
+    if (addMode === "clone" || addMode === "quote") {
+      if (!selectedSourceId) return
+      const source = MOCK_GRAIN_COURSES.find((g) => g.id === selectedSourceId)
+      if (!source) return
+      onAddNode(parentId, newNodeName.trim(), newNodeOrder, addMode, source.id, source.name)
+    } else {
+      onAddNode(parentId, newNodeName.trim(), newNodeOrder, "normal")
+    }
+
     setAddDialogOpen(false)
+    setNewNodeName("")
+    setSelectedSourceId(null)
+    setSourceSearch("")
   }
 
   const handleConfirmEdit = () => {
@@ -169,17 +215,18 @@ export default function CourseNodeTree({
     const isDragging = draggingId === node.id
     const isDragOver = dragOverId === node.id
     const seq = indexPath
+    const isQuote = node.type === "quote"
 
     return (
       <div key={node.id}>
         <div
-          className={`
-            tree-node flex items-center gap-1.5 px-2 py-1.5 rounded cursor-pointer text-sm
-            transition-colors select-none
-            ${isActive ? "bg-blue-50 text-blue-600 border-l-2 border-blue-500" : "text-gray-600 hover:bg-gray-50"}
-            ${isDragging ? "opacity-40" : ""}
-            ${isDragOver ? "border-t-2 border-blue-500" : ""}
-          `}
+          className={cn(
+            "tree-node flex items-center gap-1.5 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors select-none",
+            isActive ? "bg-blue-50 text-blue-600 border-l-2 border-blue-500" : "text-gray-600 hover:bg-gray-50",
+            isDragging && "opacity-40",
+            isDragOver && "border-t-2 border-blue-500",
+            isQuote && !isActive && "bg-blue-50/30"
+          )}
           style={{ paddingLeft: `${12 + level * 16}px` }}
           draggable
           onDragStart={(e) => handleDragStart(e, node.id)}
@@ -195,9 +242,22 @@ export default function CourseNodeTree({
           <span className="flex-1 truncate" title={node.name}>
             {node.name}
           </span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS[node.type]}`}>
-            {NODE_REF_TYPE_LABELS[node.type]}
-          </span>
+          {isQuote && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded shrink-0 bg-blue-50 text-blue-600 border border-blue-200 flex items-center gap-0.5">
+              <Lock className="w-2.5 h-2.5" />
+              引用
+            </span>
+          )}
+          {node.type === 'original' && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS[node.type]}`}>
+              {NODE_REF_TYPE_LABELS[node.type]}
+            </span>
+          )}
+          {node.type === 'clone' && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS[node.type]}`}>
+              克隆
+            </span>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -232,9 +292,13 @@ export default function CourseNodeTree({
     )
   }
 
+  const canConfirm =
+    newNodeName.trim() &&
+    (addMode === "normal" || (addMode !== "normal" && selectedSourceId))
+
   return (
     <aside className="w-64 shrink-0">
-      <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-4">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-[88px]">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-gray-800 flex items-center gap-1.5">
             <BookOpen className="w-4 h-4 text-blue-500" />
@@ -260,10 +324,12 @@ export default function CourseNodeTree({
 
       {/* Add Node Dialog */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>添加节点</DialogTitle>
           </DialogHeader>
+
+          {/* Basic fields - always visible */}
           <div className="space-y-4 py-2">
             <div>
               <Label>节点名称 <span className="text-red-500">*</span></Label>
@@ -308,11 +374,159 @@ export default function CourseNodeTree({
               </p>
             </div>
           </div>
+
+          {/* Tabs */}
+          <div className="border-t pt-4">
+            <Tabs
+              value={addMode}
+              onValueChange={(v) => {
+                setAddMode(v as NodeRefType)
+                setSelectedSourceId(null)
+                setSourceSearch("")
+              }}
+            >
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="clone">克隆其他颗粒课</TabsTrigger>
+                <TabsTrigger value="quote">引用其他颗粒课</TabsTrigger>
+                <TabsTrigger value="normal">新建普通课程</TabsTrigger>
+              </TabsList>
+
+              {/* Clone tab */}
+              {addMode === "clone" && (
+                <div className="mt-4 space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      value={sourceSearch}
+                      onChange={(e) => setSourceSearch(e.target.value)}
+                      placeholder="搜索颗粒课名称、来源..."
+                      className="pl-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-[240px] overflow-y-auto">
+                    {filteredSources.length === 0 ? (
+                      <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
+                    ) : (
+                      filteredSources.map((g) => {
+                        const selected = selectedSourceId === g.id
+                        return (
+                          <button
+                            key={g.id}
+                            onClick={() => {
+                              setSelectedSourceId(g.id)
+                              setNewNodeName(g.name)
+                            }}
+                            className={cn(
+                              "w-full text-left p-3 rounded-lg border transition-all",
+                              selected
+                                ? "border-primary bg-primary/5 ring-1 ring-primary/10"
+                                : "border-gray-200 hover:border-gray-300 bg-white"
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className={cn(
+                                  "w-5 h-5 rounded-full border flex items-center justify-center",
+                                  selected ? "bg-primary border-primary" : "border-gray-300"
+                                )}>
+                                  {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="text-sm font-medium text-gray-800">{g.name}</span>
+                              </div>
+                              <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
+                  {selectedSource && (
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700 flex items-start gap-2">
+                      <Copy className="h-4 w-4 shrink-0 mt-0.5" />
+                      已选择「{selectedSource.name}」，克隆后该节点内容可独立编辑，与原颗粒课解除关联。
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Quote tab */}
+              {addMode === "quote" && (
+                <div className="mt-4 space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      value={sourceSearch}
+                      onChange={(e) => setSourceSearch(e.target.value)}
+                      placeholder="搜索颗粒课名称、来源..."
+                      className="pl-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-[240px] overflow-y-auto">
+                    {filteredSources.length === 0 ? (
+                      <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
+                    ) : (
+                      filteredSources.map((g) => {
+                        const selected = selectedSourceId === g.id
+                        return (
+                          <button
+                            key={g.id}
+                            onClick={() => {
+                              setSelectedSourceId(g.id)
+                              setNewNodeName(g.name)
+                            }}
+                            className={cn(
+                              "w-full text-left p-3 rounded-lg border transition-all",
+                              selected
+                                ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                                : "border-gray-200 hover:border-gray-300 bg-white"
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className={cn(
+                                  "w-5 h-5 rounded-full border flex items-center justify-center",
+                                  selected ? "bg-blue-500 border-blue-500" : "border-gray-300"
+                                )}>
+                                  {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="text-sm font-medium text-gray-800">{g.name}</span>
+                              </div>
+                              <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
+                  {selectedSource && (
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-xs text-blue-700 flex items-start gap-2">
+                      <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+                      已选择「{selectedSource.name}」，引用后该节点内容不可编辑，将自动随原颗粒课更新。
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Normal tab */}
+              {addMode === "normal" && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                  <p className="text-sm text-gray-600">创建一个新的普通课程节点，内容可自由编辑。</p>
+                </div>
+              )}
+            </Tabs>
+          </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
               取消
             </Button>
-            <Button onClick={handleConfirmAdd}>确认添加</Button>
+            <Button onClick={handleConfirmAdd} disabled={!canConfirm}>
+              确认添加
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

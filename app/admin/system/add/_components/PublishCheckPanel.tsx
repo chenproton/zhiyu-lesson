@@ -83,7 +83,7 @@ export default function PublishCheckPanel({ node }: PublishCheckPanelProps) {
   if (!node) {
     return (
       <aside className="w-64 shrink-0">
-        <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-4">
+        <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-[88px]">
           <p className="text-sm text-gray-400 text-center py-8">请选择一个节点</p>
         </div>
       </aside>
@@ -107,7 +107,7 @@ export default function PublishCheckPanel({ node }: PublishCheckPanelProps) {
 
   return (
     <aside className="w-64 shrink-0">
-      <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-4">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-[88px]">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-gray-800 flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-amber-500" />

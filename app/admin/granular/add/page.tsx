@@ -1,34 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
   ArrowLeft,
   Save,
-  Eye,
   Send,
-  CircleDot,
-  Radio,
-  GraduationCap,
-  MonitorPlay,
-  Users,
-  Hand,
-  Dices,
-  ClipboardCheck,
-  LogOut,
-  FileText,
+  Star,
   BookOpen,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
+  GraduationCap,
+  ClipboardList,
+  Award,
+  FileQuestion,
+  Gavel,
+  Database,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+
 import {
   Select,
   SelectContent,
@@ -37,31 +30,173 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import KnowledgeEditor from "./_components/KnowledgeEditor"
-import ResourceUploader from "./_components/ResourceUploader"
-import QuizHomeworkPanel from "./_components/QuizHomeworkPanel"
-import PublishCheckPanel from "./_components/PublishCheckPanel"
+import type { SystemCourseNode, NodeResource } from "@/lib/types"
 
-export default function AddGranularPage() {
-  const [mode, setMode] = useState<"prep" | "teach" | "learn">("prep")
-  const [courseName, setCourseName] = useState("假设检验")
-  const [courseCode, setCourseCode] = useState("STAT-101")
+import { KnowledgeSelector } from "../../_components/knowledge/knowledge-selector"
+import { ResourceSelector, type ResourceItem } from "../../_components/resources/resource-selector"
+import { EvaluationMethodSelector } from "../../_components/assessment/evaluation-method-selector"
+import { EvaluationRulesFullEditor } from "../../_components/assessment/evaluation-rules-full"
+import { RichTextEditor } from "../../_components/common/rich-text-editor"
 
-  const checkItems = [
-    { label: "课程名称", completed: courseName.length > 0 },
-    { label: "课程编码", completed: courseCode.length > 0 },
-    { label: "学习目标", completed: true },
-    { label: "涉及知识点", completed: true },
-    { label: "课程资源", completed: true },
-    { label: "随堂测验", completed: true },
-    { label: "课后作业", completed: false },
-  ]
+import PublishCheckPanel from "../../system/add/_components/PublishCheckPanel"
+
+import type {
+  KnowledgePointItem,
+  EvalPoint,
+  GradeMapping,
+} from "@/lib/mock-data"
+
+/* ---------- mock data ---------- */
+
+const MOCK_KNOWLEDGE_POOL: KnowledgePointItem[] = [
+  { id: "kp-1", name: "SQL注入", code: "KP-001", description: "常见的Web安全漏洞" },
+  { id: "kp-2", name: "XSS攻击", code: "KP-002", description: "跨站脚本攻击" },
+  { id: "kp-3", name: "CSRF防护", code: "KP-003", description: "跨站请求伪造防护" },
+  { id: "kp-4", name: "密码学", code: "KP-004", description: "加密与解密技术" },
+  { id: "kp-5", name: "渗透测试", code: "KP-005", description: "安全评估方法" },
+  { id: "kp-6", name: "P值与显著性", code: "KP-006", description: "统计推断基础" },
+  { id: "kp-7", name: "假设检验", code: "KP-007", description: "统计假设验证方法" },
+  { id: "kp-8", name: "T检验", code: "KP-008", description: "小样本均值检验" },
+  { id: "kp-9", name: "组件封装", code: "KP-009", description: "前端组件化开发" },
+  { id: "kp-10", name: "状态管理", code: "KP-010", description: "应用状态管理方案" },
+]
+
+const MOCK_RESOURCE_POOL: ResourceItem[] = [
+  { id: "res-1", name: "假设检验课件.pptx", type: "document", url: "/resources/1.pptx", uploadedBy: "张老师", uploadedAt: "2024-01-15" },
+  { id: "res-2", name: "统计实验手册.pdf", type: "document", url: "/resources/2.pdf", uploadedBy: "李老师", uploadedAt: "2024-02-20" },
+  { id: "res-3", name: "假设检验教学视频", type: "video", url: "/resources/3.mp4", uploadedBy: "王老师", uploadedAt: "2024-03-10" },
+  { id: "res-4", name: "统计学习资料链接", type: "link", url: "https://example.com/stats", uploadedBy: "赵老师", uploadedAt: "2024-03-15" },
+  { id: "res-5", name: "实验数据集.xlsx", type: "spreadsheet", url: "/resources/5.xlsx", uploadedBy: "刘老师", uploadedAt: "2024-04-01" },
+  { id: "res-6", name: "教学图片素材", type: "image", url: "/resources/6.jpg", uploadedBy: "陈老师", uploadedAt: "2024-04-10" },
+  { id: "res-7", name: "课程音频讲解", type: "audio", url: "/resources/7.mp3", uploadedBy: "周老师", uploadedAt: "2024-05-01" },
+]
+
+const DEFAULT_EVAL_POINTS: EvalPoint[] = [
+  { id: "ep-1", name: "知识掌握评价点", desc: "", subType: "knowledge_mastery", scoringMethod: "level", gradeMapping: [
+    { id: "gm-1", grade: "优秀", minScore: 90, maxScore: 100, color: "bg-green-500" },
+    { id: "gm-2", grade: "良好", minScore: 75, maxScore: 89, color: "bg-blue-500" },
+    { id: "gm-3", grade: "及格", minScore: 60, maxScore: 74, color: "bg-yellow-500" },
+    { id: "gm-4", grade: "不合格", minScore: 0, maxScore: 59, color: "bg-red-500" },
+  ], weight: 10, knowledgePointIds: ["kp-7", "kp-6"] },
+  { id: "ep-2", name: "任务完成评价点", desc: "", subType: "task_completion", scoringMethod: "level", gradeMapping: [
+    { id: "gm-5", grade: "优秀", minScore: 90, maxScore: 100, color: "bg-green-500" },
+    { id: "gm-6", grade: "良好", minScore: 75, maxScore: 89, color: "bg-blue-500" },
+    { id: "gm-7", grade: "及格", minScore: 60, maxScore: 74, color: "bg-yellow-500" },
+    { id: "gm-8", grade: "不合格", minScore: 0, maxScore: 59, color: "bg-red-500" },
+  ], weight: 10, knowledgePointIds: ["kp-7"] },
+]
+
+/* ---------- main component ---------- */
+
+function AddGranularPageInner() {
+  const searchParams = useSearchParams()
+  const isEdit = searchParams.get("mode") === "edit"
+
+  /* module 1: basic info */
+  const [courseName, setCourseName] = useState(isEdit ? "假设检验" : "")
+  const [courseCode] = useState(isEdit ? "GRA-STAT101" : `GRA-${Date.now().toString(36).toUpperCase()}`)
+  const [hours, setHours] = useState(isEdit ? "2" : "")
+  const [learningGoal, setLearningGoal] = useState(isEdit ? "掌握假设检验的基本原理与方法论" : "")
+  const [courseType, setCourseType] = useState<"normal" | "granular">("normal")
+  const [difficulty, setDifficulty] = useState<number>(isEdit ? 3 : 0)
+
+  /* module 2: knowledge points */
+  const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePointItem[]>(
+    isEdit
+      ? [
+          { id: "kp-7", name: "假设检验", code: "KP-007", description: "统计假设验证方法", linked: true },
+          { id: "kp-6", name: "P值与显著性", code: "KP-006", description: "统计推断基础", linked: true },
+        ]
+      : []
+  )
+
+  /* module 3: resources */
+  const [resourcePool, setResourcePool] = useState<ResourceItem[]>(MOCK_RESOURCE_POOL)
+  const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>(
+    isEdit ? ["res-1", "res-2"] : []
+  )
+
+  /* module 4: assessment */
+  const [selectedEvalMethods, setSelectedEvalMethods] = useState<string[]>(
+    isEdit ? ["random_draw", "paper"] : []
+  )
+
+  /* module 5: evaluation rules */
+  const [evalConfigs, setEvalConfigs] = useState<Record<string, any>>(
+    isEdit
+      ? {
+          random_draw: {
+            objectType: "individual",
+            subjects: [
+              { type: "teacher", label: "教师", enabled: true, weightPercent: 70, params: { scorerCount: 1, aggregationRule: "average" } },
+              { type: "self", label: "自评", enabled: true, weightPercent: 30 },
+            ],
+            evalPoints: DEFAULT_EVAL_POINTS,
+          },
+          paper: {
+            objectType: "individual",
+            subjects: [
+              { type: "teacher", label: "教师", enabled: true, weightPercent: 100, params: { scorerCount: 1, aggregationRule: "average" } },
+            ],
+            evalPoints: [],
+          },
+        }
+      : {}
+  )
+  const [passScore, setPassScore] = useState("60")
+
+  /* ---------- construct current node for publish check ---------- */
+  const currentCheckNode: SystemCourseNode | undefined = useMemo(() => {
+    const kpForCheck = knowledgePoints.map((kp) => ({
+      name: kp.name,
+      linked: kp.linked ?? false,
+    }))
+
+    const resForCheck: NodeResource[] = selectedResourceIds
+      .map((id) => {
+        const r = resourcePool.find((x) => x.id === id)
+        if (!r) return null
+        return {
+          id: r.id,
+          name: r.name,
+          type: r.type,
+          size: 0,
+          url: r.url,
+        }
+      })
+      .filter(Boolean) as NodeResource[]
+
+    const quizzesForCheck = selectedEvalMethods.length > 0
+      ? selectedEvalMethods.map((method, i) => ({
+          id: `qz-${i}`,
+          title: method === "review" ? "现场评审" : method === "question_bank" ? "题库测验" : method === "paper" ? "试卷测验" : "现场问答",
+          type: method === "question_bank" ? "question_bank" as const : "paper" as const,
+          questions: [] as any[],
+        }))
+      : []
+
+    return {
+      id: "granular-current",
+      courseId: "granular-1",
+      parentId: null,
+      name: courseName || "未命名",
+      order: 1,
+      type: courseType === "granular" ? "original" : "normal",
+      status: "draft" as const,
+      teachingGoals: learningGoal,
+      duration: parseInt(hours) || 0,
+      knowledgePoints: kpForCheck,
+      resources: resForCheck,
+      quizzes: quizzesForCheck,
+      homeworks: [],
+    }
+  }, [courseName, hours, learningGoal, knowledgePoints, selectedResourceIds, resourcePool, selectedEvalMethods, courseType])
 
   return (
     <div className="min-h-screen bg-[#f5f7fa]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-[1440px] mx-auto px-6 py-4">
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
+        <div className="max-w-[1400px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/admin/granular">
@@ -70,416 +205,199 @@ export default function AddGranularPage() {
                   返回列表
                 </Button>
               </Link>
-              <h1 className="text-2xl font-semibold">{courseName || "新建颗粒课"}</h1>
-              {courseCode && (
-                <Badge variant="outline" className="text-xs font-normal text-gray-500">
-                  {courseCode}
-                </Badge>
-              )}
+              <h1 className="text-lg font-semibold text-gray-900">
+                {isEdit ? "编辑颗粒课" : "新建颗粒课"}
+                {courseName && <span className="text-gray-400 font-normal ml-2">- {courseName}</span>}
+              </h1>
             </div>
-
-            {/* 三态切换 */}
             <div className="flex items-center gap-2">
-              <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1">
-                <button
-                  onClick={() => setMode("prep")}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-                    mode === "prep"
-                      ? "bg-white text-[#1890ff] shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <CircleDot className="w-3 h-3" />
-                  备课态
-                </button>
-                <button
-                  onClick={() => setMode("teach")}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-                    mode === "teach"
-                      ? "bg-white text-red-500 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <Radio className="w-3 h-3" />
-                  教师上课态
-                </button>
-                <button
-                  onClick={() => setMode("learn")}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-                    mode === "learn"
-                      ? "bg-white text-green-500 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <GraduationCap className="w-3 h-3" />
-                  学生学习态
-                </button>
-              </div>
-
-              {mode === "prep" && (
-                <div className="flex items-center gap-2 ml-3">
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <Save className="w-4 h-4" />
-                    保存
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <Eye className="w-4 h-4" />
-                    预览
-                  </Button>
-                  <Button size="sm" className="gap-1 bg-[#1890ff] hover:bg-[#40a9ff]">
-                    <Send className="w-4 h-4" />
-                    提交
-                  </Button>
-                </div>
-              )}
-              {mode === "teach" && (
-                <Button size="sm" variant="destructive" className="gap-1 ml-3">
-                  <LogOut className="w-4 h-4" />
-                  下课
-                </Button>
-              )}
+              <Button variant="outline" size="sm" className="gap-1">
+                <Save className="h-4 w-4" />
+                保存草稿
+              </Button>
+              <Button size="sm" className="gap-1 bg-[#1890ff] hover:bg-[#40a9ff]">
+                <Send className="h-4 w-4" />
+                提交
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="max-w-[1440px] mx-auto px-6 py-5">
-        {mode === "prep" && (
-          <div className="flex gap-5">
-            {/* Left */}
-            <div className="w-[280px] shrink-0 space-y-4">
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-[#1890ff]" />
-                    基本信息
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 space-y-3">
+      <div className="max-w-[1400px] mx-auto px-6 py-6">
+        {/* ========== Two-column layout: center content + right publish check ========== */}
+        <div className="grid grid-cols-[1fr_260px] gap-6">
+
+          {/* Center: Content modules */}
+          <main className="space-y-5 min-w-0">
+            {/* Module 1: Basic Info */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-[#1890ff]" />
+                  基本信息配置
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs">课程名称</Label>
-                    <Input
-                      size="sm"
-                      value={courseName}
-                      onChange={(e) => setCourseName(e.target.value)}
-                      className="h-8 text-sm"
-                    />
+                    <Input value={courseName} onChange={(e) => setCourseName(e.target.value)} placeholder="请输入课程名称" className="h-9 text-sm" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">课程编码</Label>
-                    <Input
-                      size="sm"
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">所属行业</Label>
-                    <Select defaultValue="software">
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="software">软件测试工程师</SelectItem>
-                        <SelectItem value="electronic">电子信息</SelectItem>
-                        <SelectItem value="finance">金融</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">所属专业</Label>
-                    <Select defaultValue="major01">
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="major01">岗位优化测试专业01</SelectItem>
-                        <SelectItem value="major02">岗位优化测试专业02</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input value={courseCode} disabled className="h-9 text-sm bg-gray-50 text-gray-500" />
+                    <p className="text-[10px] text-gray-400">系统自动生成，不可修改</p>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">预计课时</Label>
-                    <Input type="number" defaultValue="2" className="h-8 text-sm" />
+                    <Input type="number" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="请输入课时数" className="h-9 text-sm" />
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold">课程资源</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <ResourceUploader />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Center */}
-            <div className="flex-1 min-w-0 space-y-4">
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold">知识图谱</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <KnowledgeEditor />
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold">导学教案</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <Textarea
-                    placeholder="请输入课前备课内容..."
-                    rows={5}
-                    className="text-sm resize-y"
-                    defaultValue="本节课将介绍SQL注入的基本原理、常见分类及防御方法。通过理论讲解与实操演示相结合的方式，帮助学生掌握SQL注入漏洞的检测与利用技术。"
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold">学习目标</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <Textarea
-                    placeholder="请输入学习目标..."
-                    rows={3}
-                    className="text-sm resize-y"
-                    defaultValue="1. 理解SQL注入的基本原理\n2. 掌握常见的SQL注入分类（联合查询、报错注入、盲注等）\n3. 学会使用SQLMap进行自动化注入检测"
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold">测验与作业</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <QuizHomeworkPanel />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right */}
-            <div className="w-[240px] shrink-0 space-y-4">
-              <Card className="border-0 shadow-sm sticky top-5">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold">发布检查</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <PublishCheckPanel items={checkItems} />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {mode === "teach" && (
-          <div className="flex gap-5 h-[calc(100vh-160px)]">
-            {/* Left: Slide list */}
-            <Card className="w-[260px] border-0 shadow-sm flex flex-col shrink-0">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-red-500" />
-                  课件列表
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto pt-0 space-y-1">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <button
-                    key={i}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                      i === 3 ? "bg-red-50 text-red-600 font-medium" : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    第 {i + 1} 页
-                  </button>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Center: Presentation */}
-            <Card className="flex-1 border-0 shadow-sm flex flex-col min-h-0">
-              <CardContent className="flex-1 p-0 flex flex-col">
-                <div className="flex-1 bg-slate-800 flex items-center justify-center relative">
-                  <div className="text-center text-white p-8">
-                    <MonitorPlay className="w-16 h-16 mx-auto mb-4 text-slate-500" />
-                    <p className="text-lg font-medium">{courseName}</p>
-                    <p className="text-sm text-slate-400 mt-2">第 4 / 8 页</p>
-                  </div>
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur rounded-full px-4 py-2">
-                    <button className="text-white/80 hover:text-white text-xs">◀ 上一页</button>
-                    <span className="text-white/30">|</span>
-                    <button className="text-white/80 hover:text-white text-xs">下一页 ▶</button>
-                    <span className="text-white/30">|</span>
-                    <button className="text-white/80 hover:text-white text-xs">批注</button>
-                    <span className="text-white/30">|</span>
-                    <button className="text-white/80 hover:text-white text-xs">聚焦</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-4 gap-3 p-4 bg-white border-t">
-                  <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                    <ClipboardCheck className="w-5 h-5 text-cyan-500" />
-                    <span className="text-xs text-gray-700">签到</span>
-                  </button>
-                  <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                    <FileText className="w-5 h-5 text-blue-500" />
-                    <span className="text-xs text-gray-700">一键下发测验</span>
-                  </button>
-                  <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                    <Hand className="w-5 h-5 text-purple-500" />
-                    <span className="text-xs text-gray-700">举手/抢答</span>
-                  </button>
-                  <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                    <Dices className="w-5 h-5 text-orange-500" />
-                    <span className="text-xs text-gray-700">随机点名</span>
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Right: Students */}
-            <Card className="w-[240px] border-0 shadow-sm flex flex-col shrink-0">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Users className="w-4 h-4 text-green-500" />
-                  学生状态
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto pt-0 space-y-2">
-                <div className="flex items-center justify-between p-2 rounded bg-green-50">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className="text-sm text-gray-700">李明</span>
-                  </div>
-                  <span className="text-xs text-green-600">在线</span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded bg-green-50">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className="text-sm text-gray-700">王芳</span>
-                  </div>
-                  <span className="text-xs text-green-600">专注</span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded bg-orange-50">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-orange-500" />
-                    <span className="text-sm text-gray-700">张伟</span>
-                  </div>
-                  <span className="text-xs text-orange-600">挂机</span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded bg-gray-50">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-gray-300" />
-                    <span className="text-sm text-gray-400">刘洋</span>
-                  </div>
-                  <span className="text-xs text-gray-400">缺席</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {mode === "learn" && (
-          <div className="flex gap-5 h-[calc(100vh-160px)]">
-            {/* Left: Course content */}
-            <Card className="flex-1 border-0 shadow-sm flex flex-col min-h-0">
-              <CardContent className="flex-1 p-0 flex flex-col">
-                <div className="flex-1 bg-white flex items-center justify-center relative p-8">
-                  <div className="max-w-2xl w-full">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">{courseName}</h2>
-                    <div className="aspect-video bg-slate-100 rounded-lg flex items-center justify-center mb-4">
-                      <MonitorPlay className="w-12 h-12 text-slate-300" />
-                    </div>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      本节课正在学习{courseName}的相关内容。学生端将同步显示教师课件，并支持在线答题、笔记记录等功能。
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Right: Observation panel */}
-            <Card className="w-[320px] border-0 shadow-sm flex flex-col shrink-0">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-green-500" />
-                  学生学习观察
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto pt-0 space-y-4">
-                {/* Overview */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center p-2 rounded-lg bg-green-50">
-                    <p className="text-lg font-bold text-green-600">24</p>
-                    <p className="text-[10px] text-green-700">在线</p>
-                  </div>
-                  <div className="text-center p-2 rounded-lg bg-blue-50">
-                    <p className="text-lg font-bold text-blue-600">18</p>
-                    <p className="text-[10px] text-blue-700">专注</p>
-                  </div>
-                  <div className="text-center p-2 rounded-lg bg-orange-50">
-                    <p className="text-lg font-bold text-orange-600">3</p>
-                    <p className="text-[10px] text-orange-700">挂机</p>
-                  </div>
-                </div>
-
-                {/* Quiz progress */}
-                <div>
-                  <h4 className="text-xs font-medium text-gray-700 mb-2">随堂测验进度</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-500">答题人数</span>
-                      <span className="text-gray-700">20/24</span>
-                    </div>
-                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: "83%" }} />
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-500">平均得分</span>
-                      <span className="text-gray-700 font-medium">78分</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Student list */}
-                <div>
-                  <h4 className="text-xs font-medium text-gray-700 mb-2">学生答题情况</h4>
                   <div className="space-y-1.5">
-                    {[
-                      { name: "李明", status: "已完成", score: 95, color: "green" },
-                      { name: "王芳", status: "已完成", score: 88, color: "green" },
-                      { name: "赵强", status: "已完成", score: 82, color: "green" },
-                      { name: "孙丽", status: "答题中", score: 0, color: "blue" },
-                      { name: "周杰", status: "答题中", score: 0, color: "blue" },
-                      { name: "张伟", status: "未开始", score: 0, color: "gray" },
-                    ].map((s) => (
-                      <div key={s.name} className="flex items-center justify-between p-2 rounded bg-gray-50/50">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${
-                            s.color === "green" ? "bg-green-500" : s.color === "blue" ? "bg-blue-500" : "bg-gray-300"
-                          }`} />
-                          <span className="text-sm text-gray-700">{s.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-gray-400">{s.status}</span>
-                          {s.score > 0 && <span className="text-xs font-medium text-green-600">{s.score}分</span>}
-                        </div>
-                      </div>
-                    ))}
+                    <Label className="text-xs">难度等级</Label>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setDifficulty(star)}
+                          className="p-1 transition-colors"
+                        >
+                          <Star
+                            className={`w-5 h-5 ${
+                              star <= difficulty
+                                ? "text-amber-400 fill-amber-400"
+                                : "text-gray-200"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                      <span className="text-xs text-gray-400 ml-2">
+                        {difficulty > 0 ? `${difficulty} 星` : "请选择难度"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-1.5">
+                    <Label className="text-xs">学习目标</Label>
+                    <RichTextEditor
+                      value={learningGoal}
+                      onChange={setLearningGoal}
+                      minHeight={280}
+                    />
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        )}
+
+            {/* Module 2: Knowledge Points */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-[#1890ff]" />
+                  关联知识点
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <KnowledgeSelector
+                  selected={knowledgePoints}
+                  pool={MOCK_KNOWLEDGE_POOL}
+                  onChange={setKnowledgePoints}
+                  onAddCustom={(name, description) => {
+                    const newKp: KnowledgePointItem = {
+                      id: `kp-custom-${Date.now()}`,
+                      name,
+                      description,
+                      linked: false,
+                    }
+                    setKnowledgePoints((prev) => [...prev, newKp])
+                  }}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Module 3: Resources */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-[#1890ff]" />
+                  配置课程资源
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ResourceSelector
+                  pool={resourcePool}
+                  selectedIds={selectedResourceIds}
+                  onChange={setSelectedResourceIds}
+                  onUpload={(r) => setResourcePool((prev) => [...prev, r])}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Module 4: Assessment */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4 text-[#1890ff]" />
+                  配置课程测评方式
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <EvaluationMethodSelector
+                  selectedKeys={selectedEvalMethods}
+                  onChange={setSelectedEvalMethods}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Module 5: Evaluation Rules */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Award className="w-4 h-4 text-[#1890ff]" />
+                  配置课程评价规则
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-4">
+                <EvaluationRulesFullEditor
+                  methodKeys={selectedEvalMethods}
+                  methodOptions={[
+                    { key: "random_draw", label: "现场问答", icon: <FileQuestion className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "从题库抽取题目，教师现场提问" },
+                    { key: "review", label: "现场评审", icon: <Gavel className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", desc: "教师根据表现/材料给评价点打分" },
+                    { key: "paper", label: "试卷", icon: <ClipboardList className="h-5 w-5" />, color: "bg-green-50 text-green-600 border-green-200", desc: "使用固定试卷进行考核" },
+                    { key: "question_bank", label: "题库", icon: <Database className="h-5 w-5" />, color: "bg-orange-50 text-orange-600 border-orange-200", desc: "从题库选题组成测评资源" },
+                  ]}
+                  knowledgePoints={knowledgePoints}
+                  configs={evalConfigs}
+                  onChange={setEvalConfigs}
+                />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                  <Label className="text-xs text-gray-500 shrink-0">及格分数线</Label>
+                  <Input
+                    type="number"
+                    value={passScore}
+                    onChange={(e) => setPassScore(e.target.value)}
+                    className="w-20 h-8 text-sm"
+                  />
+                  <span className="text-xs text-gray-400">分</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bottom spacer */}
+            <div className="h-12" />
+          </main>
+
+          {/* Right: Publish Check Panel */}
+          <PublishCheckPanel node={currentCheckNode} />
+        </div>
       </div>
     </div>
+  )
+}
+
+export default function AddGranularPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f5f7fa] flex items-center justify-center text-gray-400">加载中...</div>}>
+      <AddGranularPageInner />
+    </Suspense>
   )
 }

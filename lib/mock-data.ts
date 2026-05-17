@@ -512,3 +512,90 @@ export const mockKnowledgeGraphEdges: import('./types').KnowledgeGraphEdge[] = [
   { from: 'kg-4', to: 'kg-9', label: '前提' },
   { from: 'kg-4', to: 'kg-10', label: '理论基础' },
 ]
+
+
+// ====== Add / Edit Page Types (mirrored from zhiyu-scene) ======
+
+export type ResourceType = "document" | "video" | "link" | "file"
+
+export interface Resource {
+  id: string
+  name: string
+  type: ResourceType
+  url: string
+  size?: string
+}
+
+export type QuestionType = "single" | "multiple" | "judgment"
+
+export interface QuestionItem {
+  id: string
+  type: QuestionType
+  content: string
+  options?: string[]
+  answer: string | string[]
+  score: number
+}
+
+export interface ObjectiveConfig {
+  questions: QuestionItem[]
+  totalScore: number
+}
+
+export interface RubricLevel {
+  id: string
+  name: string
+  minScore: number
+  maxScore: number
+  description: string
+  color: string
+}
+
+export interface RubricPoint {
+  id: string
+  name: string
+  weight: number
+  maxScore: number
+  levels: RubricLevel[]
+}
+
+export interface SubjectiveConfig {
+  rubricPoints: RubricPoint[]
+  synthesisRule: "sum" | "weighted"
+}
+
+export interface GradeMapping {
+  id: string
+  grade: string
+  minScore: number
+  maxScore: number
+  color: string
+  remark?: string
+}
+
+export interface KnowledgePointItem {
+  id: string
+  name: string
+  code?: string
+  description?: string
+  linked: boolean
+}
+
+export interface EvalPoint {
+  id: string
+  name: string
+  desc: string
+  subType?: string
+  types?: string[]
+  knowledgePointIds?: string[]
+  abilityPointIds?: string[]
+  scoringMethod?: "score" | "level" | "rubric"
+  gradeMapping?: GradeMapping[]
+  weight?: number
+}
+
+export interface EvalSubjectConfig {
+  subject: string
+  enabled: boolean
+  weight: number
+}

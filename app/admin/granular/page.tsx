@@ -398,9 +398,11 @@ export default function GranularCoursePage() {
                               查看
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            编辑
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin/granular/add?mode=edit" className="flex items-center cursor-pointer">
+                              <Pencil className="h-4 w-4 mr-2" />
+                              编辑
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => alert(`导出课程：${course.name}（演示）`)}>
                             <Download className="h-4 w-4 mr-2" />
@@ -465,7 +467,9 @@ export default function GranularCoursePage() {
                     <Button variant="outline" size="sm" className="flex-1 text-xs" asChild>
                       <Link href={`/learn/courses/granular/${course.id}`}>查看</Link>
                     </Button>
-                    <Button size="sm" className="flex-1 text-xs">编辑</Button>
+                    <Button size="sm" className="flex-1 text-xs" asChild>
+                      <Link href="/admin/granular/add?mode=edit">编辑</Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
