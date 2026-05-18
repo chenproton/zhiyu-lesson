@@ -241,7 +241,7 @@ export default function CourseLearnPage() {
   const params = useParams()
   const courseId = params.id as string
 
-  const course = useMemo(() => courses.find((c) => c.id === courseId), [courseId])
+  const course = useMemo(() => courses.find((c) => String(c.id) === String(courseId)), [courseId])
 
   if (!course) {
     notFound()

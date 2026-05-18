@@ -32,14 +32,14 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { courses, mockKnowledgeGraphNodes, mockKnowledgeGraphEdges } from "@/lib/mock-data"
-import type { Course } from "@/lib/types"
+import { type Course, COURSE_STATUS_LABELS, COURSE_STATUS_COLORS } from "@/lib/types"
 import KnowledgeGraph from "@/components/KnowledgeGraph"
 
 export default function SystemCourseDetailPage() {
   const params = useParams()
   const id = params.id as string
-  const course: Course | undefined = courses.find(
-    (c) => c.id === id && c.type === "system"
+  const course = courses.find(
+    (c) => String(c.id) === String(id)
   )
   if (!course) return notFound()
 
