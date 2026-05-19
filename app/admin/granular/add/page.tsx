@@ -13,7 +13,6 @@ import {
   ClipboardList,
   Award,
   FileQuestion,
-  Gavel,
   Database,
 } from "lucide-react"
 
@@ -360,12 +359,11 @@ function AddGranularPageInner() {
                 <EvaluationRulesFullEditor
                   methodKeys={selectedEvalMethods}
                   methodOptions={[
-                    { key: "random_draw", label: "现场问答", icon: <FileQuestion className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "从题库抽取题目，教师现场提问" },
-                    { key: "review", label: "现场评审", icon: <Gavel className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", desc: "教师根据表现/材料给评价点打分" },
                     { key: "paper", label: "试卷", icon: <ClipboardList className="h-5 w-5" />, color: "bg-green-50 text-green-600 border-green-200", desc: "使用固定试卷进行考核" },
                     { key: "question_bank", label: "题库", icon: <Database className="h-5 w-5" />, color: "bg-orange-50 text-orange-600 border-orange-200", desc: "从题库选题组成测评资源" },
+                    { key: "exam", label: "考试", icon: <BookOpen className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "组织标准化考试进行考核" },
+                    { key: "quiz", label: "随堂测", icon: <FileQuestion className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", desc: "课堂即时测验" },
                   ]}
-                  knowledgePoints={knowledgePoints}
                   configs={evalConfigs}
                   onChange={setEvalConfigs}
                 />

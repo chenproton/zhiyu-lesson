@@ -12,25 +12,22 @@ import {
   Send,
   BookOpen,
   Clock,
-  AlertCircle,
-  CheckCircle2,
-  CircleDot,
   Layers,
   MonitorPlay,
   Users,
   Hand,
   Dices,
   ClipboardCheck,
-  LogOut,
-  Radio,
   GraduationCap,
   X,
   Trash2,
-  Plus,
   MapPin,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   CheckSquare,
+  RefreshCw,
+  LayoutList,
+  Plus,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -59,49 +56,44 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-type CourseStatus = "unprep" | "doing" | "prep"
+type ScheduleType = "scene" | "course" | "exam"
 
-interface CourseItem {
+interface ScheduleItem {
   id: string
   name: string
-  status: CourseStatus
+  type: ScheduleType
   time: string
+  location?: string
 }
 
 interface DaySchedule {
   day: string
   date: string
   isToday?: boolean
-  courses: CourseItem[]
+  courses: ScheduleItem[]
 }
 
-const STATUS_MAP: Record<
-  CourseStatus,
-  { label: string; color: string; bg: string; border: string; dot: string; icon: React.ReactNode }
+const TYPE_MAP: Record<
+  ScheduleType,
+  { label: string; color: string; bg: string; icon: React.ReactNode }
 > = {
-  unprep: {
-    label: "未备课",
-    color: "text-red-500",
+  scene: {
+    label: "场景教学",
+    color: "text-purple-600",
+    bg: "bg-purple-50",
+    icon: <Layers className="w-3.5 h-3.5 text-purple-500" />,
+  },
+  course: {
+    label: "课程教学",
+    color: "text-blue-600",
+    bg: "bg-blue-50",
+    icon: <BookOpen className="w-3.5 h-3.5 text-blue-500" />,
+  },
+  exam: {
+    label: "考试",
+    color: "text-red-600",
     bg: "bg-red-50",
-    border: "border-l-red-500",
-    dot: "bg-red-500",
-    icon: <AlertCircle className="w-3.5 h-3.5 text-red-500" />,
-  },
-  doing: {
-    label: "备课中",
-    color: "text-amber-500",
-    bg: "bg-amber-50",
-    border: "border-l-amber-500",
-    dot: "bg-amber-500",
-    icon: <Clock className="w-3.5 h-3.5 text-amber-500" />,
-  },
-  prep: {
-    label: "已备课",
-    color: "text-green-500",
-    bg: "bg-green-50",
-    border: "border-l-green-500",
-    dot: "bg-green-500",
-    icon: <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />,
+    icon: <ClipboardCheck className="w-3.5 h-3.5 text-red-500" />,
   },
 }
 
@@ -110,17 +102,17 @@ const WEEK_SCHEDULE: DaySchedule[] = [
     day: "周一",
     date: "10/16",
     courses: [
-      { id: "c1", name: "SQL注入漏洞检测", status: "prep", time: "08:00-09:40" },
-      { id: "c2", name: "渗透测试基础", status: "doing", time: "10:00-11:40" },
-      { id: "c3", name: "XSS跨站脚本防御", status: "unprep", time: "14:00-15:40" },
+      { id: "c1", name: "SQL注入漏洞检测", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
+      { id: "c2", name: "渗透测试基础", type: "scene", time: "10:00-11:40", location: "实训楼 B-205" },
+      { id: "c3", name: "XSS跨站脚本防御", type: "course", time: "14:00-15:40", location: "教学楼 A-302" },
     ],
   },
   {
     day: "周二",
     date: "10/17",
     courses: [
-      { id: "c4", name: "CSRF攻击原理与防护", status: "prep", time: "08:00-09:40" },
-      { id: "c5", name: "缓冲区溢出分析", status: "unprep", time: "10:00-11:40" },
+      { id: "c4", name: "CSRF攻击原理与防护", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
+      { id: "c5", name: "缓冲区溢出分析", type: "exam", time: "10:00-11:40", location: "机房 C-401" },
     ],
   },
   {
@@ -128,26 +120,26 @@ const WEEK_SCHEDULE: DaySchedule[] = [
     date: "10/18",
     isToday: true,
     courses: [
-      { id: "c6", name: "密码学基础", status: "doing", time: "08:00-09:40" },
-      { id: "c7", name: "网络协议分析", status: "unprep", time: "10:00-11:40" },
-      { id: "c8", name: "Web应用安全扫描", status: "prep", time: "14:00-15:40" },
+      { id: "c6", name: "密码学基础", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
+      { id: "c7", name: "网络协议分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205" },
+      { id: "c8", name: "Web应用安全扫描", type: "course", time: "14:00-15:40", location: "教学楼 A-302" },
     ],
   },
   {
     day: "周四",
     date: "10/19",
     courses: [
-      { id: "c9", name: "逆向工程入门", status: "unprep", time: "08:00-09:40" },
-      { id: "c10", name: "恶意代码分析", status: "doing", time: "10:00-11:40" },
+      { id: "c9", name: "逆向工程入门", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
+      { id: "c10", name: "恶意代码分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205" },
     ],
   },
   {
     day: "周五",
     date: "10/20",
     courses: [
-      { id: "c11", name: "安全编码规范", status: "prep", time: "08:00-09:40" },
-      { id: "c12", name: "漏洞挖掘实践", status: "prep", time: "10:00-11:40" },
-      { id: "c13", name: "应急响应流程", status: "doing", time: "14:00-15:40" },
+      { id: "c11", name: "安全编码规范", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
+      { id: "c12", name: "漏洞挖掘实践", type: "scene", time: "10:00-11:40", location: "实训楼 B-205" },
+      { id: "c13", name: "应急响应流程", type: "exam", time: "14:00-15:40", location: "机房 C-401" },
     ],
   },
 ]
@@ -201,25 +193,26 @@ const CATALOG_DATA: CatalogNode[] = [
   },
 ]
 
-function CourseCard({
+const COURSE_OPTIONS = [
+  { id: "sys-1", name: "Web安全攻防体系课", type: "体系课" },
+  { id: "sys-2", name: "数据结构与算法", type: "体系课" },
+  { id: "grain-1", name: "SQL注入原理与分类", type: "颗粒课" },
+  { id: "grain-2", name: "缓冲区溢出分析", type: "颗粒课" },
+]
+
+function ScheduleCard({
   course,
   onDelete,
-  onEnterWorkspace,
 }: {
-  course: CourseItem
+  course: ScheduleItem
   onDelete?: (id: string) => void
-  onEnterWorkspace?: () => void
 }) {
-  const s = STATUS_MAP[course.status]
+  const t = TYPE_MAP[course.type]
   const [expanded, setExpanded] = useState(false)
 
   return (
     <div
-      className={`
-        group relative rounded-md border border-gray-100
-        bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md
-        border-l-4 ${s.border}
-      `}
+      className="group relative rounded-md border border-gray-100 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
       <div
         className="flex items-center justify-between px-3 py-2.5 cursor-pointer"
@@ -230,12 +223,12 @@ function CourseCard({
           <span className="text-xs text-gray-400">{course.time}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 ml-2">
-          {s.icon}
+          {t.icon}
           <Badge
             variant="outline"
-            className={`text-xs font-normal border-current ${s.color} ${s.bg}`}
+            className={`text-xs font-normal border-current ${t.color} ${t.bg}`}
           >
-            {s.label}
+            {t.label}
           </Badge>
         </div>
       </div>
@@ -244,7 +237,7 @@ function CourseCard({
         <div className="px-3 pb-3 border-t border-gray-50 pt-2 space-y-2">
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <MapPin className="w-3 h-3" />
-            <span>教学楼 A-301</span>
+            <span>{course.location || "教学楼 A-301"}</span>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -264,10 +257,10 @@ function CourseCard({
               className="h-7 text-xs flex-1 bg-[#1890ff] hover:bg-[#40a9ff]"
               onClick={(e) => {
                 e.stopPropagation()
-                onEnterWorkspace?.()
+                alert(`前往上课：${course.name}`)
               }}
             >
-              进入备课
+              前往上课
             </Button>
             <Button
               size="sm"
@@ -342,17 +335,15 @@ function CatalogTree({
 
 export default function SmartClassroomPage() {
   const [selectedLessonId, setSelectedLessonId] = useState("l4")
-  const [workspaceMode, setWorkspaceMode] = useState<"prep" | "teach" | "learn">("prep")
   const [activeTab, setActiveTab] = useState("schedule")
   const [prepStage, setPrepStage] = useState<"pre" | "in" | "post">("pre")
 
   // Schedule state
   const [schedule, setSchedule] = useState<DaySchedule[]>(WEEK_SCHEDULE)
   const [weekOffset, setWeekOffset] = useState(0)
-  const [addModalOpen, setAddModalOpen] = useState(false)
-  const [addDay, setAddDay] = useState("")
-  const [newCourseName, setNewCourseName] = useState("")
-  const [newCourseTime, setNewCourseTime] = useState("08:00-09:40")
+
+  // Course selector state
+  const [selectedCourseId, setSelectedCourseId] = useState("sys-1")
 
   const handleDeleteCourse = (dayIndex: number, courseId: string) => {
     setSchedule((prev) => {
@@ -365,35 +356,14 @@ export default function SmartClassroomPage() {
     })
   }
 
-  const handleAddCourse = () => {
-    if (!newCourseName.trim() || !addDay) return
-    const dayIndex = parseInt(addDay)
-    setSchedule((prev) => {
-      const next = [...prev]
-      next[dayIndex] = {
-        ...next[dayIndex],
-        courses: [
-          ...next[dayIndex].courses,
-          {
-            id: `c${Date.now()}`,
-            name: newCourseName,
-            status: "unprep",
-            time: newCourseTime,
-          },
-        ],
-      }
-      return next
-    })
-    setNewCourseName("")
-    setAddModalOpen(false)
-  }
-
   const weekLabel = useMemo(() => {
     const base = new Date(2023, 9, 16)
     const start = new Date(base.getTime() + weekOffset * 7 * 24 * 60 * 60 * 1000)
     const end = new Date(start.getTime() + 4 * 24 * 60 * 60 * 1000)
     return `${start.getMonth() + 1}月${start.getDate()}日 - ${end.getMonth() + 1}月${end.getDate()}日`
   }, [weekOffset])
+
+  const selectedCourse = COURSE_OPTIONS.find((c) => c.id === selectedCourseId)
 
   return (
     <div className="min-h-screen bg-[#f0f2f5]">
@@ -457,10 +427,19 @@ export default function SmartClassroomPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-5 text-sm">
-                      <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-red-100" /><span className="text-gray-600">未备课</span></div>
-                      <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-amber-100" /><span className="text-gray-600">备课中</span></div>
-                      <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 ring-2 ring-green-100" /><span className="text-gray-600">已备课</span></div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-5 text-sm">
+                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-purple-500 ring-2 ring-purple-100" /><span className="text-gray-600">场景教学</span></div>
+                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-blue-100" /><span className="text-gray-600">课程教学</span></div>
+                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-red-100" /><span className="text-gray-600">考试</span></div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <Button size="sm" variant="outline" className="gap-1.5">
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          从教务系统同步
+                        </Button>
+                        <span className="text-[11px] text-gray-400 mt-1">最近同步时间 2026/05/21 18:22</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -478,88 +457,19 @@ export default function SmartClassroomPage() {
                       {day.isToday && <Badge className="bg-[#1890ff] text-white text-xs font-normal hover:bg-[#1890ff]">今日</Badge>}
                     </div>
 
-                    {day.isToday && (
-                      <div className="flex items-start gap-1.5 rounded-md bg-red-50 border border-dashed border-red-200 px-2.5 py-2 text-xs text-red-500">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                        <span>距离上课不到48小时，请及时备课！</span>
-                      </div>
-                    )}
-
                     <div className="flex flex-col gap-2.5">
                       {day.courses.map((course) => (
-                        <CourseCard
+                        <ScheduleCard
                           key={course.id}
                           course={course}
                           onDelete={(id) => handleDeleteCourse(dayIdx, id)}
-                          onEnterWorkspace={() => {
-                            setActiveTab("workspace")
-                            setWorkspaceMode("prep")
-                          }}
                         />
                       ))}
                     </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-auto w-full border-dashed text-gray-400 hover:text-[#1890ff] hover:border-[#1890ff] hover:bg-[#e6f7ff]"
-                      onClick={() => {
-                        setAddDay(String(dayIdx))
-                        setAddModalOpen(true)
-                      }}
-                    >
-                      + 新增课程
-                    </Button>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Add Course Modal */}
-            <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>新建排课</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-2">
-                  <div className="space-y-2">
-                    <Label>课程名称</Label>
-                    <Input
-                      placeholder="请输入课程名称"
-                      value={newCourseName}
-                      onChange={(e) => setNewCourseName(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>上课时间</Label>
-                    <Select value={newCourseTime} onValueChange={setNewCourseTime}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="08:00-09:40">08:00-09:40</SelectItem>
-                        <SelectItem value="10:00-11:40">10:00-11:40</SelectItem>
-                        <SelectItem value="14:00-15:40">14:00-15:40</SelectItem>
-                        <SelectItem value="16:00-17:40">16:00-17:40</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>上课日期</Label>
-                    <Select value={addDay} onValueChange={setAddDay}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {schedule.map((d, i) => (
-                          <SelectItem key={i} value={String(i)}>{d.day} ({d.date})</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setAddModalOpen(false)}>取消</Button>
-                  <Button onClick={handleAddCourse} className="bg-[#1890ff] hover:bg-[#40a9ff]">确认</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
           </TabsContent>
 
           {/* 备课工作台 Tab */}
@@ -570,81 +480,17 @@ export default function SmartClassroomPage() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {/* 三态切换 */}
-                      <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1">
-                        <button
-                          onClick={() => setWorkspaceMode("prep")}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-                            workspaceMode === "prep"
-                              ? "bg-white text-[#1890ff] shadow-sm"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                        >
-                          <CircleDot className="w-3 h-3" />
-                          备课态
-                        </button>
-                        <button
-                          onClick={() => setWorkspaceMode("teach")}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-                            workspaceMode === "teach"
-                              ? "bg-white text-red-500 shadow-sm"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                        >
-                          <Radio className="w-3 h-3" />
-                          教师上课态
-                        </button>
-                        <button
-                          onClick={() => setWorkspaceMode("learn")}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-                            workspaceMode === "learn"
-                              ? "bg-white text-green-500 shadow-sm"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                        >
-                          <GraduationCap className="w-3 h-3" />
-                          学生学习态
-                        </button>
-                      </div>
                       <span className="text-sm text-gray-500">
-                        SQL注入原理与分类
+                        当前备课：{selectedCourse ? `《${selectedCourse.name}》` : "请选择课程"}
                       </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {workspaceMode === "prep" && (
-                        <>
-                          <Button variant="outline" size="sm" className="gap-1.5">
-                            <Save className="w-4 h-4" />
-                            保存
-                          </Button>
-                          <Button variant="outline" size="sm" className="gap-1.5">
-                            <Eye className="w-4 h-4" />
-                            预览
-                          </Button>
-                          <Button size="sm" className="gap-1.5 bg-[#1890ff] hover:bg-[#40a9ff]">
-                            <Send className="w-4 h-4" />
-                            提交
-                          </Button>
-                        </>
-                      )}
-                      {workspaceMode === "teach" && (
-                        <Button size="sm" variant="destructive" className="gap-1.5">
-                          <LogOut className="w-4 h-4" />
-                          下课
-                        </Button>
-                      )}
-                      {workspaceMode === "learn" && (
-                        <span className="text-xs text-gray-400">学生视角预览模式</span>
-                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Workspace Body - Prep Mode */}
-              {workspaceMode === "prep" && (
               <div className="flex gap-4 flex-1 min-h-0">
-                {/* Left: Catalog Tree */}
+                {/* Left: Course Selector + Catalog Tree */}
                 <Card className="w-[320px] border-0 shadow-sm flex flex-col shrink-0">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
@@ -652,12 +498,33 @@ export default function SmartClassroomPage() {
                       课程目录
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-y-auto pt-0">
-                    <CatalogTree
-                      nodes={CATALOG_DATA}
-                      selectedId={selectedLessonId}
-                      onSelect={setSelectedLessonId}
-                    />
+                  <CardContent className="flex-1 overflow-y-auto pt-0 space-y-3">
+                    {/* Course Selector */}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-gray-500">选择课程</Label>
+                      <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COURSE_OPTIONS.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              <span className="flex items-center gap-2">
+                                <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{c.type}</span>
+                                {c.name}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="border-t border-gray-50 pt-2">
+                      <CatalogTree
+                        nodes={CATALOG_DATA}
+                        selectedId={selectedLessonId}
+                        onSelect={setSelectedLessonId}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -701,6 +568,18 @@ export default function SmartClassroomPage() {
                         <Badge variant="outline" className="text-xs font-normal text-gray-500">
                           自动保存
                         </Badge>
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Save className="w-4 h-4" />
+                          保存
+                        </Button>
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Eye className="w-4 h-4" />
+                          预览
+                        </Button>
+                        <Button size="sm" className="gap-1.5 bg-[#1890ff] hover:bg-[#40a9ff]">
+                          <Send className="w-4 h-4" />
+                          提交
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -708,6 +587,16 @@ export default function SmartClassroomPage() {
                     <div className="flex flex-col gap-6 max-w-3xl mx-auto">
                       {prepStage === "pre" && (
                         <>
+                          {/* 课前：教学目标 */}
+                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+                              <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
+                              <h3 className="text-sm font-semibold text-gray-800">教学目标</h3>
+                            </div>
+                            <div className="min-h-[80px] rounded-lg border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-400 leading-relaxed">
+                              请输入本节课的教学目标...（富文本编辑器占位区域）
+                            </div>
+                          </div>
                           {/* 课前：导学教案 */}
                           <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
                             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
@@ -716,16 +605,6 @@ export default function SmartClassroomPage() {
                             </div>
                             <div className="min-h-[100px] rounded-lg border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-400 leading-relaxed">
                               请输入课前备课内容...（富文本编辑器占位区域）
-                            </div>
-                          </div>
-                          {/* 课前：学习目标 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">学习目标</h3>
-                            </div>
-                            <div className="min-h-[100px] rounded-lg border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-400 leading-relaxed">
-                              请输入学习目标...（富文本编辑器占位区域）
                             </div>
                           </div>
                           {/* 课前：课前预习 */}
@@ -748,25 +627,11 @@ export default function SmartClassroomPage() {
 
                       {prepStage === "in" && (
                         <>
-                          {/* 课中：签到 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">课堂签到</h3>
-                              <div className="ml-auto">
-                                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 添加签到</Button>
-                              </div>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <ClipboardCheck className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无签到配置，可添加限时签到或位置签到
-                            </div>
-                          </div>
                           {/* 课中：课件资源 */}
                           <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
                             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
                               <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">课中资源</h3>
+                              <h3 className="text-sm font-semibold text-gray-800">课件资源</h3>
                               <div className="ml-auto">
                                 <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 添加资源</Button>
                               </div>
@@ -840,18 +705,18 @@ export default function SmartClassroomPage() {
                               暂无课后测验题目
                             </div>
                           </div>
-                          {/* 课后：学习反馈 */}
+                          {/* 课后：课后拓展 */}
                           <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
                             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
                               <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">学习反馈</h3>
+                              <h3 className="text-sm font-semibold text-gray-800">课后拓展</h3>
                               <div className="ml-auto">
-                                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 添加问卷</Button>
+                                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 添加拓展资料</Button>
                               </div>
                             </div>
                             <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <Users className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无学习反馈问卷，可添加满意度调查或学习评价
+                              <BookOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                              暂无课后拓展资料，可添加推荐阅读或延伸学习资源
                             </div>
                           </div>
                         </>
@@ -860,135 +725,6 @@ export default function SmartClassroomPage() {
                   </CardContent>
                 </Card>
               </div>
-              )}
-
-              {/* Workspace Body - Teach Mode */}
-              {workspaceMode === "teach" && (
-              <div className="flex gap-4 flex-1 min-h-0">
-                {/* Left: Catalog Tree */}
-                <Card className="w-[280px] border-0 shadow-sm flex flex-col shrink-0">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-red-500" />
-                      课程目录
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-1 overflow-y-auto pt-0">
-                    <CatalogTree
-                      nodes={CATALOG_DATA}
-                      selectedId={selectedLessonId}
-                      onSelect={setSelectedLessonId}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Center: Presentation Area */}
-                <Card className="flex-1 border-0 shadow-sm flex flex-col min-h-0">
-                  <CardContent className="flex-1 p-0 flex flex-col">
-                    {/* Slide Area */}
-                    <div className="flex-1 bg-slate-800 flex items-center justify-center relative">
-                      <div className="text-center text-white p-8">
-                        <MonitorPlay className="w-16 h-16 mx-auto mb-4 text-slate-500" />
-                        <p className="text-lg font-medium">SQL注入原理与分类</p>
-                        <p className="text-sm text-slate-400 mt-2">第 12 / 28 页</p>
-                      </div>
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/50 backdrop-blur rounded-full px-4 py-2">
-                        <button className="text-white/80 hover:text-white text-xs">◀ 上一页</button>
-                        <span className="text-white/30">|</span>
-                        <button className="text-white/80 hover:text-white text-xs">下一页 ▶</button>
-                        <span className="text-white/30">|</span>
-                        <button className="text-white/80 hover:text-white text-xs">批注</button>
-                        <span className="text-white/30">|</span>
-                        <button className="text-white/80 hover:text-white text-xs">聚焦</button>
-                      </div>
-                    </div>
-                    {/* Quick Actions */}
-                    <div className="grid grid-cols-4 gap-3 p-4 bg-white border-t">
-                      <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                        <ClipboardCheck className="w-5 h-5 text-cyan-500" />
-                        <span className="text-xs text-gray-700">签到</span>
-                      </button>
-                      <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                        <FileText className="w-5 h-5 text-blue-500" />
-                        <span className="text-xs text-gray-700">一键下发测验</span>
-                      </button>
-                      <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                        <Hand className="w-5 h-5 text-purple-500" />
-                        <span className="text-xs text-gray-700">举手/抢答</span>
-                      </button>
-                      <button className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                        <Dices className="w-5 h-5 text-orange-500" />
-                        <span className="text-xs text-gray-700">随机点名</span>
-                      </button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Right: Student Monitor */}
-                <Card className="w-[260px] border-0 shadow-sm flex flex-col shrink-0">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-green-500" />
-                      学生状态
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-1 overflow-y-auto pt-0 space-y-2">
-                    <div className="flex items-center justify-between p-2 rounded bg-green-50">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500" />
-                        <span className="text-sm text-gray-700">李明</span>
-                      </div>
-                      <span className="text-xs text-green-600">在线</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2 rounded bg-green-50">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500" />
-                        <span className="text-sm text-gray-700">王芳</span>
-                      </div>
-                      <span className="text-xs text-green-600">专注</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2 rounded bg-orange-50">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-orange-500" />
-                        <span className="text-sm text-gray-700">张伟</span>
-                      </div>
-                      <span className="text-xs text-orange-600">挂机</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2 rounded bg-gray-50">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-gray-300" />
-                        <span className="text-sm text-gray-400">刘洋</span>
-                      </div>
-                      <span className="text-xs text-gray-400">缺席</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              )}
-
-              {/* Workspace Body - Learn Mode */}
-              {workspaceMode === "learn" && (
-              <div className="flex-1 min-h-0 flex items-center justify-center">
-                <Card className="max-w-2xl w-full p-8 text-center">
-                  <GraduationCap className="w-16 h-16 mx-auto mb-4 text-green-500" />
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">学生学习态预览</h3>
-                  <p className="text-sm text-gray-500 mb-6">
-                    此模式下将模拟学生端的学习界面，包括课件浏览、测验答题、学习进度跟踪等功能。
-                  </p>
-                  <div className="flex justify-center gap-3">
-                    <Button variant="outline" onClick={() => setWorkspaceMode("prep")}>
-                      返回备课态
-                    </Button>
-                    <Button className="bg-green-500 hover:bg-green-600">
-                      <a href="/learn/courses/system/1/learn" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-white">
-                        <Eye className="w-4 h-4" />
-                        打开学习页面预览
-                      </a>
-                    </Button>
-                  </div>
-                </Card>
-              </div>
-              )}
             </div>
           </TabsContent>
         </Tabs>

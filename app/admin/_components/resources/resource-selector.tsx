@@ -17,6 +17,7 @@ import {
   X,
   CheckCircle2,
   RotateCcw,
+  Plus,
 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -30,10 +31,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import type { Resource } from "@/lib/mock-data"
 
 export interface ResourceItem {
   id: string
@@ -107,6 +108,7 @@ export function ResourceSelector({ pool, selectedIds, onChange, onUpload }: Reso
   const [newResType, setNewResType] = useState("document")
   const [newResUrl, setNewResUrl] = useState("")
   const [newResDescription, setNewResDescription] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const filteredRes = pool.filter((r) => {
     const matchType = resType === "all" || r.type === resType
@@ -145,167 +147,213 @@ export function ResourceSelector({ pool, selectedIds, onChange, onUpload }: Reso
     setShowUpload(false)
   }
 
+  const selectedResources = selectedIds.map((id) => pool.find((r) => r.id === id)).filter(Boolean) as ResourceItem[]
+
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="shrink-0 space-y-3">
-        {/* Type filters */}
-        <div className="flex gap-1.5 flex-wrap">
-          {ALL_TYPES.map((t) => (
-            <Button
-              key={t}
-              variant={resType === t ? "default" : "outline"}
-              size="sm"
-              className={cn("text-xs h-7", resType === t ? "" : "bg-white")}
-              onClick={() => setResType(t)}
+      {/* Selected tags */}
+      {selectedResources.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selectedResources.map((r) => (
+            <Badge
+              key={r.id}
+              variant="secondary"
+              className="px-2.5 py-1 text-xs font-normal bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer"
             >
-              {resourceTypeIcons[t] && <span className="mr-1.5">{resourceTypeIcons[t]}</span>}
-              {resourceTypeLabels[t] || t}
-            </Button>
+              {resourceTypeIcons[r.type] && <span className="mr-1">{resourceTypeIcons[r.type]}</span>}
+              {r.name}
+              <button
+                className="ml-1 text-blue-400 hover:text-blue-700"
+                onClick={() => toggleResource(r.id)}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
           ))}
         </div>
-        {/* Search & Actions */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              value={resSearchName}
-              onChange={(e) => setResSearchName(e.target.value)}
-              placeholder="搜索资源名称..."
-              className="pl-9 text-sm"
-            />
-          </div>
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              value={resSearchProvider}
-              onChange={(e) => setResSearchProvider(e.target.value)}
-              placeholder="搜索资源提供者..."
-              className="pl-9 text-sm"
-            />
-          </div>
-          <Button variant="outline" size="sm" className="h-9 text-xs" onClick={resetFilters}>
-            <RotateCcw className="h-3.5 w-3.5 mr-1" />重置
-          </Button>
-          <Button size="sm" className="h-9 text-xs" onClick={() => setShowUpload(true)}>
-            <Upload className="h-3.5 w-3.5 mr-1" />上传资源
-          </Button>
-        </div>
-      </div>
+      )}
 
-      <div className="flex gap-3 min-h-[260px]">
-        {/* Left: Resource cards grid */}
-        <div className="flex-1 flex flex-col min-h-0 min-w-0 border rounded-xl p-3 overflow-hidden">
-          <div className="flex items-center justify-between mb-2 shrink-0">
-            <p className="text-sm font-medium text-gray-700">
-              资源列表 <span className="text-gray-400 font-normal">({filteredRes.length})</span>
-            </p>
-          </div>
-          <div className="flex-1 overflow-y-auto pr-1 min-w-0">
-            {filteredRes.length === 0 ? (
-              <div className="text-center text-gray-400 py-12">
-                <Package className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">未找到匹配的资源</p>
-                <p className="text-xs mt-1">尝试调整筛选条件</p>
+      {/* Add button + dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="w-full border-dashed">
+            <Plus className="mr-2 h-4 w-4" />
+            添加课程资源
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>添加课程资源</DialogTitle>
+            <DialogDescription>从资源库中选择或上传新资源</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Toolbar */}
+            <div className="shrink-0 space-y-3">
+              {/* Type filters */}
+              <div className="flex gap-1.5 flex-wrap">
+                {ALL_TYPES.map((t) => (
+                  <Button
+                    key={t}
+                    variant={resType === t ? "default" : "outline"}
+                    size="sm"
+                    className={cn("text-xs h-7", resType === t ? "" : "bg-white")}
+                    onClick={() => setResType(t)}
+                  >
+                    {resourceTypeIcons[t] && <span className="mr-1.5">{resourceTypeIcons[t]}</span>}
+                    {resourceTypeLabels[t] || t}
+                  </Button>
+                ))}
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {filteredRes.map((r) => {
-                  const selected = selectedIds.includes(r.id)
-                  return (
-                    <div
-                      key={r.id}
-                      className={cn(
-                        "relative rounded-lg border overflow-hidden transition-all cursor-pointer group",
-                        selected
-                          ? "border-primary shadow-sm ring-1 ring-primary/10"
-                          : "border-gray-200 hover:border-gray-300 hover:shadow-sm bg-white"
-                      )}
-                    >
-                      {/* Thumbnail area */}
-                      <div className="relative h-14 bg-gray-50 border-b border-gray-100 overflow-hidden">
-                        {r.thumbnail && r.type === "image" ? (
-                          <img src={r.thumbnail} alt={r.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <div className={cn("p-1.5 rounded-md border", resourceTypeColors[r.type] || "bg-gray-50 border-gray-200")}>
-                              {resourceTypeIcons[r.type] || <Package className="h-4 w-4 text-gray-400" />}
+              {/* Search & Actions */}
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    value={resSearchName}
+                    onChange={(e) => setResSearchName(e.target.value)}
+                    placeholder="搜索资源名称..."
+                    className="pl-9 text-sm"
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    value={resSearchProvider}
+                    onChange={(e) => setResSearchProvider(e.target.value)}
+                    placeholder="搜索资源提供者..."
+                    className="pl-9 text-sm"
+                  />
+                </div>
+                <Button variant="outline" size="sm" className="h-9 text-xs" onClick={resetFilters}>
+                  <RotateCcw className="h-3.5 w-3.5 mr-1" />重置
+                </Button>
+                <Button size="sm" className="h-9 text-xs" onClick={() => setShowUpload(true)}>
+                  <Upload className="h-3.5 w-3.5 mr-1" />上传资源
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-3 min-h-[260px]">
+              {/* Left: Resource cards grid */}
+              <div className="flex-1 flex flex-col min-h-0 min-w-0 border rounded-xl p-3 overflow-hidden">
+                <div className="flex items-center justify-between mb-2 shrink-0">
+                  <p className="text-sm font-medium text-gray-700">
+                    资源列表 <span className="text-gray-400 font-normal">({filteredRes.length})</span>
+                  </p>
+                </div>
+                <div className="flex-1 overflow-y-auto pr-1 min-w-0">
+                  {filteredRes.length === 0 ? (
+                    <div className="text-center text-gray-400 py-12">
+                      <Package className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">未找到匹配的资源</p>
+                      <p className="text-xs mt-1">尝试调整筛选条件</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {filteredRes.map((r) => {
+                        const selected = selectedIds.includes(r.id)
+                        return (
+                          <div
+                            key={r.id}
+                            className={cn(
+                              "relative rounded-lg border overflow-hidden transition-all cursor-pointer group",
+                              selected
+                                ? "border-primary shadow-sm ring-1 ring-primary/10"
+                                : "border-gray-200 hover:border-gray-300 hover:shadow-sm bg-white"
+                            )}
+                          >
+                            {/* Thumbnail area */}
+                            <div className="relative h-14 bg-gray-50 border-b border-gray-100 overflow-hidden">
+                              {r.thumbnail && r.type === "image" ? (
+                                <img src={r.thumbnail} alt={r.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <div className={cn("p-1.5 rounded-md border", resourceTypeColors[r.type] || "bg-gray-50 border-gray-200")}>
+                                    {resourceTypeIcons[r.type] || <Package className="h-4 w-4 text-gray-400" />}
+                                  </div>
+                                </div>
+                              )}
+                              {selected && (
+                                <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-0.5 shadow-sm">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                </div>
+                              )}
+                              {/* Type badge */}
+                              <div className="absolute bottom-1 left-1">
+                                <Badge className={cn("text-[9px] px-1 py-0 h-4 border", resourceTypeColors[r.type] || "")}>
+                                  {resourceTypeLabels[r.type] || r.type}
+                                </Badge>
+                              </div>
+                            </div>
+                            {/* Info */}
+                            <div className="p-2" onClick={() => toggleResource(r.id)}>
+                              <p className="text-xs font-medium text-gray-800 truncate" title={r.name}>{r.name}</p>
+                              <p className="text-[10px] text-gray-400 truncate mt-0.5">{r.uploadedBy || "-"}</p>
+                            </div>
+                            {/* Actions */}
+                            <div className="px-2 pb-2">
+                              <Button
+                                variant={selected ? "outline" : "default"}
+                                size="sm"
+                                className="h-6 text-[10px] px-2 w-full"
+                                onClick={(e) => { e.stopPropagation(); toggleResource(r.id) }}
+                              >
+                                {selected ? "已选择" : "选择"}
+                              </Button>
                             </div>
                           </div>
-                        )}
-                        {selected && (
-                          <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-0.5 shadow-sm">
-                            <CheckCircle2 className="h-3 w-3" />
-                          </div>
-                        )}
-                        {/* Type badge */}
-                        <div className="absolute bottom-1 left-1">
-                          <Badge className={cn("text-[9px] px-1 py-0 h-4 border", resourceTypeColors[r.type] || "")}>
-                            {resourceTypeLabels[r.type] || r.type}
-                          </Badge>
-                        </div>
-                      </div>
-                      {/* Info */}
-                      <div className="p-2" onClick={() => toggleResource(r.id)}>
-                        <p className="text-xs font-medium text-gray-800 truncate" title={r.name}>{r.name}</p>
-                        <p className="text-[10px] text-gray-400 truncate mt-0.5">{r.uploadedBy || "-"}</p>
-                      </div>
-                      {/* Actions */}
-                      <div className="px-2 pb-2">
-                        <Button
-                          variant={selected ? "outline" : "default"}
-                          size="sm"
-                          className="h-6 text-[10px] px-2 w-full"
-                          onClick={(e) => { e.stopPropagation(); toggleResource(r.id) }}
-                        >
-                          {selected ? "已选择" : "选择"}
-                        </Button>
-                      </div>
+                        )
+                      })}
                     </div>
-                  )
-                })}
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Right: Selected resources sidebar */}
-        <div className="w-52 shrink-0 flex flex-col min-h-0 border rounded-xl p-3 bg-gray-50/50 overflow-hidden">
-          <div className="flex items-center justify-between mb-2 shrink-0">
-            <p className="text-sm font-semibold text-gray-700">已选资源</p>
-            <Badge variant="secondary" className="text-[10px]">{selectedIds.length}</Badge>
-          </div>
-          <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0">
-            {selectedIds.length === 0 ? (
-              <div className="text-center text-gray-400 py-6">
-                <Package className="h-7 w-7 mx-auto mb-1.5 opacity-50" />
-                <p className="text-xs">请从左侧选择资源</p>
+              {/* Right: Selected resources sidebar */}
+              <div className="w-52 shrink-0 flex flex-col min-h-0 border rounded-xl p-3 bg-gray-50/50 overflow-hidden">
+                <div className="flex items-center justify-between mb-2 shrink-0">
+                  <p className="text-sm font-semibold text-gray-700">已选资源</p>
+                  <Badge variant="secondary" className="text-[10px]">{selectedIds.length}</Badge>
+                </div>
+                <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0">
+                  {selectedIds.length === 0 ? (
+                    <div className="text-center text-gray-400 py-6">
+                      <Package className="h-7 w-7 mx-auto mb-1.5 opacity-50" />
+                      <p className="text-xs">请从左侧选择资源</p>
+                    </div>
+                  ) : (
+                    selectedIds.map((rid) => {
+                      const r = pool.find((res) => res.id === rid)
+                      if (!r) return null
+                      return (
+                        <div key={rid} className="flex items-center gap-2 p-2 rounded-lg border border-primary/20 bg-white shadow-sm">
+                          <div className={cn("w-7 h-7 rounded-md border flex items-center justify-center shrink-0", resourceTypeColors[r.type] || "bg-gray-50")}>
+                            {resourceTypeIcons[r.type] || <Package className="h-3.5 w-3.5 text-gray-400" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate text-gray-800" title={r.name}>{r.name}</p>
+                          </div>
+                          <button
+                            className="text-gray-400 hover:text-red-500 shrink-0 p-0.5 rounded hover:bg-red-50 transition-colors"
+                            onClick={() => toggleResource(rid)}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
               </div>
-            ) : (
-              selectedIds.map((rid) => {
-                const r = pool.find((res) => res.id === rid)
-                if (!r) return null
-                return (
-                  <div key={rid} className="flex items-center gap-2 p-2 rounded-lg border border-primary/20 bg-white shadow-sm">
-                    <div className={cn("w-7 h-7 rounded-md border flex items-center justify-center shrink-0", resourceTypeColors[r.type] || "bg-gray-50")}>
-                      {resourceTypeIcons[r.type] || <Package className="h-3.5 w-3.5 text-gray-400" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate text-gray-800" title={r.name}>{r.name}</p>
-                    </div>
-                    <button
-                      className="text-gray-400 hover:text-red-500 shrink-0 p-0.5 rounded hover:bg-red-50 transition-colors"
-                      onClick={() => toggleResource(rid)}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )
-              })
-            )}
+            </div>
           </div>
-        </div>
-      </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>关闭</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Upload Dialog */}
       <Dialog open={showUpload} onOpenChange={setShowUpload}>

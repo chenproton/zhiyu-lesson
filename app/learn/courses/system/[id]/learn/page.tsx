@@ -22,6 +22,9 @@ import {
   HelpCircle,
   Send,
   RotateCcw,
+  Lightbulb,
+  FolderOpen,
+  ClipboardList,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -295,7 +298,7 @@ export default function CourseLearnPage() {
 
   return (
     <div className="-m-6 flex h-[calc(100vh-3.5rem)] overflow-hidden bg-white">
-      {/* ---------- left sidebar ---------- */}
+      {/* ---------- left sidebar: chapter catalog ---------- */}
       <aside className="flex w-[300px] flex-shrink-0 flex-col border-r border-gray-100 bg-white">
         {/* course header */}
         <div className="border-b border-gray-100 px-5 py-4">
@@ -512,11 +515,15 @@ export default function CourseLearnPage() {
             <TabsList className="mb-4">
               <TabsTrigger value="intro">
                 <GraduationCap className="mr-1.5 h-4 w-4" />
-                课程介绍
+                章节介绍
               </TabsTrigger>
               <TabsTrigger value="materials">
                 <Download className="mr-1.5 h-4 w-4" />
                 资料下载
+              </TabsTrigger>
+              <TabsTrigger value="knowledge">
+                <Lightbulb className="mr-1.5 h-4 w-4" />
+                知识点
               </TabsTrigger>
               <TabsTrigger value="notes">
                 <StickyNote className="mr-1.5 h-4 w-4" />
@@ -524,31 +531,27 @@ export default function CourseLearnPage() {
               </TabsTrigger>
             </TabsList>
 
-            {/* 课程介绍 */}
+            {/* 章节介绍 */}
             <TabsContent value="intro" className="mt-0">
               <div className="grid gap-4 lg:grid-cols-3">
                 <Card className="lg:col-span-2">
                   <CardHeader>
-                    <CardTitle className="text-base">课程信息</CardTitle>
+                    <CardTitle className="text-base">章节信息</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <InfoRow label="课程名称" value={course.name} />
-                      <InfoRow label="课程编码" value={course.code} />
+                      <InfoRow label="当前章节" value={currentChapter?.title || "-"} />
+                      <InfoRow label="当前小节" value={currentSection?.title || "-"} />
                       <InfoRow label="课程类型" value={course.category} />
-                      <InfoRow label="所属专业" value={course.major} />
                       <InfoRow label="授课教师" value={course.teacher} />
                       <InfoRow label="所属行业" value={course.industry} />
-                      <InfoRow label="版本号" value={course.version} />
-                      <InfoRow label="更新日期" value={course.updateDate} />
                     </div>
                     <Separator />
                     <div>
-                      <h4 className="mb-2 text-sm font-medium text-gray-700">课程简介</h4>
+                      <h4 className="mb-2 text-sm font-medium text-gray-700">章节简介</h4>
                       <p className="text-sm leading-relaxed text-gray-600">
-                        本课程为{course.courseTag ?? "体系课"}，共{course.nodeCount}章{course.lessonCount}节。
-                        由{course.teacher}主讲，面向{course.major}专业学生，
-                        涵盖{course.industry}领域的核心知识与技能。
+                        本章节为{course.name}的重要组成部分，涵盖核心知识与技能。
                         当前已有 {course.studyCount.toLocaleString()} 人参与学习，
                         累计浏览 {course.viewCount.toLocaleString()} 次。
                       </p>
@@ -601,6 +604,27 @@ export default function CourseLearnPage() {
                       </Button>
                     </div>
                   ))}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 知识点 */}
+            <TabsContent value="knowledge" className="mt-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">本节知识点</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      "假设检验", "P值与显著性", "T检验", "卡方检验", "方差分析",
+                      "A/B测试", "置信区间", "回归分析", "正态分布", "中心极限定理",
+                    ].slice(0, 5).map((kp) => (
+                      <span key={kp} className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer">
+                        {kp}
+                      </span>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
