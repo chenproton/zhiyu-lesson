@@ -82,7 +82,7 @@ export default function MyCoursesPage() {
                 <Progress value={course.progress} className="h-1.5" />
               </div>
               <div className="flex gap-2 pt-1">
-                <Link href={`/learn/courses/system/${course.id}/learn`} className="flex-1">
+                <Link href="/student.html" className="flex-1">
                   <Button size="sm" className="w-full gap-1">
                     {course.isCompleted ? (
                       <>
@@ -102,7 +102,7 @@ export default function MyCoursesPage() {
                     )}
                   </Button>
                 </Link>
-                <Link href={`/learn/courses/system/${course.id}`}>
+                <Link href="/student.html">
                   <Button size="sm" variant="outline">
                     详情
                   </Button>

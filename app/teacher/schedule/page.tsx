@@ -474,20 +474,7 @@ export default function SmartClassroomPage() {
 
           {/* 备课工作台 Tab */}
           <TabsContent value="workspace" className="mt-0">
-            <div className="flex flex-col gap-4 h-[calc(100vh-220px)]">
-              {/* Workspace Toolbar */}
-              <Card className="border-0 shadow-sm shrink-0">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-500">
-                        当前备课：{selectedCourse ? `《${selectedCourse.name}》` : "请选择课程"}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
+            <div className="flex flex-col gap-4 h-[calc(100vh-180px)]">
               {/* Workspace Body - Prep Mode */}
               <div className="flex gap-4 flex-1 min-h-0">
                 {/* Left: Course Selector + Catalog Tree */}
@@ -519,11 +506,25 @@ export default function SmartClassroomPage() {
                       </Select>
                     </div>
                     <div className="border-t border-gray-50 pt-2">
-                      <CatalogTree
-                        nodes={CATALOG_DATA}
-                        selectedId={selectedLessonId}
-                        onSelect={setSelectedLessonId}
-                      />
+                      {selectedCourse?.type === "体系课" ? (
+                        <CatalogTree
+                          nodes={CATALOG_DATA}
+                          selectedId={selectedLessonId}
+                          onSelect={setSelectedLessonId}
+                        />
+                      ) : (
+                        <div className="py-4 px-2">
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-[#e6f7ff] border border-[#bae7ff]">
+                            <div className="w-8 h-8 rounded-lg bg-[#1890ff] flex items-center justify-center text-white text-xs font-bold">
+                              颗
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">{selectedCourse?.name}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">颗粒课 · 无子目录</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

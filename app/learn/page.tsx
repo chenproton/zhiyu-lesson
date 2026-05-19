@@ -235,7 +235,7 @@ export default function HomePage() {
         {filteredCourses.map((course) => (
           <Link
             key={course.id}
-            href={course.type === "granular" ? `/learn/courses/granular/${course.id}` : `/learn/courses/system/${course.id}`}
+            href="/student.html"
           >
             <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer overflow-hidden group">
               {/* Cover */}

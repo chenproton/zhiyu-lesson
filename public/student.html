@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>场景详情 - 实践场景学习平台</title>
+    <title>课程详情 - 产教融合课程平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -270,6 +270,7 @@
             overflow: hidden;
             border: 1px solid rgba(0,0,0,0.02);
         }
+        .tabs-card { overflow: visible; }
 
         .card-header {
             padding: 16px 24px;
@@ -296,7 +297,7 @@
             padding: 24px;
         }
 
-        /* 场景详情卡片 */
+        /* 课程详情卡片 */
         .scene-card {
             margin-bottom: 24px;
         }
@@ -575,6 +576,130 @@
         }
 
         /* ====== 任务列表升级样式 ====== */
+        /* ====== Tab 带左侧目录导航 ====== */
+        .tab-with-sidebar { display: flex; gap: 20px; min-height: 500px; }
+        .tab-sidebar { width: 220px; flex-shrink: 0; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; padding: 12px; overflow-y: auto; max-height: calc(100vh - 240px); position: sticky; top: 80px; align-self: flex-start; }
+        .tab-sidebar-chapter { margin-bottom: 12px; }
+        .tab-sidebar-ch-title { font-size: 12px; font-weight: 600; color: #64748b; padding: 6px 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; margin-bottom: 4px; }
+        .tab-sidebar-lesson { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #475569; transition: all 0.15s; }
+        .tab-sidebar-lesson:hover { background: #e2e8f0; color: #1677ff; }
+        .tab-sidebar-lesson.active { background: #e6f4ff; color: #1677ff; font-weight: 500; }
+        .tab-main { flex: 1; min-width: 0; }
+        .content-header { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+        
+        /* 学习目标样式 */
+        .goal-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; background: #fafafa; }
+        .goal-title { font-size: 14px; font-weight: 600; color: #2563eb; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .goal-desc { font-size: 13px; color: #4b5563; line-height: 1.6; }
+        
+        /* 知识点样式 */
+        .kp-module { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 14px; background: #fafafa; }
+        .kp-module-header { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .kp-count { font-weight: normal; color: #6b7280; font-size: 12px; margin-left: auto; }
+        .kp-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .kp-tag { padding: 6px 14px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1px solid #bfdbfe; border-radius: 20px; font-size: 13px; color: #1d4ed8; }
+        
+        /* 作业测试样式 */
+        .test-group { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 12px; background: #fafafa; overflow: hidden; }
+        .test-group-header { padding: 14px 16px; background: #fff; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; border-bottom: 1px solid #e5e7eb; }
+        .test-group-header:hover { background: #f9fafb; }
+        .test-group-header .toggle-icon { transition: transform 0.3s ease; font-size: 14px; color: #6b7280; }
+        .test-group-header .toggle-icon.expanded { transform: rotate(90deg); }
+        .test-group-title { font-size: 15px; font-weight: 600; color: #1f2937; flex: 1; }
+        .test-group-info { font-size: 12px; color: #9ca3af; }
+        .test-group-content { display: none; padding: 0; }
+        .test-group-content.show { display: block; }
+        .question-item { padding: 16px; border-bottom: 1px solid #f0f0f0; background: #fafafa; }
+        .question-item:last-child { border-bottom: none; }
+        .question-title { font-size: 14px; font-weight: 500; color: #1f2937; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .question-type { display: inline-flex; padding: 3px 10px; background: #e0e7ff; color: #4338ca; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .option-list { margin-top: 8px; }
+        .option-item { padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; font-size: 13px; color: #374151; cursor: pointer; transition: all 0.2s; }
+        .option-item:hover { background: #f3f4f6; border-color: #d1d5db; }
+
+        /* ====== 章节树状目录样式 ====== */
+        .chapter-tree { padding: 8px 0; }
+        .chapter-node { margin-bottom: 12px; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; background: #fff; }
+        .chapter-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: #f8fafc; cursor: pointer; transition: background 0.2s; }
+        .chapter-header:hover { background: #f1f5f9; }
+        .chapter-toggle { color: #94a3b8; font-size: 12px; width: 16px; text-align: center; transition: transform 0.2s; }
+        .chapter-index { background: #1677ff; color: #fff; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+        .chapter-name { font-size: 14px; font-weight: 600; color: #1e293b; flex: 1; }
+        .chapter-meta { font-size: 12px; color: #94a3b8; }
+        .chapter-children { padding: 8px 12px; }
+        .lesson-node { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; margin-bottom: 6px; transition: all 0.2s; cursor: pointer; border: 1px solid transparent; }
+        .lesson-node:hover { background: #f8fafc; border-color: #e2e8f0; }
+        .lesson-index { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: #e6f4ff; color: #1677ff; font-size: 12px; font-weight: 600; border-radius: 8px; flex-shrink: 0; }
+        .lesson-info { flex: 1; min-width: 0; }
+        .lesson-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .lesson-title { font-size: 14px; font-weight: 500; color: #334155; }
+        .lesson-type-tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; font-weight: 500; }
+        .lesson-type-tag.assessment { background: #fff2f0; color: #ff4d4f; }
+        .lesson-type-tag.training { background: #f6ffed; color: #52c41a; }
+        .lesson-type-tag.granular { background: #fff7e6; color: #fa8c16; font-size: 11px; padding: 1px 6px; }
+        
+        /* 多级目录节点样式 */
+        .catalog-node { margin-bottom: 4px; }
+        .catalog-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #f8fafc; border-radius: 6px; cursor: pointer; transition: background 0.2s; font-size: 14px; font-weight: 500; color: #334155; border: 1px solid transparent; }
+        .catalog-header:hover { background: #f1f5f9; border-color: #e2e8f0; }
+        .catalog-toggle { color: #94a3b8; font-size: 11px; width: 14px; text-align: center; transition: transform 0.2s; }
+        .catalog-name { flex: 1; }
+        .catalog-meta { font-size: 11px; color: #94a3b8; font-weight: normal; }
+        .catalog-children { padding-left: 0; padding-top: 4px; }
+        
+        /* 详情卡片（紧凑两行布局） */
+        .catalog-detail-card { padding: 6px 0; }
+        .catalog-detail-inner { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; }
+        .catalog-detail-top { margin-bottom: 8px; }
+        .catalog-detail-title { font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 4px; }
+        .catalog-detail-desc { font-size: 12px; color: #64748b; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .catalog-detail-bottom { display: flex; align-items: center; justify-content: space-between; }
+        .catalog-detail-meta { display: flex; gap: 12px; font-size: 12px; color: #94a3b8; }
+        .catalog-detail-action { flex-shrink: 0; }
+        
+        /* 锚点分组样式 */
+        .anchor-section { scroll-margin-top: 20px; margin-bottom: 24px; }
+        .anchor-section-title { font-size: 15px; font-weight: 600; color: #1f2937; padding: 12px 16px; background: #f8fafc; border-radius: 8px; margin-bottom: 12px; border-left: 3px solid #1677ff; }
+        .anchor-subtitle { font-size: 13px; font-weight: 500; color: #475569; padding: 8px 12px; background: #f1f5f9; border-radius: 6px; margin-bottom: 10px; margin-left: 12px; }
+        
+        /* 侧边栏章节导航 */
+        .tab-sidebar-chapter { margin-bottom: 8px; }
+        .tab-sidebar-ch-title { font-size: 12px; font-weight: 600; color: #64748b; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; margin-bottom: 2px; cursor: pointer; }
+        .tab-sidebar-ch-title:hover { color: #1677ff; }
+        .tab-sidebar-ch-title.active { background: #e6f4ff; color: #1677ff; font-weight: 500; border-radius: 4px; }
+        .tab-sidebar-section { font-size: 11px; color: #64748b; padding: 4px 8px 4px 12px; cursor: pointer; border-radius: 4px; }
+        .tab-sidebar-section:hover { background: #e2e8f0; color: #1677ff; }
+        .tab-sidebar-section.active { background: #e6f4ff; color: #1677ff; font-weight: 500; }
+        .lesson-meta { display: flex; gap: 12px; font-size: 12px; color: #94a3b8; }
+        .lesson-desc { font-size: 12px; color: #64748b; margin: 4px 0 6px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .lesson-action { flex-shrink: 0; }
+        
+        /* 章节学习页左侧目录导航 */
+        .tl-sidebar { width: 260px; flex-shrink: 0; background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow-y: auto; max-height: calc(100vh - 200px); }
+        .tl-sidebar-header { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 14px; color: #1e293b; }
+        .tl-sidebar-tree { padding: 8px; }
+        .tl-sidebar-chapter { margin-bottom: 8px; }
+        .tl-sidebar-ch-title { font-size: 12px; font-weight: 600; color: #64748b; padding: 6px 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tl-sidebar-lesson { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #475569; transition: all 0.15s; }
+        .tl-sidebar-lesson:hover { background: #f1f5f9; color: #1677ff; }
+        .tl-sidebar-lesson.active { background: #e6f4ff; color: #1677ff; font-weight: 500; }
+        .tl-sidebar-lesson-index { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: #e2e8f0; color: #64748b; font-size: 10px; font-weight: 600; border-radius: 4px; flex-shrink: 0; }
+        .tl-sidebar-lesson.active .tl-sidebar-lesson-index { background: #1677ff; color: #fff; }
+        .tl-sidebar-lesson-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        /* ====== 课程评价样式 ====== */
+        .eval-lesson-block { margin-bottom: 16px; }
+        .eval-lesson-title { font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 10px; padding-left: 4px; border-left: 3px solid #1677ff; }
+        .eval-methods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+        .eval-method-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.2s; }
+        .eval-method-card:hover { border-color: #bfdbfe; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transform: translateY(-1px); }
+        .eval-method-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .eval-method-info { flex: 1; min-width: 0; }
+        .eval-method-name { font-size: 14px; font-weight: 600; color: #1e293b; }
+        .eval-method-desc { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+        .eval-method-arrow { color: #cbd5e1; font-size: 12px; flex-shrink: 0; }
+        .eval-method-card:hover .eval-method-arrow { color: #94a3b8; }
+
         .task-list {
             display: flex;
             flex-direction: column;
@@ -1627,15 +1752,19 @@
             color: white;
         }
 
-        /* ==================== 任务学习视图 ==================== */
+        /* ==================== 章节学习视图 ==================== */
         #taskLearningView { display: none; }
         #taskLearningView.active { display: block; }
 
         .tl-layout {
             display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 24px;
+            grid-template-columns: 260px 1fr 320px;
+            gap: 20px;
             align-items: start;
+        }
+        @media (max-width: 1200px) {
+            .tl-layout { grid-template-columns: 1fr 320px; }
+            .tl-sidebar { display: none; }
         }
         @media (max-width: 992px) {
             .tl-layout { grid-template-columns: 1fr; }
@@ -2522,7 +2651,7 @@
         <div class="header-left">
             <div class="logo">
                 <div class="logo-icon"><i class="fas fa-border-all"></i></div>
-                <span class="logo-text">场景化数智教学服务平台</span>
+                <span class="logo-text">产教融合课程教学平台</span>
             </div>
             <nav class="header-nav">
                 <a href="http://47.251.48.187:3001/portal" target="_blank" class="header-nav-item"><i class="fas fa-home"></i>门户首页</a>
@@ -2546,17 +2675,17 @@
 
     <!-- 主内容区 -->
     <main class="main-container">
-        <!-- 场景详情视图 -->
+        <!-- 课程详情视图 -->
         <div class="content-wrapper" id="scenarioDetailView">
             <!-- 面包屑 -->
             <div class="breadcrumb" id="breadcrumbNav">
                 <a href="student_navigation.html">首页</a>
                 <span>/</span>
-                <a href="student.html">智慧电商平台全栈开发实战</a>
+                <a href="student.html">Web安全攻防体系课</a>
             </div>
             <!-- 顶部信息行 -->
             <div class="top-info-row">
-                <!-- 场景详情卡片 -->
+                <!-- 课程详情卡片 -->
                 <div class="card scene-card">
                     <div class="scene-header">
                         <div class="scene-cover">
@@ -2565,8 +2694,8 @@
                         <div class="scene-info">
                             <div class="scene-title-row">
                                 <div class="scene-title-group">
-                                    <h1 class="scene-title" id="sceneTitle" data-annotation-title="场景名称" data-annotation-content="场景编辑——步骤 1 基础信息——场景名称">智慧电商平台全栈开发实战</h1>
-                                    <span class="scene-version-tag" id="sceneVersion" data-annotation-title="版本号" data-annotation-content="场景编辑——步骤 1 基础信息——版本号（系统自动生成）">V1.0</span>
+                                    <h1 class="scene-title" id="sceneTitle" data-annotation-title="课程名称" data-annotation-content="课程编辑——步骤 1 基础信息——课程名称">Web安全攻防体系课</h1>
+                                    <span class="scene-version-tag" id="sceneVersion" data-annotation-title="版本号" data-annotation-content="课程编辑——步骤 1 基础信息——版本号（系统自动生成）">V1.0</span>
                                 </div>
                                 <div class="scene-actions">
                                     <button class="action-btn">
@@ -2580,41 +2709,36 @@
                                 </div>
                             </div>
                             <div class="scene-meta">
-                                <span class="scene-meta-item"><i class="far fa-user"></i>创建人：<span id="sceneCreator" data-annotation-title="创建人" data-annotation-content="场景编辑——步骤 1 基础信息——创建人">张明华 | 杭州知与未来科技有限公司</span></span>
-                                <span class="scene-meta-item"><i class="far fa-clock"></i>更新于 <span id="sceneUpdated" data-annotation-title="更新时间" data-annotation-content="场景编辑——步骤 1 基础信息——更新时间">2026-03-20</span></span>
+                                <span class="scene-meta-item"><i class="far fa-user"></i>创建人：<span id="sceneCreator" data-annotation-title="创建人" data-annotation-content="课程编辑——步骤 1 基础信息——创建人">张明华 | 杭州知与未来科技有限公司</span></span>
+                                <span class="scene-meta-item"><i class="far fa-clock"></i>更新于 <span id="sceneUpdated" data-annotation-title="更新时间" data-annotation-content="课程编辑——步骤 1 基础信息——更新时间">2026-03-20</span></span>
                                 <span class="scene-meta-item"><i class="far fa-eye"></i>浏览 1,234 次</span>
                                 <span class="scene-meta-item"><i class="far fa-heart"></i>收藏 89 次</span>
                             </div>
-                            <p class="scene-desc" id="sceneDesc" data-annotation-title="场景描述" data-annotation-content="场景编辑——步骤 1 基础信息——场景介绍">
-                                本场景模拟一家中型电商企业「智购科技」的真实技术团队工作环境，学员将扮演全栈开发工程师角色，参与公司核心电商平台从 0 到 1 的完整开发周期。涵盖需求分析、架构设计、前端开发、后端开发、核心业务实现、测试优化及部署上线等全流程工作。
+                            <p class="scene-desc" id="sceneDesc" data-annotation-title="课程描述" data-annotation-content="课程编辑——步骤 1 基础信息——课程介绍">
+                                本课程是一门面向网络安全方向的综合性体系课程，涵盖 Web安全基础、注入攻击、身份认证、会话管理、渗透测试等核心领域。通过理论讲解与实战演练相结合的方式，帮助学员系统掌握 Web安全攻防技术，培养安全思维与实战能力。
                             </p>
                             <div class="scene-tags">
                                 <div class="tag-row">
                                     <span class="tag-label">适用专业：</span>
-                                    <div class="tag-values" id="sceneProfessions" data-annotation-title="适用专业" data-annotation-content="场景编辑——步骤 1 基础信息——适用专业">
-                                        <span class="tag blue">软件技术</span>
+                                    <div class="tag-values" id="sceneProfessions" data-annotation-title="适用专业" data-annotation-content="课程编辑——步骤 1 基础信息——适用专业">
+                                        <span class="tag blue">信息安全</span>
                                     </div>
                                 </div>
-                                <div class="tag-row">
-                                    <span class="tag-label">目标岗位：</span>
-                                    <div class="tag-values" id="scenePositions" data-annotation-title="目标岗位" data-annotation-content="场景编辑——步骤 1 基础信息——目标岗位">
-                                        <span class="tag purple">全栈开发工程师</span>
-                                    </div>
-                                </div>
+
                                 <div class="tag-row">
                                     <span class="tag-label">面向行业：</span>
-                                    <div class="tag-values" id="sceneIndustries" data-annotation-title="面向行业" data-annotation-content="场景编辑——步骤 1 基础信息——面向行业">
-                                        <span class="tag orange">互联网/电子商务</span>
+                                    <div class="tag-values" id="sceneIndustries" data-annotation-title="面向行业" data-annotation-content="课程编辑——步骤 1 基础信息——面向行业">
+                                        <span class="tag orange">互联网/信息安全</span>
                                     </div>
                                 </div>
 
                             </div>
                             <div class="co-builders-row">
                                 <span class="tag-label">共建人/单位：</span>
-                                <div class="tag-values" data-annotation-title="共建人/单位" data-annotation-content="场景编辑——步骤 1 基础信息——共建人/共建部门">
+                                <div class="tag-values" data-annotation-title="共建人/单位" data-annotation-content="课程编辑——步骤 1 基础信息——共建人/共建部门">
                                     <span class="tag gray"><i class="fas fa-building"></i> 河南职业技术学院</span>
-                                    <span class="tag gray"><i class="fas fa-industry"></i> 字节跳动</span>
-                                    <span class="tag gray"><i class="fab fa-alipay"></i> 蚂蚁集团</span>
+                                    <span class="tag gray"><i class="fas fa-shield-alt"></i> 360安全</span>
+                                    <span class="tag gray"><i class="fas fa-lock"></i> 绿盟科技</span>
                                 </div>
                             </div>
                         </div>
@@ -2635,7 +2759,7 @@
                             <div class="stat-chart">
                                 <div class="chart-ring">
                                     <div class="chart-center">
-                                        <div class="chart-value" id="totalHours" data-annotation-title="总课时" data-annotation-content="场景编辑——步骤 2 任务链配置——预估学时（所有任务累加）">44</div>
+                                        <div class="chart-value" id="totalHours" data-annotation-title="总课时" data-annotation-content="课程编辑——步骤 2 章节链配置——预估学时（所有章节累加）">44</div>
                                         <div class="chart-label">总课时</div>
                                     </div>
                                 </div>
@@ -2643,11 +2767,11 @@
                             <div class="stat-legend">
                                 <div class="legend-item">
                                     <span class="legend-dot theory"></span>
-                                    <span>考核 <span id="assessmentHours" data-annotation-title="考核课时" data-annotation-content="场景编辑——步骤 2 任务链配置——预估学时（考核任务累加）">32</span>课时</span>
+                                    <span>考核 <span id="assessmentHours" data-annotation-title="考核课时" data-annotation-content="课程编辑——步骤 2 章节链配置——预估学时（考核章节累加）">32</span>课时</span>
                                 </div>
                                 <div class="legend-item">
                                     <span class="legend-dot practice"></span>
-                                    <span>训练 <span id="trainingHours" data-annotation-title="训练课时" data-annotation-content="场景编辑——步骤 2 任务链配置——预估学时（训练任务累加）">12</span>课时</span>
+                                    <span>训练 <span id="trainingHours" data-annotation-title="训练课时" data-annotation-content="课程编辑——步骤 2 章节链配置——预估学时（训练章节累加）">12</span>课时</span>
                                 </div>
                             </div>
                         </div>
@@ -2658,82 +2782,102 @@
             <!-- 标签页内容 -->
             <div class="card tabs-card">
                 <div class="tabs-nav">
-                    <div class="tab-item active" data-tab="tasks">
-                        <i class="fas fa-tasks"></i>
-                        任务概览
-                        <span class="tab-badge" id="taskCountBadge" data-annotation-title="任务数量" data-annotation-content="场景编辑——步骤 2 任务链配置——任务列表数量">6</span>
+                    <div class="tab-item active" data-tab="catalog">
+                        <i class="fas fa-list"></i>
+                        课程目录
+                        <span class="tab-badge" id="taskCountBadge" data-annotation-title="章节数量" data-annotation-content="课程编辑——步骤 2 章节链配置——章节列表数量">6</span>
+                    </div>
+                    <div class="tab-item" data-tab="goals">
+                        <i class="fas fa-bullseye"></i>
+                        课程学习目标
                     </div>
                     <div class="tab-item" data-tab="resources">
-                        <i class="fas fa-book"></i>
-                        资源中心
-                        <span class="tab-badge" id="resourceCountBadge" data-annotation-title="资源数量" data-annotation-content="场景编辑——步骤 2 任务链配置——配置任务资源（去重统计）">0</span>
+                        <i class="fas fa-folder-open"></i>
+                        课程资源
+                        <span class="tab-badge" id="resourceCountBadge" data-annotation-title="资源数量" data-annotation-content="课程编辑——步骤 2 章节链配置——配置章节资源（去重统计）">0</span>
                     </div>
-                    <div class="tab-item" data-tab="abilities">
-                        <i class="fas fa-star"></i>
-                        能力模型
-                        <span class="tab-badge" id="abilityCountBadge" data-annotation-title="能力点数量" data-annotation-content="场景编辑——步骤 2 任务链配置——考查能力点（去重统计）">0</span>
+                    <div class="tab-item" data-tab="knowledge-points">
+                        <i class="fas fa-lightbulb"></i>
+                        课程知识点
                     </div>
-                    <div class="tab-item" data-tab="rubric">
-                        <i class="fas fa-clipboard-check"></i>
-                        评价标准
-                        <span class="tab-badge">4</span>
+                    <div class="tab-item" data-tab="evaluation">
+                        <i class="fas fa-file-alt"></i>
+                        课程评价
                     </div>
-                    <div class="tab-item" data-tab="knowledge">
+                    <div class="tab-item" data-tab="graph">
                         <i class="fas fa-sitemap"></i>
-                        知识图谱
+                        课程知识图谱
                     </div>
                 </div>
 
-                <!-- 任务概览 -->
-                <div class="tab-content active" id="tasks">
+                <!-- 课程目录 -->
+                <div class="tab-content active" id="catalog">
                     <div class="task-list" id="taskList">
                         <!-- 动态生成 -->
                     </div>
                 </div>
 
-                <!-- 资源中心 -->
+                <!-- 课程学习目标 -->
+                <div class="tab-content" id="goals">
+                    <div class="tab-with-sidebar">
+                        <div class="tab-sidebar" id="goalsSidebar"></div>
+                        <div class="tab-main" id="goalsMain">
+                            <div class="content-header">
+                                <h3 style="font-size: 16px; font-weight: 500;"><i class="fas fa-bullseye" style="color: var(--primary-color); margin-right: 8px;"></i>课程学习目标</h3>
+                            </div>
+                            <div id="goalsList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 课程资源 -->
                 <div class="tab-content" id="resources">
-                    <div id="resourcesContainer">
-                        <!-- 动态生成 -->
+                    <div class="tab-with-sidebar">
+                        <div class="tab-sidebar" id="resourcesSidebar"></div>
+                        <div class="tab-main" id="resourcesMain">
+                            <div class="content-header">
+                                <h3 style="font-size: 16px; font-weight: 500;"><i class="fas fa-folder-open" style="color: var(--primary-color); margin-right: 8px;"></i>课程资源</h3>
+                            </div>
+                            <div id="resourcesContainer"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 能力模型 -->
-                <div class="tab-content" id="abilities">
-                    <div id="abilityHeader"></div>
-                    <div class="ability-model" id="abilityList"></div>
-                </div>
-
-                <!-- 评价标准 -->
-                <div class="tab-content" id="rubric">
-                    <div>
-                        <h3 style="font-size: 16px; font-weight: 500; margin-bottom: 16px;"><i class="fas fa-table" style="color: var(--primary-color); margin-right: 8px;"></i>评价标准权重分配</h3>
-                        <table class="rubric-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;"></th>
-                                    <th>任务名称</th>
-                                    <th style="width: 120px;">任务编码</th>
-                                    <th style="width: 100px;">任务类型</th>
-                                    <th style="width: 110px;">场景权重</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rubricTableBody">
-                                <!-- 动态生成 -->
-                            </tbody>
-                        </table>
+                <!-- 课程知识点 -->
+                <div class="tab-content" id="knowledge-points">
+                    <div class="tab-with-sidebar">
+                        <div class="tab-sidebar" id="kpSidebar"></div>
+                        <div class="tab-main" id="kpMain">
+                            <div class="content-header">
+                                <h3 style="font-size: 16px; font-weight: 500;"><i class="fas fa-lightbulb" style="color: var(--primary-color); margin-right: 8px;"></i>课程知识点</h3>
+                            </div>
+                            <div id="kpList"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 知识图谱 -->
-                <div class="tab-content" id="knowledge" style="padding: 0; overflow: hidden;">
+                <!-- 课程评价 -->
+                <div class="tab-content" id="evaluation">
+                    <div class="tab-with-sidebar">
+                        <div class="tab-sidebar" id="evaluationSidebar"></div>
+                        <div class="tab-main" id="evaluationMain">
+                            <div class="content-header">
+                                <h3 style="font-size: 16px; font-weight: 500;"><i class="fas fa-file-alt" style="color: var(--primary-color); margin-right: 8px;"></i>课程评价</h3>
+                            </div>
+                            <div id="evaluationList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 课程知识图谱 -->
+                <div class="tab-content" id="graph" style="padding: 0; overflow: hidden;">
                     <div class="kg-layout">
                         <div class="kg-canvas-area" id="kgCanvasArea" style="border-radius: 8px;">
                             <svg id="kgSvg"></svg>
                             <div class="kg-legend">
                                 <div class="kg-legend-title">图例</div>
-                                <div class="kg-legend-item"><div class="kg-legend-dot" style="background:#722ed1;"></div><span>场景名称</span></div>
-                                <div class="kg-legend-item"><div class="kg-legend-dot" style="background:#52c41a;"></div><span>任务 (可点击)</span></div>
+                                <div class="kg-legend-item"><div class="kg-legend-dot" style="background:#722ed1;"></div><span>课程名称</span></div>
+                                <div class="kg-legend-item"><div class="kg-legend-dot" style="background:#52c41a;"></div><span>章节 (可点击)</span></div>
                                 <div class="kg-legend-item"><div class="kg-legend-dot" style="background:#faad14;"></div><span>知识点 (可点击)</span></div>
                             </div>
                             <div class="kg-toolbar">
@@ -2741,7 +2885,7 @@
                                 <button class="kg-tool-btn" id="kgZoomOut" title="缩小"><i class="fas fa-minus"></i></button>
                                 <button class="kg-tool-btn" id="kgReset" title="重置视角"><i class="fas fa-compress-arrows-alt"></i></button>
                             </div>
-                            <div class="kg-tip">拖拽节点 · 滚轮缩放 · 点击任务与知识点查看详情卡片</div>
+                            <div class="kg-tip">拖拽节点 · 滚轮缩放 · 点击章节与知识点查看详情卡片</div>
                             <div class="kg-tooltip" id="kgTooltip"></div>
                         </div>
                     </div>
@@ -2749,47 +2893,52 @@
             </div>
         </div>
 
-        <!-- ==================== 任务学习视图 ==================== -->
+        <!-- ==================== 章节学习视图 ==================== -->
         <div id="taskLearningView" style="display:none;">
             <!-- 面包屑 -->
             <div class="breadcrumb" id="breadcrumbNavTask">
                 <a href="student_navigation.html">首页</a>
                 <span>/</span>
-                <a href="student.html">智慧电商平台全栈开发实战</a>
+                <a href="student.html">Web安全攻防体系课</a>
                 <span>/</span>
-                <span class="current" id="breadcrumbTaskName">任务名称</span>
+                <span class="current" id="breadcrumbTaskName">章节名称</span>
             </div>
-            <!-- 顶部任务信息栏 -->
+            <!-- 顶部章节信息栏 -->
             <div class="tl-header">
                 <button class="tl-back-btn" onclick="backToScenario()">
                     <i class="fas fa-arrow-left"></i>
-                    返回场景
+                    返回课程
                 </button>
                 <div class="tl-title-row">
-                    <h2 class="tl-task-name" id="tlTaskName" data-annotation-title="任务名称" data-annotation-content="场景编辑——步骤 2 任务链配置——任务名称">任务名称</h2>
+                    <h2 class="tl-task-name" id="tlTaskName" data-annotation-title="章节名称" data-annotation-content="课程编辑——步骤 2 章节链配置——章节名称">章节名称</h2>
                     <div class="tl-task-meta" id="tlTaskMeta">
-                        <span><i class="far fa-clock"></i> <span id="tlTaskHours" data-annotation-title="预估学时" data-annotation-content="场景编辑——步骤 2 任务链配置——预估学时">0</span> 课时</span>
-                        <span><i class="fas fa-star"></i> 难度 <span id="tlTaskDifficulty" data-annotation-title="难度等级" data-annotation-content="场景编辑——步骤 2 任务链配置——难度"></span></span>
-                        <span class="tl-type-badge" id="tlTaskType" data-annotation-title="任务类型" data-annotation-content="场景编辑——步骤 2 任务链配置——任务类型">训练任务</span>
+                        <span><i class="far fa-clock"></i> <span id="tlTaskHours" data-annotation-title="预估学时" data-annotation-content="课程编辑——步骤 2 章节链配置——预估学时">0</span> 课时</span>
+                        <span><i class="fas fa-star"></i> 难度 <span id="tlTaskDifficulty" data-annotation-title="难度等级" data-annotation-content="课程编辑——步骤 2 章节链配置——难度"></span></span>
+                        <span class="tl-type-badge" id="tlTaskType" data-annotation-title="章节类型" data-annotation-content="课程编辑——步骤 2 章节链配置——章节类型">训练章节</span>
                     </div>
                 </div>
             </div>
 
             <!-- 主内容区 -->
             <div class="tl-layout">
+                <!-- 左侧目录导航 -->
+                <div class="tl-sidebar" id="tlSidebar">
+                    <div class="tl-sidebar-header"><i class="fas fa-list-ul"></i> 课程目录</div>
+                    <div class="tl-sidebar-tree" id="tlSidebarTree"></div>
+                </div>
                 <!-- 左侧列 -->
                 <div class="tl-left">
                     <!-- 学习面板 -->
                     <div class="tl-panel" id="learningPanel">
                         <div class="tl-panel-header">
                             <i class="fas fa-book-open"></i>
-                            <span>任务说明</span>
+                            <span>章节说明</span>
                             <button class="tl-fullscreen-btn" onclick="openTaskDescFullscreen()">
                                 <i class="fas fa-expand"></i> 全屏查看
                             </button>
                         </div>
                         <div class="tl-panel-body">
-                            <div class="tl-task-desc" id="tlTaskDesc" data-annotation-title="任务说明" data-annotation-content="场景编辑——步骤 2 任务链配置——任务说明（富文本/PDF）"></div>
+                            <div class="tl-task-desc" id="tlTaskDesc" data-annotation-title="章节说明" data-annotation-content="课程编辑——步骤 2 章节链配置——章节说明（富文本/PDF）"></div>
                         </div>
                     </div>
 
@@ -2797,7 +2946,7 @@
                     <div class="tl-panel tl-assessment-panel" id="assessmentPanel" style="display:none;">
                         <div class="tl-panel-header">
                             <i class="fas fa-edit"></i>
-                            <span>任务测评</span>
+                            <span>章节测验</span>
                         </div>
                         <div class="tl-panel-body" id="tlAssessmentBody"></div>
                     </div>
@@ -2842,12 +2991,12 @@
                     <div class="tl-mode-card" onclick="confirmModeSelect('integrated')">
                         <div class="tl-mode-icon"><i class="fas fa-layer-group"></i></div>
                         <div class="tl-mode-name">学测一体</div>
-                        <div class="tl-mode-desc">先学习任务内容，完成后直接进入测评</div>
+                        <div class="tl-mode-desc">先学习章节内容，完成后直接进入测验</div>
                     </div>
                     <div class="tl-mode-card" onclick="confirmModeSelect('learn')">
                         <div class="tl-mode-icon"><i class="fas fa-book-reader"></i></div>
                         <div class="tl-mode-name">仅学习</div>
-                        <div class="tl-mode-desc">只浏览任务说明和资源，暂不参与测评</div>
+                        <div class="tl-mode-desc">只浏览章节说明和资源，暂不参与测验</div>
                     </div>
                     <div class="tl-mode-card" onclick="confirmModeSelect('assess')">
                         <div class="tl-mode-icon"><i class="fas fa-clipboard-check"></i></div>
@@ -2859,11 +3008,11 @@
         </div>
     </div>
 
-    <!-- 任务说明全屏弹窗 -->
+    <!-- 章节说明全屏弹窗 -->
     <div class="preview-modal-overlay" id="taskDescFullscreenOverlay" onclick="if(event.target===this)closeTaskDescFullscreen()">
         <div class="preview-modal-box" style="width:900px;max-width:95vw;height:90vh;">
             <div class="preview-modal-header">
-                <div class="preview-modal-title">任务说明</div>
+                <div class="preview-modal-title">章节说明</div>
                 <button class="preview-modal-close" onclick="closeTaskDescFullscreen()"><i class="fas fa-times"></i></button>
             </div>
             <div class="preview-modal-body" style="overflow-y:auto;">
@@ -2988,30 +3137,30 @@
 
         const SCENARIO = {
             id: "scenario-1",
-            name: "智慧电商平台全栈开发实战",
-            code: "SC-2026-0001",
+            name: "Web安全攻防体系课",
+            code: "COURSE-2026-WS-001",
             coverImage: "/placeholder.svg?height=200&width=320",
-            positionName: "全栈开发工程师",
-            professionName: "软件技术",
-            industryName: "互联网/电子商务",
-            batchName: "2026春季全栈开发场景建设",
+            positionName: "网络安全工程师",
+            professionName: "信息安全",
+            industryName: "互联网/信息安全",
+            batchName: "2026春季Web安全课程建设",
             difficulty: 5,
-            background: `<p>随着数字化转型的深入，电商行业对技术型人才的需求持续增长。本场景模拟一家中型电商企业「智购科技」的真实技术团队工作环境，学员将扮演全栈开发工程师角色，参与公司核心电商平台从 0 到 1 的完整开发周期。</p>
-                <p>项目背景：智购科技计划上线一套 B2C 电商平台，涵盖商品展示、购物车、订单管理、在线支付、库存管理、用户中心等核心模块。技术团队决定采用前后端分离架构，前端使用 React 18 + TypeScript 技术栈，后端使用 Node.js + Express + MySQL 方案。</p>
-                <p>学员需要在 6 个阶段任务中，逐步完成需求分析、架构设计、前端开发、后端开发、核心业务实现、测试优化及部署上线等全流程工作，最终交付一套可运行的电商系统原型。</p>`,
-            deliveryGoal: `<p>完成一套功能完整的智慧电商平台系统，具体交付物包括：</p>
+            background: `<p>随着数字化转型的深入，网络安全已成为企业信息化建设的核心保障。本课程面向信息安全方向的学员，系统讲解 Web安全攻防的核心知识体系，涵盖漏洞原理、攻击技术、防御方案与安全测试方法。</p>
+                <p>课程背景：现代Web应用面临SQL注入、XSS跨站脚本、CSRF跨站请求伪造、文件上传漏洞等多种安全威胁。本课程通过理论讲解与靶场实战相结合的方式，帮助学员掌握常见Web漏洞的原理与利用方法，并学会构建有效的防御体系。</p>
+                <p>学员将在12个阶段章节中，逐步完成Web安全基础学习、漏洞原理分析、攻击技术实践、防御方案设计、渗透测试实战及安全运维等全流程学习，最终具备独立进行Web安全测试与漏洞修复的能力。</p>`,
+            deliveryGoal: `<p>完成Web安全攻防体系课程学习，具体能力目标包括：</p>
                 <ul>
-                    <li><strong>需求文档</strong>：包含用例图、流程图、数据字典的需求规格说明书</li>
-                    <li><strong>架构设计</strong>：系统架构图、技术选型报告、数据库 ER 图</li>
-                    <li><strong>前端系统</strong>：基于 React 的管理后台和商城前台，含用户认证、商品展示、购物车、订单管理等页面</li>
-                    <li><strong>后端 API</strong>：完整的 RESTful API 接口，含认证、商品、订单、支付、库存等模块</li>
-                    <li><strong>测试报告</strong>：单元测试覆盖率报告、接口测试报告、性能测试报告</li>
-                    <li><strong>部署文档</strong>：Docker 容器化部署方案、Nginx 配置、CI/CD 流水线脚本</li>
+                    <li><strong>理论基础</strong>：掌握HTTP协议、Web应用架构、常见漏洞分类与安全开发规范</li>
+                    <li><strong>漏洞分析</strong>：深入理解SQL注入、XSS、CSRF、文件上传、命令注入等漏洞原理</li>
+                    <li><strong>攻击技术</strong>：熟练使用SQLMap、Burp Suite、Nmap等安全测试工具进行漏洞利用</li>
+                    <li><strong>防御方案</strong>：掌握参数化查询、输入过滤、CSP策略、WAF配置等防御措施</li>
+                    <li><strong>渗透测试</strong>：能够独立完成信息收集、漏洞扫描、利用提权、报告撰写的完整流程</li>
+                    <li><strong>安全运维</strong>：掌握日志分析、入侵检测、应急响应、安全加固等运维技能</li>
                 </ul>`,
-            creatorName: "张明华",
+            creatorName: "张安全",
             creatorUnit: "杭州知与未来科技有限公司",
             version: "V1.0",
-            coBuilders: ["河南职业技术学院", "字节跳动", "蚂蚁集团"],
+            coBuilders: ["河南职业技术学院", "360安全", "绿盟科技"],
             updatedAt: "2026-03-20",
             tasks: [
                 {
@@ -3019,15 +3168,15 @@
                     name: "需求分析与系统架构设计",
                     code: "T-001-001",
                     order: 1,
-                    description: "深入理解电商业务需求，运用 UML 和领域驱动设计方法完成系统架构设计和技术选型。",
-                    detailedDescription: `<p><strong>任务背景</strong></p>
-                        <p>作为项目的第一阶段，需求分析和架构设计决定了整个系统的技术方向和实现质量。你需要与「产品经理」沟通，理解电商平台的核心业务流程，并产出完整的技术方案。</p>
+                    description: "深入理解Web安全基础需求，运用UML和安全建模方法完成系统安全架构设计和技术选型。",
+                    detailedDescription: `<p><strong>章节背景</strong></p>
+                        <p>作为项目的第一阶段，需求分析和架构设计决定了整个系统的技术方向和实现质量。你需要与「产品经理」沟通，理解Web应用的安全架构和常见漏洞场景，并产出完整的技术方案。</p>
                         <p><strong>核心工作内容</strong></p>
                         <ul>
-                            <li><strong>需求调研</strong>：阅读提供的业务需求文档，梳理用户故事（User Story），识别核心功能模块（商品、订单、支付、库存、用户）</li>
+                            <li><strong>需求调研</strong>：阅读提供的业务需求文档，梳理用户故事（User Story），识别核心安全风险点（认证、授权、输入、输出、会话、文件）</li>
                             <li><strong>UML 建模</strong>：绘制用例图（Use Case Diagram）、活动图（Activity Diagram）描述核心业务流程，绘制类图（Class Diagram）描述领域模型</li>
                             <li><strong>架构设计</strong>：确定前后端分离架构方案，选择技术栈（React 18 + TypeScript + Vite + Zustand / Node.js + Express + MySQL + Redis），绘制系统架构图</li>
-                            <li><strong>数据库设计</strong>：设计核心表的 ER 图，包括用户表、商品表、订单表、订单明细表、库存表、支付记录表等，定义字段类型、索引、外键关系</li>
+                            <li><strong>数据库设计</strong>：设计安全测试数据库模型，包括用户表、漏洞表、扫描任务表、测试报告表、Payload库等，定义字段类型、索引、外键关系</li>
                             <li><strong>接口规划</strong>：规划核心 API 接口的 URL、请求方法、参数和返回值结构</li>
                         </ul>
                         <p><strong>交付标准</strong></p>
@@ -3071,7 +3220,7 @@
                             { id: "ep-r1-4", name: "接口设计规范", desc: "API 接口规划是否符合 RESTful 规范，URL、参数、返回值设计是否合理", weight: 20, maxScore: 20, gradeMapping: DEFAULT_GRADE_MAPPING }
                         ],
                         randomDraw: [
-                            { id: "ep-rd1-1", name: "业务理解深度", desc: "对电商业务场景的理解是否深入，能否准确描述各模块之间的关系和数据流转", weight: 30, maxScore: 30, gradeMapping: DEFAULT_GRADE_MAPPING },
+                            { id: "ep-rd1-1", name: "业务理解深度", desc: "对Web应用安全场景的理解是否深入，能否准确描述各模块之间的关系和数据流转", weight: 30, maxScore: 30, gradeMapping: DEFAULT_GRADE_MAPPING },
                             { id: "ep-rd1-2", name: "方案论证能力", desc: "面对技术方案选择时能否给出充分的理由和对比分析，考虑多种因素", weight: 30, maxScore: 30, gradeMapping: DEFAULT_GRADE_MAPPING },
                             { id: "ep-rd1-3", name: "技术表达与沟通", desc: "口头阐述设计思路时是否逻辑清晰、论据充分、能够回应质疑", weight: 25, maxScore: 25, gradeMapping: DEFAULT_GRADE_MAPPING },
                             { id: "ep-rd1-4", name: "临场应变能力", desc: "面对追问或意外场景假设时能否快速思考、灵活调整方案", weight: 15, maxScore: 15, gradeMapping: DEFAULT_GRADE_MAPPING }
@@ -3086,14 +3235,14 @@
                         objectiveConfig: {
                             totalScore: 80,
                             questions: [
-                                { id: "q-1-1", type: "single", content: "在电商系统中，以下哪种架构模式最适合处理高并发的订单创建场景？", options: ["单体架构", "分层架构 + 消息队列", "纯微服务架构", "Serverless 架构"], answer: "分层架构 + 消息队列", score: 10 },
+                                { id: "q-1-1", type: "single", content: "在高并发Web应用中，以下哪种架构模式最适合处理大量的安全扫描请求？", options: ["单体架构", "分层架构 + 消息队列", "纯微服务架构", "Serverless 架构"], answer: "分层架构 + 消息队列", score: 10 },
                                 { id: "q-1-2", type: "single", content: "数据库设计中的第三范式（3NF）主要解决什么问题？", options: ["数据冗余和更新异常", "查询性能优化", "并发访问控制", "数据备份恢复"], answer: "数据冗余和更新异常", score: 10 },
                                 { id: "q-1-3", type: "single", content: "UML 用例图中，参与者（Actor）与用例之间的关系是？", options: ["继承关系", "关联关系", "包含关系", "扩展关系"], answer: "关联关系", score: 10 },
                                 { id: "q-1-4", type: "single", content: "领域驱动设计（DDD）中的'聚合根'（Aggregate Root）的主要职责是？", options: ["处理外部 API 调用", "维护聚合内对象的一致性边界", "管理数据库连接池", "处理前端路由跳转"], answer: "维护聚合内对象的一致性边界", score: 10 },
                                 { id: "q-1-5", type: "multiple", content: "以下哪些设计原则有助于提高系统的可扩展性？", options: ["开闭原则（OCP）", "单一职责原则（SRP）", "依赖倒置原则（DIP）", "最小知识原则（LoD）"], answer: ["开闭原则（OCP）", "单一职责原则（SRP）", "依赖倒置原则（DIP）"], score: 10 },
-                                { id: "q-1-6", type: "multiple", content: "在电商订单表设计中，以下哪些字段适合建立索引？", options: ["订单编号（唯一）", "用户 ID（高频查询）", "订单状态（高频筛选）", "订单备注（长文本）"], answer: ["订单编号（唯一）", "用户 ID（高频查询）", "订单状态（高频筛选）"], score: 10 },
+                                { id: "q-1-6", type: "multiple", content: "在安全扫描结果表中，以下哪些字段适合建立索引？", options: ["订单编号（唯一）", "用户 ID（高频查询）", "订单状态（高频筛选）", "订单备注（长文本）"], answer: ["订单编号（唯一）", "用户 ID（高频查询）", "订单状态（高频筛选）"], score: 10 },
                                 { id: "q-1-7", type: "judgment", content: "RESTful API 设计中，PUT 请求应该用于资源的局部更新。", answer: "false", score: 10 },
-                                { id: "q-1-8", type: "judgment", content: "在微服务架构中，服务间的数据一致性通常通过分布式事务（如 Saga 模式）来保证。", answer: "true", score: 10 }
+                                { id: "q-1-8", type: "judgment", content: "在安全扫描集群中，节点间的任务分配通常通过消息队列（如 RabbitMQ）来实现。", answer: "true", score: 10 }
                             ]
                         },
                         subjectiveConfig: {
@@ -3121,25 +3270,25 @@
                     name: "前端基础框架搭建与UI组件库开发",
                     code: "T-001-002",
                     order: 2,
-                    description: "使用 React 18 + TypeScript 搭建前端项目骨架，开发可复用的通用 UI 组件库，实现用户认证相关页面。",
-                    detailedDescription: `<p><strong>任务背景</strong></p>
+                    description: "使用 React 18 + TypeScript 搭建前端安全测试平台骨架，开发安全扫描Dashboard和安全报告展示组件。",
+                    detailedDescription: `<p><strong>章节背景</strong></p>
                         <p>前端开发是用户直接接触的系统界面，直接影响用户体验。本阶段你需要搭建完整的前端工程化体系，并开发一套符合设计规范的通用组件库。</p>
                         <p><strong>核心工作内容</strong></p>
                         <ul>
                             <li><strong>项目初始化</strong>：使用 Vite 创建 React + TypeScript 项目，配置 ESLint、Prettier、husky 代码提交规范</li>
                             <li><strong>路由配置</strong>：配置 React Router v6，设计路由结构（/login, /register, /dashboard, /products, /orders, /cart）</li>
-                            <li><strong>状态管理</strong>：使用 Zustand 搭建全局状态管理，设计用户状态、购物车状态、消息通知状态等 Store</li>
+                            <li><strong>状态管理</strong>：使用 Zustand 搭建全局状态管理，设计扫描任务状态、漏洞状态、报告状态等 Store</li>
                             <li><strong>UI 组件库</strong>：基于 Ant Design 5 进行二次封装，开发通用组件：PageHeader、DataTable、SearchForm、ImageUploader、RichTextEditor</li>
-                            <li><strong>认证页面</strong>：开发登录页、注册页、找回密码页，实现表单校验、密码强度提示、验证码输入</li>
-                            <li><strong>布局框架</strong>：开发 AdminLayout（侧边栏+顶部导航+内容区）、响应式适配（PC/平板/手机）</li>
+                            <li><strong>认证页面</strong>：开发安全登录页、注册页、密码重置页，实现表单校验、密码强度提示、验证码输入</li>
+                            <li><strong>布局框架</strong>：开发 SecurityDashboard（安全态势面板+漏洞列表+扫描控制）、响应式适配（PC/平板/手机）</li>
                             <li><strong>主题定制</strong>：配置 Ant Design 主题色（主色#1890ff）、圆角、字体等设计 Token</li>
                         </ul>
                         <p><strong>交付标准</strong></p>
                         <ul>
                             <li>完整的前端项目代码（Git 仓库）</li>
                             <li>可运行的开发环境（npm run dev 即可启动）</li>
-                            <li>组件使用文档（含 Props 说明和示例代码）</li>
-                            <li>登录/注册页面功能完整可用</li>
+                            <li>安全组件使用文档（含 Props 说明和示例代码）</li>
+                            <li>安全登录/注册机制功能完整可用</li>
                         </ul>`,
                     estimatedHours: 14,
                     taskType: "assessment",
@@ -3186,25 +3335,25 @@
                     name: "后端 API 接口与数据库开发",
                     code: "T-001-003",
                     order: 3,
-                    description: "使用 Node.js + Express + MySQL 搭建后端服务，实现用户认证、商品、订单等核心 API 接口，完成数据库建表和初始数据导入。",
-                    detailedDescription: `<p><strong>任务背景</strong></p>
-                        <p>后端服务是整个电商平台的业务逻辑核心，负责数据存储、业务规则执行和接口提供服务。本阶段需要搭建稳定、安全、可扩展的后端服务。</p>
+                    description: "使用 Node.js + Express + MySQL 搭建安全测试靶场后端，实现漏洞演示、Payload管理和测试报告接口。",
+                    detailedDescription: `<p><strong>章节背景</strong></p>
+                        <p>后端服务是整个安全测试靶场的核心，负责数据存储、业务规则执行和接口提供服务。本阶段需要搭建稳定、安全、可扩展的后端服务。</p>
                         <p><strong>核心工作内容</strong></p>
                         <ul>
                             <li><strong>环境搭建</strong>：初始化 Node.js 项目，配置 Express 框架，集成 TypeScript 编译环境</li>
                             <li><strong>数据库连接</strong>：使用 mysql2/promise 连接 MySQL 数据库，配置连接池（最大连接数 20）</li>
                             <li><strong>数据建模</strong>：根据 ER 图创建数据表：users、products、categories、orders、order_items、inventory、payments、addresses</li>
-                            <li><strong>用户认证</strong>：实现注册（密码 bcrypt 加密）、登录（JWT Token 签发）、Token 刷新、密码重置接口</li>
-                            <li><strong>商品模块</strong>：实现商品列表（分页、筛选、排序）、商品详情、商品分类、商品搜索（模糊查询）接口</li>
-                            <li><strong>订单模块</strong>：实现创建订单（事务处理）、订单列表、订单详情、取消订单接口</li>
+                            <li><strong>用户认证</strong>：实现用户注册（密码安全存储）、登录（JWT安全机制）、Token刷新、密码重置接口</li>
+                            <li><strong>漏洞管理模块</strong>：实现漏洞列表（分页、筛选、排序）、漏洞详情、风险分类、目标搜索接口</li>
+                            <li><strong>订单模块</strong>：实现创建扫描任务（事务处理）、任务列表、任务详情、取消扫描接口</li>
                             <li><strong>中间件</strong>：开发全局错误处理中间件、请求日志中间件、参数校验中间件（Joi）、限流中间件（express-rate-limit）</li>
                             <li><strong>API 文档</strong>：使用 Swagger/OpenAPI 3.0 编写接口文档</li>
                         </ul>
                         <p><strong>交付标准</strong></p>
                         <ul>
-                            <li>可运行的后端服务（npm run dev 启动，监听 3000 端口）</li>
+                            <li>可运行的安全扫描服务（npm run dev 启动，监听 3000 端口）</li>
                             <li>完整的数据库建表 SQL 脚本和初始数据</li>
-                            <li>所有接口通过 Postman 测试集合验证</li>
+                            <li>所有接口通过安全测试用例验证</li>
                             <li>Swagger API 文档可在线访问（/api-docs）</li>
                         </ul>`,
                     estimatedHours: 16,
@@ -3225,7 +3374,7 @@
                     evalPoints: {
                         review: [
                             { id: "ep-r3-1", name: "代码规范与结构", desc: "代码风格统一、目录结构清晰、命名规范、注释完整，符合 Node.js 社区最佳实践", weight: 20, maxScore: 20, gradeMapping: DEFAULT_GRADE_MAPPING },
-                            { id: "ep-r3-2", name: "功能实现完整性", desc: "用户认证、商品、订单等核心模块是否完整实现，接口行为是否符合需求定义，边界场景是否考虑", weight: 25, maxScore: 25, gradeMapping: DEFAULT_GRADE_MAPPING },
+                            { id: "ep-r3-2", name: "功能实现完整性", desc: "用户认证、漏洞管理、扫描任务等核心模块是否完整实现，接口行为是否符合需求定义，边界场景是否考虑", weight: 25, maxScore: 25, gradeMapping: DEFAULT_GRADE_MAPPING },
                             { id: "ep-r3-3", name: "数据库设计质量", desc: "表结构设计是否合理（范式、索引、外键），SQL 查询是否高效（避免 N+1 问题），事务使用是否恰当", weight: 20, maxScore: 20, gradeMapping: DEFAULT_GRADE_MAPPING },
                             { id: "ep-r3-4", name: "安全防护意识", desc: "SQL 注入防护、XSS 过滤、CSRF Token、密码加密、输入校验、敏感信息脱敏等安全措施是否到位", weight: 20, maxScore: 20, gradeMapping: DEFAULT_GRADE_MAPPING },
                             { id: "ep-r3-5", name: "接口文档与测试", desc: "Swagger 文档是否完整准确，Postman 测试用例是否覆盖正常和异常场景，测试断言是否完善", weight: 15, maxScore: 15, gradeMapping: DEFAULT_GRADE_MAPPING }
@@ -3265,34 +3414,34 @@
                 },
                 {
                     id: "task-1-4",
-                    name: "核心业务模块实现（订单/支付/库存）",
+                    name: "Web应用安全漏洞实战（注入/上传/命令执行）",
                     code: "T-001-004",
                     order: 4,
-                    description: "实现电商平台最核心的订单创建、在线支付、库存扣减等复杂业务流程，处理并发和数据一致性问题。",
-                    detailedDescription: `<p><strong>任务背景</strong></p>
-                        <p>订单、支付、库存是电商平台最核心的业务模块，也是技术复杂度最高的部分。需要处理分布式事务、并发扣减、支付回调、库存超卖等棘手问题。</p>
+                    description: "实现Web应用安全漏洞的自动化检测与利用，处理并发扫描和结果一致性问题。",
+                    detailedDescription: `<p><strong>章节背景</strong></p>
+                        <p>漏洞检测、Payload管理、报告生成是安全测试最核心的功能模块，也是技术实现复杂度最高的部分。需要处理并发扫描、结果去重、任务调度、资源竞争等棘手问题。</p>
                         <p><strong>核心工作内容</strong></p>
                         <ul>
-                            <li><strong>购物车模块</strong>：实现加入购物车、修改数量、选中结算、删除商品等功能，购物车数据存储在 Redis（Hash 结构）</li>
-                            <li><strong>订单创建</strong>：实现下单流程——校验库存 → 创建订单（待支付）→ 扣减库存（预占）→ 生成支付单。使用数据库事务保证原子性</li>
-                            <li><strong>支付对接</strong>：模拟对接支付宝/微信支付（使用沙箱环境），处理支付回调通知，更新订单状态（待支付 → 已支付 → 待发货）</li>
-                            <li><strong>库存管理</strong>：实现库存扣减（防止超卖：数据库乐观锁 / Redis 分布式锁）、库存回滚（订单取消/超时未支付）、库存预警</li>
+                            <li><strong>扫描任务模块</strong>：实现创建扫描任务、调整参数、选择目标、删除任务等功能，扫描任务状态存储在 Redis（Hash 结构）</li>
+                            <li><strong>扫描任务创建</strong>：实现任务下发流程——校验资源 → 创建任务（待执行）→ 分配资源（预占）→ 生成扫描单。使用数据库事务保证原子性</li>
+                            <li><strong>加密通信分析</strong>：模拟分析HTTPS握手过程（使用自签名证书环境），处理证书验证逻辑，分析连接状态（未验证 → 验证中 → 已建立）</li>
+                            <li><strong>扫描资源管理</strong>：实现资源分配（防止过载：速率限制 / 连接池管理）、资源释放（任务取消/超时未响应）、资源预警</li>
                             <li><strong>订单状态机</strong>：设计订单状态流转（待支付 → 已支付 → 待发货 → 已发货 → 已完成 / 待支付 → 已取消），使用状态模式实现</li>
                             <li><strong>消息通知</strong>：订单状态变更时发送站内消息和邮件通知（模拟）</li>
-                            <li><strong>前端对接</strong>：开发购物车页面、订单确认页、订单列表页、订单详情页、支付页</li>
+                            <li><strong>前端对接</strong>：开发扫描控制面板、任务确认页、任务列表页、漏洞详情页、加密分析页</li>
                         </ul>
                         <p><strong>关键技术挑战</strong></p>
                         <ul>
-                            <li><strong>超卖问题</strong>：高并发下多个用户同时购买同一商品的最后几件库存，如何解决？</li>
+                            <li><strong>扫描过载问题</strong>：高并发下多个扫描任务同时请求同一目标的最后几个连接资源，如何解决？</li>
                             <li><strong>分布式事务</strong>：订单创建涉及订单表、库存表、支付记录表，如何保证数据一致性？</li>
                             <li><strong>支付幂等</strong>：网络抖动导致支付回调多次到达，如何处理重复通知？</li>
-                            <li><strong>订单超时</strong>：用户下单后 30 分钟未支付，如何自动取消订单并回滚库存？</li>
+                            <li><strong>任务超时</strong>：用户下发任务后 30 分钟未完成，如何自动取消任务并回滚资源？</li>
                         </ul>
                         <p><strong>交付标准</strong></p>
                         <ul>
-                            <li>完整的购物车、订单、支付、库存模块前后端代码</li>
+                            <li>完整的扫描任务、漏洞管理、加密分析、资源调度模块前后端代码</li>
                             <li>单元测试覆盖率 ≥ 60%</li>
-                            <li>压力测试报告（模拟 100 并发用户同时下单）</li>
+                            <li>压力测试报告（模拟 100 并发扫描任务同时执行）</li>
                             <li>技术方案文档（含超卖解决方案、状态机设计）</li>
                         </ul>`,
                     estimatedHours: 20,
@@ -3301,7 +3450,7 @@
                     dependencies: ["task-1-2", "task-1-3"],
                     resources: ["lr-10", "lr-11", "lr-12", "lr-17", "lr-25"],
                     deliverables: [
-                        { id: "del-4-1", type: "result_file", name: "核心业务模块源码", description: "包含购物车、订单、支付、库存前后端完整代码" },
+                        { id: "del-4-1", type: "result_file", name: "安全漏洞检测模块源码", description: "包含扫描任务、漏洞管理、加密分析、资源调度前后端完整代码" },
                         { id: "del-4-2", type: "result_file", name: "单元测试报告", description: "Jest 测试报告，覆盖率 ≥ 60%" },
                         { id: "del-4-3", type: "result_file", name: "压力测试报告", description: "使用 Artillery 或 k6 进行并发测试的报告" },
                         { id: "del-4-4", type: "result_file", name: "技术方案文档", description: "超卖解决方案、状态机设计、事务处理方案" }
@@ -3312,8 +3461,8 @@
                     simulationTaskId: "sim-random-draw",
                     evalPoints: {
                         randomDraw: [
-                            { id: "ep-rd4-1", name: "业务理解深度", desc: "对电商订单、支付、库存业务流程的理解是否深入，能否准确描述各环节的依赖关系和时序", weight: 30, maxScore: 30, gradeMapping: DEFAULT_GRADE_MAPPING },
-                            { id: "ep-rd4-2", name: "并发问题分析", desc: "面对超卖、重复支付等并发场景，能否准确分析原因并提出有效的技术解决方案", weight: 30, maxScore: 30, gradeMapping: DEFAULT_GRADE_MAPPING },
+                            { id: "ep-rd4-1", name: "业务理解深度", desc: "对安全测试、漏洞管理、资源调度业务流程的理解是否深入，能否准确描述各环节的安全风险点和检测时序", weight: 30, maxScore: 30, gradeMapping: DEFAULT_GRADE_MAPPING },
+                            { id: "ep-rd4-2", name: "并发问题分析", desc: "面对扫描冲突、重复检测等并发场景，能否准确分析原因并提出有效的技术解决方案", weight: 30, maxScore: 30, gradeMapping: DEFAULT_GRADE_MAPPING },
                             { id: "ep-rd4-3", name: "技术表达与论证", desc: "口头阐述技术方案时是否逻辑清晰、论据充分、能够回应质疑", weight: 25, maxScore: 25, gradeMapping: DEFAULT_GRADE_MAPPING },
                             { id: "ep-rd4-4", name: "临场应变能力", desc: "面对追问或意外场景假设时能否快速思考、灵活调整方案", weight: 15, maxScore: 15, gradeMapping: DEFAULT_GRADE_MAPPING }
                         ],
@@ -3333,7 +3482,7 @@
                         objectiveConfig: {
                             totalScore: 40,
                             questions: [
-                                { id: "q-4-1", type: "single", content: "在高并发库存扣减场景中，以下哪种方案最常用且有效？", options: ["数据库悲观锁", "数据库乐观锁（版本号）", "应用程序锁", "文件锁"], answer: "数据库乐观锁（版本号）", score: 20 },
+                                { id: "q-4-1", type: "single", content: "在高并发安全扫描场景中，以下哪种任务调度方案最常用且有效？", options: ["数据库悲观锁", "数据库乐观锁（版本号）", "应用程序锁", "文件锁"], answer: "数据库乐观锁（版本号）", score: 20 },
                                 { id: "q-4-2", type: "judgment", content: "使用 Redis 分布式锁可以完全避免分布式系统中的并发问题。", answer: "false", score: 20 }
                             ]
                         },
@@ -3359,19 +3508,19 @@
                 },
                 {
                     id: "task-1-5",
-                    name: "系统测试与性能优化",
+                    name: "安全测试与扫描优化",
                     code: "T-001-005",
                     order: 5,
                     description: "编写单元测试和集成测试，使用 Lighthouse 和性能分析工具识别瓶颈并进行针对性优化。",
-                    detailedDescription: `<p><strong>任务背景</strong></p>
+                    detailedDescription: `<p><strong>章节背景</strong></p>
                         <p>没有经过充分测试的系统不能上线。本阶段需要建立完整的测试体系，并针对性能瓶颈进行优化，确保系统在高负载下依然稳定运行。</p>
                         <p><strong>核心工作内容</strong></p>
                         <ul>
                             <li><strong>单元测试</strong>：使用 Jest + React Testing Library 为前端组件编写单元测试，使用 Jest + Supertest 为后端 API 编写测试，目标覆盖率 ≥ 70%</li>
-                            <li><strong>集成测试</strong>：测试完整的业务流程（注册 → 登录 → 浏览商品 → 加购物车 → 下单 → 支付），验证端到端功能</li>
+                            <li><strong>集成测试</strong>：测试完整的安全流程（信息收集 → 漏洞扫描 → 漏洞验证 → 权限提升 → 数据提取 → 报告生成），验证端到端功能</li>
                             <li><strong>性能分析</strong>：使用 Lighthouse 分析前端性能指标（FCP、LCP、CLS、TTI），使用 Chrome DevTools Performance 面板分析渲染性能</li>
                             <li><strong>前端优化</strong>：图片懒加载、组件懒加载（React.lazy + Suspense）、代码分割、Tree Shaking、Gzip 压缩、CDN 静态资源加速</li>
-                            <li><strong>后端优化</strong>：SQL 慢查询优化（EXPLAIN 分析）、添加 Redis 缓存（热点商品、分类数据）、数据库连接池调优、接口响应时间优化</li>
+                            <li><strong>后端优化</strong>：SQL 注入检测优化（Payload 构造）、添加 Redis 缓存（热点规则、目标指纹）、数据库连接池调优、接口响应时间优化</li>
                             <li><strong>安全测试</strong>：使用 OWASP ZAP 进行安全扫描，检查 XSS、SQL 注入、CSRF 等常见漏洞</li>
                             <li><strong>兼容性测试</strong>：在 Chrome、Firefox、Safari、Edge 浏览器中测试页面兼容性</li>
                         </ul>
@@ -3412,7 +3561,7 @@
                                 { id: "q-5-1", type: "single", content: "Lighthouse 报告中，以下哪个指标衡量页面最大内容元素的渲染时间？", options: ["FCP", "LCP", "CLS", "TBT"], answer: "LCP", score: 10 },
                                 { id: "q-5-2", type: "single", content: "在 Jest 测试中，以下哪个函数用于模拟模块依赖？", options: ["jest.mock()", "jest.spyOn()", "jest.fn()", "jest.stub()"], answer: "jest.mock()", score: 10 },
                                 { id: "q-5-3", type: "single", content: "React 中实现组件懒加载的正确方式是？", options: ["import Component from './Component'", "const Component = React.lazy(() => import('./Component'))", "const Component = require('./Component')", "const Component = dynamic(() => import('./Component'))"], answer: "const Component = React.lazy(() => import('./Component'))", score: 10 },
-                                { id: "q-5-4", type: "single", content: "以下哪种缓存策略最适合存储不经常变化的热门商品数据？", options: ["Cache-Aside", "Read-Through", "Write-Through", "Write-Behind"], answer: "Cache-Aside", score: 10 },
+                                { id: "q-5-4", type: "single", content: "以下哪种缓存策略最适合存储不经常变化的安全规则数据？", options: ["Cache-Aside", "Read-Through", "Write-Through", "Write-Behind"], answer: "Cache-Aside", score: 10 },
                                 { id: "q-5-5", type: "multiple", content: "以下哪些是有效的 XSS 防护措施？", options: ["输入过滤和转义", "Content Security Policy (CSP)", "HttpOnly Cookie", "使用 innerHTML 渲染用户输入"], answer: ["输入过滤和转义", "Content Security Policy (CSP)", "HttpOnly Cookie"], score: 15 },
                                 { id: "q-5-6", type: "multiple", content: "以下哪些工具/方法可以用于前端性能分析？", options: ["Chrome DevTools Performance", "Lighthouse", "React DevTools Profiler", "Postman"], answer: ["Chrome DevTools Performance", "Lighthouse", "React DevTools Profiler"], score: 15 },
                                 { id: "q-5-7", type: "judgment", content: "React Testing Library 鼓励测试组件的内部实现细节（如 state、props）。", answer: "false", score: 10 },
@@ -3424,11 +3573,11 @@
                 },
                 {
                     id: "task-1-6",
-                    name: "项目部署与运维上线",
+                    name: "安全测试环境部署与运维",
                     code: "T-001-006",
                     order: 6,
                     description: "使用 Docker 容器化部署前后端应用，配置 Nginx 反向代理和负载均衡，搭建 CI/CD 自动化流水线。",
-                    detailedDescription: `<p><strong>任务背景</strong></p>
+                    detailedDescription: `<p><strong>章节背景</strong></p>
                         <p>开发完成只是项目的一半，稳定可靠的部署和运维才是系统真正服务于用户的关键。本阶段需要将项目从开发环境部署到生产环境，并建立可持续交付的自动化流程。</p>
                         <p><strong>核心工作内容</strong></p>
                         <ul>
@@ -3503,10 +3652,10 @@
                 },
                 {
                     id: "task-1-7",
-                    name: "用户中心与权限管理开发",
+                    name: "身份认证与会话安全分析",
                     code: "T-001-007",
                     order: 7,
-                    description: "开发用户中心模块，实现用户注册、登录、个人信息管理、角色权限控制等功能。",
+                    description: "分析身份认证与会话管理机制，研究JWT、Cookie、Session的安全性问题与加固方案。",
                     estimatedHours: 8,
                     taskType: "training",
                     difficulty: 3,
@@ -3522,17 +3671,17 @@
                 },
                 {
                     id: "task-1-8",
-                    name: "商品管理与搜索优化",
+                    name: "信息收集与资产侦察",
                     code: "T-001-008",
                     order: 8,
-                    description: "实现商品分类管理、商品上架下架、全文搜索、筛选排序等功能模块。",
+                    description: "实现Web应用资产信息收集，包括端口扫描、目录枚举、指纹识别和敏感信息探测。",
                     estimatedHours: 10,
                     taskType: "assessment",
                     difficulty: 4,
                     dependencies: [],
                     resources: ["lr-5", "lr-10", "lr-11"],
                     deliverables: [
-                        { id: "del-8-1", type: "result_file", name: "商品管理模块源码", description: "商品CRUD、分类管理、搜索筛选功能实现" }
+                        { id: "del-8-1", type: "result_file", name: "资产侦察模块源码", description: "资产CRUD、风险分类、目标搜索功能实现" }
                     ],
                     knowledgePoints: ["kp-5", "kp-11", "kp-12"],
                     abilityPoints: ["ab-4", "ab-6", "ab-8", "ab-15"],
@@ -3541,17 +3690,17 @@
                 },
                 {
                     id: "task-1-9",
-                    name: "购物车与订单流程实现",
+                    name: "权限提升与会话劫持",
                     code: "T-001-009",
                     order: 9,
-                    description: "实现购物车添加删除、订单创建、订单状态管理、库存扣减等核心业务逻辑。",
+                    description: "实现权限提升与会话劫持技术实践，包括水平越权、垂直越权、Cookie篡改等。",
                     estimatedHours: 12,
                     taskType: "training",
                     difficulty: 4,
                     dependencies: [],
                     resources: ["lr-12", "lr-17", "lr-7"],
                     deliverables: [
-                        { id: "del-9-1", type: "result_file", name: "购物车订单模块源码", description: "购物车、订单流程、库存管理完整实现" }
+                        { id: "del-9-1", type: "result_file", name: "权限提升模块源码", description: "权限提升、会话劫持、扫描资源管理完整实现" }
                     ],
                     knowledgePoints: ["kp-17", "kp-5", "kp-9"],
                     abilityPoints: ["ab-9", "ab-10", "ab-4", "ab-21"],
@@ -3560,7 +3709,7 @@
                 },
                 {
                     id: "task-1-10",
-                    name: "支付集成与对账系统",
+                    name: "加密传输与中间人攻击",
                     code: "T-001-010",
                     order: 10,
                     description: "集成第三方支付接口，实现支付回调处理、对账机制、退款流程等功能。",
@@ -3570,7 +3719,7 @@
                     dependencies: [],
                     resources: ["lr-12", "lr-15", "lr-16"],
                     deliverables: [
-                        { id: "del-10-1", type: "result_file", name: "支付对接模块源码", description: "支付接口集成、回调处理、对账功能实现" }
+                        { id: "del-10-1", type: "result_file", name: "加密通信分析模块源码", description: "支付接口集成、回调处理、对账功能实现" }
                     ],
                     knowledgePoints: ["kp-6", "kp-17", "kp-18"],
                     abilityPoints: ["ab-3", "ab-5", "ab-12", "ab-29"],
@@ -3579,7 +3728,7 @@
                 },
                 {
                     id: "task-1-11",
-                    name: "数据统计与报表开发",
+                    name: "漏洞统计与报告生成",
                     code: "T-001-011",
                     order: 11,
                     description: "开发销售统计、用户行为分析、运营报表等数据可视化功能。",
@@ -3598,10 +3747,10 @@
                 },
                 {
                     id: "task-1-12",
-                    name: "系统监控与日志管理",
+                    name: "安全监控与入侵检测",
                     code: "T-001-012",
                     order: 12,
-                    description: "搭建系统监控体系，实现错误日志收集、性能监控、告警通知等功能。",
+                    description: "搭建安全监控体系，实现入侵检测日志收集、异常行为监控、安全告警通知等功能。",
                     estimatedHours: 6,
                     taskType: "assessment",
                     difficulty: 3,
@@ -3617,6 +3766,133 @@
                 }
             ]
         };
+
+        // 课程章节树结构（用于目录渲染）
+        SCENARIO.chapters = [
+            {
+                id: "ch-1", name: "第一章：Web安全基础", type: "chapter",
+                children: [
+                    { id: "sec-1-1", name: "1.1 Web安全概述", type: "section",
+                      children: [
+                        { id: "task-1-1", name: "需求分析与系统架构设计", type: "lesson", isGranular: false }
+                      ]
+                    },
+                    { id: "sec-1-2", name: "1.2 安全开发规范", type: "section",
+                      children: [
+                        { id: "sub-1-2-1", name: "1.2.1 编码安全规范", type: "subsection",
+                          children: [
+                            { id: "sub-1-2-1-1", name: "1.2.1.1 输入验证原则", type: "unit",
+                              children: [
+                                { id: "task-mock-1", name: "输入验证与过滤", type: "lesson", isGranular: true }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                ]
+            },
+            {
+                id: "ch-2", name: "第二章：前端安全", type: "chapter",
+                children: [
+                    { id: "sec-2-1", name: "2.1 前端框架安全", type: "section",
+                      children: [
+                        { id: "sub-2-1-1", name: "2.1.1 React安全开发", type: "subsection",
+                          children: [
+                            { id: "task-1-2", name: "前端基础框架搭建与UI组件库开发", type: "lesson", isGranular: true }
+                          ]
+                        }
+                      ]
+                    },
+                    { id: "sec-2-2", name: "2.2 XSS攻防技术", type: "section",
+                      children: [
+                        { id: "task-mock-2", name: "XSS漏洞原理与防御", type: "lesson", isGranular: false }
+                      ]
+                    }
+                ]
+            },
+            {
+                id: "ch-3", name: "第三章：后端安全", type: "chapter",
+                children: [
+                    { id: "sec-3-1", name: "3.1 API安全设计", type: "section",
+                      children: [
+                        { id: "task-1-3", name: "后端API接口与数据库开发", type: "lesson", isGranular: false }
+                      ]
+                    },
+                    { id: "sec-3-2", name: "3.2 SQL注入防护", type: "section",
+                      children: [
+                        { id: "task-mock-3", name: "SQL注入原理与防御", type: "lesson", isGranular: true }
+                      ]
+                    }
+                ]
+            },
+            {
+                id: "ch-4", name: "第四章：漏洞实战", type: "chapter",
+                children: [
+                    { id: "sec-4-1", name: "4.1 注入类漏洞", type: "section",
+                      children: [
+                        { id: "task-1-4", name: "Web应用安全漏洞实战（注入/上传/命令执行）", type: "lesson", isGranular: false },
+                        { id: "task-mock-4", name: "文件上传漏洞利用", type: "lesson", isGranular: true }
+                      ]
+                    },
+                    { id: "sec-4-2", name: "4.2 逻辑漏洞", type: "section",
+                      children: [
+                        { id: "sub-4-2-1", name: "4.2.1 越权访问", type: "subsection",
+                          children: [
+                            { id: "task-1-7", name: "身份认证与会话安全分析", type: "lesson", isGranular: false }
+                          ]
+                        },
+                        { id: "sub-4-2-2", name: "4.2.2 信息泄露", type: "subsection",
+                          children: [
+                            { id: "task-1-8", name: "信息收集与资产侦察", type: "lesson", isGranular: true }
+                          ]
+                        }
+                      ]
+                    }
+                ]
+            },
+            {
+                id: "ch-5", name: "第五章：渗透测试", type: "chapter",
+                children: [
+                    { id: "sec-5-1", name: "5.1 渗透测试方法论", type: "section",
+                      children: [
+                        { id: "task-1-5", name: "安全测试与扫描优化", type: "lesson", isGranular: false }
+                      ]
+                    },
+                    { id: "sec-5-2", name: "5.2 后渗透技术", type: "section",
+                      children: [
+                        { id: "sub-5-2-1", name: "5.2.1 权限提升", type: "subsection",
+                          children: [
+                            { id: "task-1-9", name: "权限提升与会话劫持", type: "lesson", isGranular: false }
+                          ]
+                        }
+                      ]
+                    }
+                ]
+            },
+            {
+                id: "ch-6", name: "第六章：安全运维", type: "chapter",
+                children: [
+                    { id: "sec-6-1", name: "6.1 安全部署", type: "section",
+                      children: [
+                        { id: "task-1-6", name: "安全测试环境部署与运维", type: "lesson", isGranular: false }
+                      ]
+                    },
+                    { id: "sec-6-2", name: "6.2 加密与传输安全", type: "section",
+                      children: [
+                        { id: "task-1-10", name: "加密传输与中间人攻击", type: "lesson", isGranular: true }
+                      ]
+                    },
+                    { id: "sec-6-3", name: "6.3 监控与报告", type: "section",
+                      children: [
+                        { id: "task-1-11", name: "漏洞统计与报告生成", type: "lesson", isGranular: false },
+                        { id: "task-1-12", name: "安全监控与入侵检测", type: "lesson", isGranular: false }
+                      ]
+                    }
+                ]
+            }
+        ];
+
 
         const KNOWLEDGE_POINTS = [
             { id: "kp-1", name: "React 组件化开发", description: "React 18 函数组件、Hooks（useState/useEffect/useMemo/useCallback/useRef/useContext）、组件通信（Props/Context）、高阶组件与 Render Props 模式、自定义 Hooks 设计", category: "前端开发" },
@@ -3649,9 +3925,9 @@
             { id: "lr-7", name: "MySQL 数据库设计规范 v3.0.docx", type: "document", url: "#", size: "2.3MB", description: "命名规范、字段类型选择、索引设计指南、SQL 编写规范、慢查询优化案例集", knowledgePoints: ["kp-5"] },
             { id: "lr-8", name: "RESTful API 设计最佳实践与案例集.pdf", type: "document", url: "#", size: "3.6MB", description: "URL 设计、HTTP 状态码使用、版本控制策略、认证方案、错误响应格式、Swagger 文档示例", knowledgePoints: ["kp-4"] },
             { id: "lr-9", name: "Web 安全机制详解：从 JWT 到 OAuth 2.0.pdf", type: "document", url: "#", size: "5.2MB", description: "认证与授权原理、JWT 安全实践、OAuth 2.0 流程、常见安全漏洞（OWASP Top 10）防范", knowledgePoints: ["kp-6"] },
-            { id: "lr-10", name: "Redis 缓存策略与电商实战应用（视频）", type: "video", url: "#", size: "1.8GB", description: "8 课时：Redis 数据类型、缓存设计模式、分布式锁实现、Session 共享、秒杀场景应用", knowledgePoints: ["kp-11"] },
-            { id: "lr-11", name: "RabbitMQ 消息队列设计与实践指南.pdf", type: "document", url: "#", size: "4.1MB", description: "AMQP 协议、交换器类型、消息可靠性保证、死信队列、延迟队列、电商异步场景案例", knowledgePoints: ["kp-12"] },
-            { id: "lr-12", name: "电商平台核心业务分析：订单/支付/库存.pdf", type: "document", url: "#", size: "6.8MB", description: "电商业务全貌、订单状态机设计、支付流程时序图、库存扣减方案、对账机制、退款流程", knowledgePoints: ["kp-17", "kp-9"] },
+            { id: "lr-10", name: "Redis 缓存策略与安全测试应用（视频）", type: "video", url: "#", size: "1.8GB", description: "8 课时：Redis 数据类型、缓存设计模式、分布式锁实现、Session 共享、批量扫描场景应用", knowledgePoints: ["kp-11"] },
+            { id: "lr-11", name: "RabbitMQ 消息队列设计与实践指南.pdf", type: "document", url: "#", size: "4.1MB", description: "AMQP 协议、交换器类型、消息可靠性保证、死信队列、延迟队列、安全检测异步场景案例", knowledgePoints: ["kp-12"] },
+            { id: "lr-12", name: "Web安全核心业务分析：扫描/验证/报告.pdf", type: "document", url: "#", size: "6.8MB", description: "Web安全全貌、扫描任务状态机设计、漏洞验证流程时序图、资源分配方案、报告生成机制、修复跟踪流程", knowledgePoints: ["kp-17", "kp-9"] },
             { id: "lr-13", name: "Jest + React Testing Library 测试开发实战（视频）", type: "video", url: "#", size: "2.5GB", description: "12 课时：测试金字塔、组件测试、Hook 测试、Mock 技巧、覆盖率提升、CI 集成", knowledgePoints: ["kp-13"] },
             { id: "lr-14", name: "前端工程化体系建设指南.pdf", type: "document", url: "#", size: "3.9MB", description: "代码规范（ESLint/Prettier）、Git 工作流、提交规范（Conventional Commits）、Monorepo 管理、自动化工具链", knowledgePoints: ["kp-7", "kp-1"] },
             { id: "lr-15", name: "Docker 容器化部署完全指南（视频课程）", type: "video", url: "#", size: "2.8GB", description: "10 课时：Docker 基础、Dockerfile 编写、多阶段构建、Compose 编排、网络与存储、生产实践", knowledgePoints: ["kp-15"] },
@@ -3659,7 +3935,7 @@
             { id: "lr-17", name: "GitHub Actions CI/CD 流水线搭建指南.pdf", type: "document", url: "#", size: "3.3MB", description: "Workflow 语法、触发条件、Runner 配置、构建与测试、镜像推送、自动部署、Secrets 管理", knowledgePoints: ["kp-18"] },
             { id: "lr-18", name: "软件架构模式：从单体到微服务演进.pdf", type: "document", url: "#", size: "7.2MB", description: "分层架构、MVC/MVVM、微服务拆分原则、服务发现、API 网关、事件溯源、CQRS 模式详解", knowledgePoints: ["kp-8"] },
             { id: "lr-19", name: "UML 建模与需求分析实战（视频教程）", type: "video", url: "#", size: "1.5GB", description: "8 课时：用例图、类图、时序图、活动图绘制方法，需求分析方法，用户故事编写技巧", knowledgePoints: ["kp-9"] },
-            { id: "lr-20", name: "领域驱动设计（DDD）战略与战术模式.pdf", type: "document", url: "#", size: "5.5MB", description: "限界上下文、上下文映射、聚合设计、领域事件、仓储模式、CQRS 实现，含电商领域案例", knowledgePoints: ["kp-10"] },
+            { id: "lr-20", name: "领域驱动设计（DDD）战略与战术模式.pdf", type: "document", url: "#", size: "5.5MB", description: "限界上下文、上下文映射、聚合设计、领域事件、仓储模式、CQRS 实现，含Web安全领域案例", knowledgePoints: ["kp-10"] },
             { id: "lr-21", name: "单元测试覆盖率提升与 Mock 技巧精讲.pdf", type: "document", url: "#", size: "2.9MB", description: "测试替身（Dummy/Fake/Stub/Spy/Mock）、Jest Mock 技巧、异步测试、覆盖率报告解读", knowledgePoints: ["kp-13"] },
             { id: "lr-22", name: "Webpack 与 Vite 构建优化深度解析（视频）", type: "video", url: "#", size: "1.2GB", description: "6 课时：Bundle 分析、代码分割策略、Tree Shaking 原理、动态导入、构建速度优化", knowledgePoints: ["kp-14"] },
             { id: "lr-23", name: "阿里云 ECS + RDS 云服务快速入门", type: "link", url: "https://www.aliyun.com/product/ecs", description: "云服务器选购、环境配置、MySQL RDS 实例创建、安全组配置、域名解析与备案流程", knowledgePoints: ["kp-15", "kp-18"], size: "在线文档" },
@@ -3764,21 +4040,21 @@
             return type === 'link' || type === 'software' ? 'fa-external-link-alt' : 'fa-download';
         }
 
-        // 生成自适应学习步骤 —— 简化为两步：任务学习 + 任务测评
+        // 生成自适应学习步骤 —— 简化为两步：章节学习 + 章节测验
         function generateTaskSteps(task) {
             const steps = [];
 
-            // Step 1: 任务学习（任务说明 + 配套资源左右展示）
+            // Step 1: 章节学习（任务说明 + 配套资源左右展示）
             steps.push({
                 id: 'learning',
                 type: 'learning',
                 number: 1,
-                title: '任务学习',
+                title: '章节学习',
                 icon: 'fa-book-open',
                 required: true
             });
 
-            // Step 2: 任务测评（根据配置端 evaluationMethods 生成）
+            // Step 2: 章节测验（根据配置端 evaluationMethods 生成）
             const evalMethods = task.evaluationMethods || [];
             const methodLabels = {
                 random_draw: '现场问答',
@@ -3792,7 +4068,7 @@
                     type: 'assessment',
                     assessmentMethod: evalMethods.length === 1 ? evalMethods[0] : 'mixed',
                     number: 2,
-                    title: evalMethods.length === 1 ? (methodLabels[evalMethods[0]] || '任务测评') : '综合测评',
+                    title: evalMethods.length === 1 ? (methodLabels[evalMethods[0]] || '章节测验') : '综合测验',
                     icon: 'fa-edit',
                     required: true
                 });
@@ -3802,7 +4078,7 @@
                     id: 'assessment',
                     type: 'assessment',
                     number: 2,
-                    title: typeMap[task.assessment.type] || '任务测评',
+                    title: typeMap[task.assessment.type] || '章节测验',
                     icon: 'fa-edit',
                     required: true
                 });
@@ -3837,7 +4113,132 @@
 
         // ==================== 渲染函数 ====================
 
-        // 渲染任务列表
+        // 找到节点下第一个 lesson
+        function findFirstLesson(node) {
+            if (node.type === 'lesson') return node;
+            if (node.children) {
+                for (const child of node.children) {
+                    const found = findFirstLesson(child);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        // 递归计算节点下所有课时数
+        function countLessons(node) {
+            if (node.type === 'lesson') return 1;
+            if (!node.children) return 0;
+            return node.children.reduce((sum, child) => sum + countLessons(child), 0);
+        }
+
+        // 为中间节点生成模拟数据（根据节点id保持一致性）
+        function getNodeMockData(node) {
+            const mockDB = {
+                'ch-1': { desc: '本章从Web安全的基本概念出发，系统讲解HTTP协议、Web应用架构以及常见安全威胁的分类与特征，为后续深入学习打下坚实基础。', hours: 10, diff: 3, kps: 6 },
+                'sec-1-1': { desc: '了解Web安全的整体框架，掌握安全开发生命周期（SDL）的基本流程。', hours: 6, diff: 2, kps: 4 },
+                'sec-1-2': { desc: '学习安全编码的核心原则，掌握输入验证、输出编码、参数化查询等防御技术。', hours: 4, diff: 3, kps: 3 },
+                'sub-1-2-1': { desc: '深入理解输入验证的安全原则，掌握白名单、黑名单、正则表达式等验证方法。', hours: 2, diff: 2, kps: 2 },
+                'sub-1-2-1-1': { desc: '学习输入过滤的具体实现技术，包括特殊字符过滤、长度限制、类型检查等。', hours: 1, diff: 1, kps: 1 },
+                'ch-2': { desc: '本章聚焦前端安全领域，深入分析XSS、CSRF、点击劫持等常见前端漏洞的原理与防御方案。', hours: 14, diff: 4, kps: 8 },
+                'sec-2-1': { desc: '在React、Vue等现代前端框架中识别和修复安全隐患，掌握组件安全设计方法。', hours: 8, diff: 3, kps: 5 },
+                'sub-2-1-1': { desc: '针对React框架的常见安全问题进行分析，包括 dangerouslySetInnerHTML、Props注入等。', hours: 4, diff: 3, kps: 3 },
+                'sec-2-2': { desc: '全面掌握XSS漏洞的三种类型（反射型、存储型、DOM型），学会使用CSP策略进行防御。', hours: 6, diff: 4, kps: 4 },
+                'ch-3': { desc: '本章从后端安全角度出发，讲解API安全设计、SQL注入防护、认证授权等核心安全机制。', hours: 16, diff: 4, kps: 9 },
+                'sec-3-1': { desc: '学习RESTful API的安全设计原则，掌握接口鉴权、速率限制、参数校验等技术。', hours: 8, diff: 3, kps: 5 },
+                'sec-3-2': { desc: '深入理解SQL注入漏洞原理，掌握参数化查询、ORM安全使用、存储过程等防御手段。', hours: 8, diff: 4, kps: 5 },
+                'ch-4': { desc: '本章通过实战演练，掌握Web应用常见高危漏洞（注入、上传、命令执行）的利用与防御技术。', hours: 20, diff: 5, kps: 12 },
+                'sec-4-1': { desc: '学习SQL注入、命令注入、文件上传等注入类漏洞的原理，掌握手工构造Payload的方法。', hours: 10, diff: 5, kps: 7 },
+                'sec-4-2': { desc: '分析越权访问、信息泄露、业务逻辑漏洞等安全问题，掌握检测与修复方法。', hours: 10, diff: 4, kps: 6 },
+                'sub-4-2-1': { desc: '深入分析水平越权和垂直越权的原理，掌握权限控制的安全设计方法。', hours: 5, diff: 4, kps: 3 },
+                'sub-4-2-2': { desc: '学习敏感信息泄露的各种场景，掌握信息分类、加密存储、访问控制等防护措施。', hours: 5, diff: 3, kps: 4 },
+                'ch-5': { desc: '本章系统讲解渗透测试的完整流程，从信息收集到后渗透技术，培养独立开展安全测试的能力。', hours: 12, diff: 5, kps: 10 },
+                'sec-5-1': { desc: '学习渗透测试的标准方法论（PTES），掌握信息收集、漏洞扫描、漏洞验证的规范流程。', hours: 6, diff: 4, kps: 5 },
+                'sec-5-2': { desc: '掌握后渗透测试技术，包括权限提升、横向移动、持久化控制等高级技术。', hours: 6, diff: 5, kps: 6 },
+                'sub-5-2-1': { desc: '学习Windows和Linux环境下的权限提升技术，掌握提权漏洞的利用方法。', hours: 3, diff: 5, kps: 3 },
+                'ch-6': { desc: '本章讲解安全运维的核心技能，包括日志分析、入侵检测、应急响应和安全加固等内容。', hours: 12, diff: 3, kps: 8 },
+                'sec-6-1': { desc: '学习安全测试环境的搭建方法，掌握Docker、虚拟机、靶场环境的部署与配置。', hours: 4, diff: 2, kps: 3 },
+                'sec-6-2': { desc: '深入分析HTTPS/TLS协议的安全性，掌握证书配置、中间人攻击检测与防御技术。', hours: 4, diff: 3, kps: 3 },
+                'sec-6-3': { desc: '学习安全监控体系的搭建，掌握日志分析、异常检测、告警响应等运维技能。', hours: 4, diff: 3, kps: 3 }
+            };
+            return mockDB[node.id] || { desc: '本节点涵盖相关安全知识与技能的学习内容。', hours: 2, diff: 2, kps: 2 };
+        }
+
+        // 递归渲染目录树
+        function renderCatalogNode(node, level, pathIndex) {
+            const indent = level * 16;
+            const isLeaf = node.type === 'lesson';
+            const childCount = isLeaf ? 0 : countLessons(node);
+            const hasChildren = !isLeaf && node.children && node.children.length > 0;
+            
+            // lesson 节点不单独渲染，通过父节点的"开始学习"按钮进入
+            if (isLeaf) {
+                return '';
+            }
+            
+            // 获取节点数据（中间节点用模拟数据）
+            const mock = getNodeMockData(node);
+            const nodeData = {
+                name: node.name,
+                desc: mock.desc,
+                hours: mock.hours,
+                diff: mock.diff,
+                kps: mock.kps
+            };
+            const firstLesson = hasChildren ? findFirstLesson(node) : null;
+            const targetId = firstLesson ? firstLesson.id : null;
+            
+            // 构建学习按钮
+            const tagHtml = node.isGranular ? '<span class="lesson-type-tag granular">颗粒课</span>' : '';
+            let btnHtml = '';
+            if (targetId) {
+                btnHtml = `<button class="task-status-btn start" style="height: 26px; font-size: 11px; padding: 0 12px;" onclick="event.stopPropagation(); enterTaskLearning('${targetId}')"><i class="fas fa-play"></i> 开始学习</button>`;
+            }
+            
+            // 紧凑版详情卡片（两行布局）
+            const detailCard = `
+                <div class="catalog-detail-card" style="padding-left: ${indent + 20}px;">
+                    <div class="catalog-detail-inner">
+                        <div class="catalog-detail-top">
+                            <div class="catalog-detail-title">${nodeData.name} ${tagHtml}</div>
+                            <div class="catalog-detail-desc">${nodeData.desc}</div>
+                        </div>
+                        <div class="catalog-detail-bottom">
+                            <div class="catalog-detail-meta">
+                                <span><i class="far fa-clock"></i> ${nodeData.hours}课时</span>
+                                <span><i class="fas fa-star"></i> 难度 ${'★'.repeat(nodeData.diff)}${'☆'.repeat(5 - nodeData.diff)}</span>
+                                <span><i class="fas fa-lightbulb"></i> ${nodeData.kps}知识点</span>
+                            </div>
+                            <div class="catalog-detail-action">${btnHtml}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 非叶子节点：标题行（可折叠）+ 详情卡片 + 子节点
+            let html = `
+                <div class="catalog-node" data-node="${node.id}">
+                    <div class="catalog-header" onclick="toggleCatalogNode('${node.id}')" style="padding-left: ${indent}px;">
+                        <i class="fas fa-chevron-right catalog-toggle" id="toggle-${node.id}"></i>
+                        <span class="catalog-name">${node.name}</span>
+                        <span class="catalog-meta">${childCount}节</span>
+                    </div>
+                    <div class="catalog-children" id="children-${node.id}" style="display: none;">
+                        ${detailCard}
+            `;
+            
+            if (hasChildren) {
+                node.children.forEach((child, idx) => {
+                    const childPath = pathIndex ? `${pathIndex}.${idx + 1}` : `${idx + 1}`;
+                    html += renderCatalogNode(child, level + 1, childPath);
+                });
+            }
+            
+            html += '</div></div>';
+            return html;
+        }
+
+        // 渲染任务列表（课程目录）
         function renderTaskList() {
             const container = document.getElementById('taskList');
             const taskCountBadge = document.getElementById('taskCountBadge');
@@ -3854,138 +4255,159 @@
             document.getElementById('assessmentHours').textContent = assessmentHours;
             document.getElementById('trainingHours').textContent = trainingHours;
 
-            const evalMethodLabels = {
-                paper: '<i class="fas fa-file-alt"></i> 试卷',
-                question_bank: '<i class="fas fa-database"></i> 题库',
-                random_draw: '<i class="fas fa-comments"></i> 现场问答',
-                review: '<i class="fas fa-gavel"></i> 评审'
-            };
-            const evalMethodColors = {
-                paper: '#1677ff', question_bank: '#52c41a', random_draw: '#faad14', review: '#722ed1'
-            };
-
-            container.innerHTML = SCENARIO.tasks.map((task, index) => {
-                const steps = generateTaskSteps(task);
-                taskStepsMap[task.id] = steps;
-                const progress = getTaskProgress(task.id);
-                const completed = progress >= 100;
-
-                // 提交状态
-                const submitStatus = taskSubmissionStatus[task.id] || 'pending';
-
-                // 按钮状态
-                let btnClass = 'start';
-                let btnText = '<i class="fas fa-play"></i> 开始学习';
-                if (submitStatus === 'submitted') {
-                    btnClass = 'continue';
-                    btnText = '<i class="fas fa-clock"></i> 待评分';
-                } else if (submitStatus === 'graded') {
-                    btnClass = 'completed';
-                    btnText = '<i class="fas fa-check"></i> 已评分';
-                } else if (completed) {
-                    btnClass = 'completed';
-                    btnText = '<i class="fas fa-check"></i> 已完成';
-                } else if (progress > 0) {
-                    btnClass = 'continue';
-                    btnText = `<i class="fas fa-arrow-right"></i> 继续学习 (${progress}%)`;
-                }
-
-                const typeLabel = task.taskType === 'assessment' ? '考核任务' : '训练任务';
-                const typeClass = task.taskType;
-
-                // 测评方式标签
-                const evalMethods = task.evaluationMethods || [];
-                const evalTags = evalMethods.map(m => {
-                    return `<span class="eval-tag eval-tag-${m}" data-annotation-title="测评方式" data-annotation-content="场景编辑——步骤 2 任务链配置——配置任务测评形式">${evalMethodLabels[m] || m}</span>`;
-                }).join('');
-
-                return `
-                    <div class="task-item" data-task-id="${task.id}" onclick="enterTaskLearning('${task.id}')">
-                        <div class="task-content">
-                            <div class="task-title-row">
-                                <div class="task-title" data-annotation-title="任务名称" data-annotation-content="场景编辑——步骤 2 任务链配置——任务名称">${task.name}</div>
-                                <span class="task-code" data-annotation-title="任务编码" data-annotation-content="场景编辑——步骤 2 任务链配置——任务编码（系统自动生成）">${task.code}</span>
-                                <span class="task-type-tag ${typeClass}" data-annotation-title="任务类型" data-annotation-content="场景编辑——步骤 2 任务链配置——任务类型">${typeLabel}</span>
-                            </div>
-                            <div class="task-desc" data-annotation-title="任务描述" data-annotation-content="场景编辑——步骤 2 任务链配置——任务说明">${task.description}</div>
-                            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${evalTags}</div>
-                            <div class="task-meta">
-                                <span class="task-meta-item"><span class="meta-label">预估学时</span><span class="meta-value" data-annotation-title="预估学时" data-annotation-content="场景编辑——步骤 2 任务链配置——预估学时">${task.estimatedHours}课时</span></span>
-                                <span class="task-meta-item"><span class="meta-label">难度</span><span class="meta-value" data-annotation-title="难度等级" data-annotation-content="场景编辑——步骤 2 任务链配置——难度">${'★'.repeat(task.difficulty)}${'☆'.repeat(5 - task.difficulty)}</span></span>
-                                <span class="task-meta-item"><span class="meta-label">关联知识点</span><span class="meta-value" data-annotation-title="关联知识点数" data-annotation-content="场景编辑——步骤 2 任务链配置——考查知识点">${task.knowledgePoints.length}个</span></span>
-                                <span class="task-meta-item"><span class="meta-label">关联能力点</span><span class="meta-value" data-annotation-title="关联能力点数" data-annotation-content="场景编辑——步骤 2 任务链配置——考查能力点">${task.abilityPoints.length}个</span></span>
-                                <span class="task-meta-item"><span class="meta-label">资源数</span><span class="meta-value" data-annotation-title="配套资源数" data-annotation-content="场景编辑——步骤 2 任务链配置——配置任务资源">${getTaskResources(task).length}个</span></span>
-                            </div>
-                        </div>
-                        <div class="task-action-col">
-                            <button class="task-status-btn ${btnClass}" ${completed ? 'disabled' : ''} onclick="event.stopPropagation(); ${!completed ? `enterTaskLearning('${task.id}')` : ''}">
-                                ${btnText}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            let html = '<div class="chapter-tree">';
+            
+            SCENARIO.chapters.forEach((ch, chIdx) => {
+                html += renderCatalogNode(ch, 0, `${chIdx + 1}`);
+            });
+            
+            // 添加"开始学习"大按钮
+            const firstTask = SCENARIO.tasks[0];
+            html += `
+                <div style="margin-top: 24px; text-align: center; padding: 24px; border-top: 1px dashed #e5e7eb;">
+                    <button class="task-status-btn start" style="padding: 10px 32px; font-size: 15px;" onclick="enterTaskLearning('${firstTask.id}')">
+                        <i class="fas fa-play"></i> 开始学习本课程
+                    </button>
+                </div>
+            `;
+            
+            html += '</div>';
+            container.innerHTML = html;
             if (window.refreshAnnotations) window.refreshAnnotations();
+            // 默认展开第一级
+            setTimeout(() => {
+                SCENARIO.chapters.forEach(ch => toggleCatalogNode(ch.id));
+            }, 0);
+        }
+        
+        function toggleCatalogNode(nodeId) {
+            const children = document.getElementById('children-' + nodeId);
+            const toggle = document.getElementById('toggle-' + nodeId);
+            if (!children || !toggle) return;
+            if (children.style.display === 'none') {
+                children.style.display = 'block';
+                toggle.className = 'fas fa-chevron-down catalog-toggle';
+            } else {
+                children.style.display = 'none';
+                toggle.className = 'fas fa-chevron-right catalog-toggle';
+            }
+        }
+        
+        // 展开/收起所有节点
+        function expandAllCatalog(expand) {
+            document.querySelectorAll('.catalog-children').forEach(el => {
+                el.style.display = expand ? 'block' : 'none';
+            });
+            document.querySelectorAll('.catalog-toggle').forEach(el => {
+                el.className = expand ? 'fas fa-chevron-down catalog-toggle' : 'fas fa-chevron-right catalog-toggle';
+            });
+        }
+
+        // 收集所有叶子节点（lesson）的扁平列表
+        function collectLeafNodes(node, result) {
+            if (!result) result = [];
+            if (node.type === 'lesson') {
+                result.push(node);
+                return result;
+            }
+            if (node.children) {
+                node.children.forEach(child => collectLeafNodes(child, result));
+            }
+            return result;
+        }
+
+        // 收集所有章节节点（非lesson）
+        function collectSectionNodes(node, result) {
+            if (!result) result = [];
+            if (node.type !== 'lesson') {
+                result.push(node);
+                if (node.children) {
+                    node.children.forEach(child => collectSectionNodes(child, result));
+                }
+            }
+            return result;
         }
 
         // 渲染资源中心
         function renderResources() {
             const container = document.getElementById('resourcesContainer');
-            // 收集所有任务的资源
-            const allResourceIds = new Set();
-            SCENARIO.tasks.forEach(t => {
-                (t.resources || []).forEach(id => allResourceIds.add(id));
+            
+            // 按章节分组收集资源（保留leafId用于锚点联动）
+            const chapterResources = [];
+            SCENARIO.chapters.forEach(ch => {
+                const leaves = collectLeafNodes(ch);
+                leaves.forEach(leaf => {
+                    const task = getTaskById(leaf.id);
+                    if (task && task.resources && task.resources.length > 0) {
+                        const resources = task.resources.map(id => getResourceById(id)).filter(Boolean);
+                        if (resources.length > 0) {
+                            chapterResources.push({ chapterName: ch.name, leafId: leaf.id, leafName: leaf.name || task.name, resources });
+                        }
+                    }
+                });
             });
-
-            const resources = Array.from(allResourceIds).map(id => getResourceById(id)).filter(Boolean);
-            document.getElementById('resourceCountBadge').textContent = resources.length;
-
-            // 按类型分组
-            const groups = {};
-            resources.forEach(r => {
-                const typeLabel = {
-                    document: '文档资源', spreadsheet: '表格资源', image: '图片资源', link: '链接资源',
-                    audio: '音频资源', video: '视频资源', archive: '压缩包资源', venue: '场地资源',
-                    facility: '设施设备资源', software: '软件资源', other: '其他资源'
-                }[r.type] || '其他资源';
-                if (!groups[typeLabel]) groups[typeLabel] = [];
-                groups[typeLabel].push(r);
-            });
-
-            if (resources.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无学习资源</p></div>';
-                return;
+            
+            // 如果没有资源，模拟一些
+            if (chapterResources.length === 0) {
+                const mockResources = [
+                    { id: 'mr-1', name: 'Web安全基础课件.pptx', type: 'document', size: '12.5MB' },
+                    { id: 'mr-2', name: 'HTTP协议详解视频.mp4', type: 'video', size: '256MB' },
+                    { id: 'mr-3', name: 'OWASP Top 10 2024.pdf', type: 'document', size: '8.2MB' },
+                    { id: 'mr-4', name: 'SQL注入靶场实验手册.docx', type: 'document', size: '5.6MB' },
+                    { id: 'mr-5', name: 'Burp Suite使用教程.mp4', type: 'video', size: '180MB' },
+                    { id: 'mr-6', name: '渗透测试工具包.zip', type: 'archive', size: '120MB' },
+                    { id: 'mr-7', name: 'Nmap扫描实战指南.pdf', type: 'document', size: '6.8MB' },
+                    { id: 'mr-8', name: '安全编码规范V3.0.docx', type: 'document', size: '3.5MB' },
+                    { id: 'mr-9', name: 'Wireshark流量分析视频.mp4', type: 'video', size: '210MB' },
+                    { id: 'mr-10', name: '漏洞报告模板集合.zip', type: 'archive', size: '45MB' }
+                ];
+                SCENARIO.chapters.forEach((ch, idx) => {
+                    const leaves = collectLeafNodes(ch);
+                    leaves.forEach((leaf, lidx) => {
+                        const task = getTaskById(leaf.id);
+                        if (task) {
+                            const startIdx = (idx * 2 + lidx) % mockResources.length;
+                            const res = [mockResources[startIdx], mockResources[(startIdx + 1) % mockResources.length]].filter(Boolean);
+                            chapterResources.push({ chapterName: ch.name, leafId: leaf.id, leafName: leaf.name || task.name, resources: res });
+                        }
+                    });
+                });
             }
-
-            container.innerHTML = Object.entries(groups).map(([typeLabel, items]) => `
-                <div class="resource-section">
-                    <div class="resource-section-title">
-                        <i class="fas ${getResourceIcon(items[0].type)}"></i>
-                        ${typeLabel}
+            
+            document.getElementById('resourceCountBadge').textContent = chapterResources.reduce((sum, cr) => sum + cr.resources.length, 0);
+            
+            // 渲染右侧内容（按章节分组，使用 leafId 作为 data-anchor）
+            let html = '';
+            chapterResources.forEach((cr) => {
+                html += `
+                    <div class="anchor-section" data-anchor="${cr.leafId}">
+                        <div class="anchor-section-title">${cr.leafName}</div>
+                        <div class="resource-list">
+                            ${cr.resources.map(r => `
+                                <div class="resource-item">
+                                    <div class="resource-icon ${getResourceIconClass(r.type)}">
+                                        <i class="fas ${getResourceIcon(r.type)}"></i>
+                                    </div>
+                                    <div class="resource-info">
+                                        <div class="resource-name">${r.name}</div>
+                                        <div class="resource-meta">${r.type === 'link' || r.type === 'software' ? '外部链接' : (r.size || '未知大小')}</div>
+                                    </div>
+                                    <div class="resource-actions">
+                                        ${r.type === 'video' || r.type === 'document' ? `
+                                            <button class="resource-action-btn primary" onclick="event.stopPropagation(); openPreviewModal('${r.name}', '${r.type}')" title="预览"><i class="fas fa-eye"></i></button>
+                                        ` : ''}
+                                        ${r.type === 'link' || r.type === 'software' ? `
+                                            <button class="resource-action-btn" onclick="event.stopPropagation(); alert('打开外部链接')" title="打开"><i class="fas fa-external-link-alt"></i></button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                    <div class="resource-list">
-                        ${items.map(r => `
-                            <div class="resource-item">
-                                <div class="resource-icon ${getResourceIconClass(r.type)}">
-                                    <i class="fas ${getResourceIcon(r.type)}"></i>
-                                </div>
-                                <div class="resource-info">
-                                    <div class="resource-name" data-annotation-title="资源名称" data-annotation-content="场景编辑——步骤 2 任务链配置——配置任务资源——资源名称">${r.name}</div>
-                                    <div class="resource-meta" data-annotation-title="资源类型/大小" data-annotation-content="场景编辑——步骤 2 任务链配置——配置任务资源——资源类型/大小">${r.type === 'link' || r.type === 'software' ? '外部链接' : (r.size || '未知大小')}</div>
-                                </div>
-                                <div class="resource-actions">
-                                    ${r.type === 'video' || r.type === 'document' ? `
-                                        <button class="resource-action-btn primary" onclick="event.stopPropagation(); openPreviewModal('${r.name}', '${r.type}')" title="预览"><i class="fas fa-eye"></i></button>
-                                    ` : ''}
-                                    ${r.type === 'link' || r.type === 'software' ? `
-                                        <button class="resource-action-btn" onclick="event.stopPropagation(); alert('打开外部链接')" title="打开"><i class="fas fa-external-link-alt"></i></button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
+                `;
+            });
+            
+            container.innerHTML = html || '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无学习资源</p></div>';
             if (window.refreshAnnotations) window.refreshAnnotations();
         }
 
@@ -4109,7 +4531,7 @@
         // ==================== 学习视图 ====================
 
 
-        // ==================== 任务学习视图 ====================
+        // ==================== 章节学习视图 ====================
         let currentLearningTask = null;
         let currentLearningMode = 'integrated'; // 'integrated' | 'learn' | 'assess'
 
@@ -4120,6 +4542,40 @@
             showTaskLearningView(taskId, 'integrated');
         }
 
+        function renderSidebarTree(currentTaskId) {
+            const container = document.getElementById('tlSidebarTree');
+            if (!container) return;
+            let html = '';
+            
+            function renderNode(node, level, pathIndex) {
+                const indent = level * 12;
+                if (node.type === 'lesson') {
+                    const task = getTaskById(node.id);
+                    if (!task) return;
+                    const active = node.id === currentTaskId ? 'active' : '';
+                    const idx = pathIndex ? pathIndex.split('.').pop() : '';
+                    html += `<div class="tl-sidebar-lesson ${active}" style="padding-left:${16 + indent}px" onclick="enterTaskLearning('${node.id}')">
+                        <div class="tl-sidebar-lesson-index">${idx}</div>
+                        <div class="tl-sidebar-lesson-name">${task.name}</div>
+                    </div>`;
+                    return;
+                }
+                // 非叶子节点
+                html += `<div class="tl-sidebar-ch-title" style="padding-left:${8 + indent}px">${node.name}</div>`;
+                if (node.children) {
+                    node.children.forEach((child, idx) => {
+                        const childPath = pathIndex ? `${pathIndex}.${idx + 1}` : `${idx + 1}`;
+                        renderNode(child, level + 1, childPath);
+                    });
+                }
+            }
+            
+            SCENARIO.chapters.forEach((ch, chIdx) => {
+                renderNode(ch, 0, `${chIdx + 1}`);
+            });
+            container.innerHTML = html;
+        }
+
         function showTaskLearningView(taskId, mode) {
             currentLearningMode = mode || 'integrated';
             const task = getTaskById(taskId);
@@ -4127,13 +4583,13 @@
             currentLearningTask = task;
             currentTaskId = taskId;
 
-            // 隐藏场景详情，显示任务学习
+            // 隐藏课程详情，显示章节学习
             document.getElementById('scenarioDetailView').style.display = 'none';
             const tlView = document.getElementById('taskLearningView');
             tlView.style.display = 'block';
             tlView.classList.add('active');
 
-            // 更新面包屑任务名称
+            // 更新面包屑章节名称
             document.getElementById('breadcrumbTaskName').textContent = task.name;
 
             // 更新顶部信息
@@ -4142,8 +4598,11 @@
             const diffEl = document.getElementById('tlTaskDifficulty');
             diffEl.innerHTML = '★'.repeat(task.difficulty || 1) + '☆'.repeat(5 - (task.difficulty || 1));
             const typeBadge = document.getElementById('tlTaskType');
-            typeBadge.textContent = task.taskType === 'assessment' ? '考核任务' : '训练任务';
+            typeBadge.textContent = task.taskType === 'assessment' ? '考核章节' : '训练章节';
             typeBadge.className = 'tl-type-badge ' + (task.taskType || 'training');
+
+            // 渲染左侧目录
+            renderSidebarTree(taskId);
 
             // 渲染学习面板
             renderLearningPanel(task);
@@ -4176,7 +4635,7 @@
         // 渲染学习面板
         function renderLearningPanel(task) {
             const descEl = document.getElementById('tlTaskDesc');
-            descEl.innerHTML = task.detailedDescription || task.description || '暂无任务说明';
+            descEl.innerHTML = task.detailedDescription || task.description || '暂无章节说明';
         }
 
         // 渲染右侧关联面板
@@ -4236,7 +4695,7 @@
         function openTaskDescFullscreen() {
             const task = currentLearningTask;
             if (!task) return;
-            document.getElementById('taskDescFullscreenContent').innerHTML = task.detailedDescription || task.description || '暂无任务说明';
+            document.getElementById('taskDescFullscreenContent').innerHTML = task.detailedDescription || task.description || '暂无章节说明';
             document.getElementById('taskDescFullscreenOverlay').classList.add('active');
         }
         function closeTaskDescFullscreen() {
@@ -4513,7 +4972,7 @@
                         <div>
                             <div class="tl-onsite-title">现场问答测评</div>
                             <div class="tl-onsite-desc">
-                                <p>本任务包含「现场问答」测评形式，需要按照预约时间参加。</p>
+                                <p>本章节包含「现场问答」测评形式，需要按照预约时间参加。</p>
                                 <p>教师将在现场从以下评价点中随机抽取题目进行提问，请提前做好准备。</p>
                             </div>
                         </div>
@@ -4561,7 +5020,7 @@
                 <div class="tl-review-notice">
                     <div class="tl-review-title"><i class="fas fa-user-check"></i> 教师评审测评</div>
                     <div class="tl-review-desc">
-                        <p>本任务采用「教师评审」方式评分。请在完成学习后，按照交付要求准备并上传成果材料。</p>
+                        <p>本章节采用「教师评审」方式评分。请在完成学习后，按照交付要求准备并上传成果材料。</p>
                         <p>教师将按照评审量规的多维度评价点进行打分。</p>
                     </div>
                     <div class="tl-review-steps">
@@ -4619,7 +5078,7 @@
                 <div class="tl-review-notice">
                     <div class="tl-review-title"><i class="fas fa-user-check"></i> 教师评审测评</div>
                     <div class="tl-review-desc">
-                        <p>本任务采用「教师评审」方式评分。请在完成学习后，按照交付要求准备并上传成果材料。</p>
+                        <p>本章节采用「教师评审」方式评分。请在完成学习后，按照交付要求准备并上传成果材料。</p>
                         <p>教师将按照评审量规的多维度评价点进行打分。</p>
                     </div>
                     <div class="tl-review-steps">
@@ -4711,7 +5170,7 @@
                     <div class="tl-submitted-state">
                         <i class="fas fa-check-circle"></i>
                         <div class="tl-submitted-title">已提交给教师评分</div>
-                        <div class="tl-submitted-desc">你的任务成果已转交教师评分，可在学习记录中查看评分状态</div>
+                        <div class="tl-submitted-desc">你的章节成果已转交教师评分，可在学习记录中查看评分状态</div>
                         <div class="tl-submitted-summary">
                             <div class="tl-summary-item"><span>提交时间</span><span>${submittedAt}</span></div>
                             <div class="tl-summary-item"><span>测评状态</span><span>${quizSubmitted[task.id] ? '已作答' : '未作答'}</span></div>
@@ -4777,7 +5236,7 @@
                     `).join('');
                 }
             } else if (type === 'tasks') {
-                title.textContent = '任务列表';
+                title.textContent = '章节列表';
                 body.innerHTML = SCENARIO.tasks.map(t => `
                     <div class="split-resource-item" onclick="showTaskLearningView('${t.id}','integrated')" style="${currentLearningTask && currentLearningTask.id === t.id ? 'background:#f0f7ff;color:var(--primary-color);' : ''}">
                         <i class="fas ${t.taskType === 'assessment' ? 'fa-file-alt' : 'fa-book'}"></i>
@@ -4913,7 +5372,7 @@
             const tooltip = document.getElementById('kgTooltip');
             nodeG.on('mouseover',(ev,d)=>{
                 tooltip.style.display='block';
-                tooltip.innerHTML=`<strong>${d.name}</strong><br><span style="font-size:10px;opacity:0.8;">${d.type==='core'?'场景名称':d.type==='ability'?'任务':'知识点'}</span>`;
+                tooltip.innerHTML=`<strong>${d.name}</strong><br><span style="font-size:10px;opacity:0.8;">${d.type==='core'?'课程名称':d.type==='ability'?'章节':'知识点'}</span>`;
             }).on('mousemove',(ev)=>{
                 const rect = area.getBoundingClientRect();
                 tooltip.style.left=(ev.clientX-rect.left+15)+'px';
@@ -4964,7 +5423,7 @@
             let html = '';
             SCENARIO.tasks.forEach((t, i) => {
                 const weight = taskWeights[i % taskWeights.length];
-                const typeLabel = t.taskType === 'assessment' ? '考核任务' : '训练任务';
+                const typeLabel = t.taskType === 'assessment' ? '考核章节' : '训练章节';
                 const methods = t.evaluationMethods || [];
                 const hasChildren = methods.length > 0;
 
@@ -4973,10 +5432,10 @@
                     <td style="text-align:center;">
                         ${hasChildren ? `<button class="rubric-toggle-btn" onclick="event.stopPropagation(); toggleRubricRow(this.closest('tr'))"><i class="fas fa-chevron-right"></i></button>` : '<span style="display:inline-block;width:24px;"></span>'}
                     </td>
-                    <td><span class="rubric-dimension" data-annotation-title="任务名称" data-annotation-content="场景编辑——步骤 2 任务链配置——任务名称">${t.name}</span></td>
-                    <td><span style="color:var(--text-tertiary);font-size:12px;" data-annotation-title="任务编码" data-annotation-content="场景编辑——步骤 2 任务链配置——任务编码（系统自动生成）">${t.code}</span></td>
-                    <td><span class="task-type-tag ${t.taskType}" style="font-size:12px;" data-annotation-title="任务类型" data-annotation-content="场景编辑——步骤 2 任务链配置——任务类型">${typeLabel}</span></td>
-                    <td><span class="rubric-weight" data-annotation-title="场景权重" data-annotation-content="场景编辑——步骤 3 总评规则配置——任务权重分配">${weight}%</span></td>
+                    <td><span class="rubric-dimension" data-annotation-title="章节名称" data-annotation-content="课程编辑——步骤 2 章节链配置——章节名称">${t.name}</span></td>
+                    <td><span style="color:var(--text-tertiary);font-size:12px;" data-annotation-title="章节编码" data-annotation-content="课程编辑——步骤 2 章节链配置——章节编码（系统自动生成）">${t.code}</span></td>
+                    <td><span class="task-type-tag ${t.taskType}" style="font-size:12px;" data-annotation-title="章节类型" data-annotation-content="课程编辑——步骤 2 章节链配置——章节类型">${typeLabel}</span></td>
+                    <td><span class="rubric-weight" data-annotation-title="课程权重" data-annotation-content="课程编辑——步骤 3 总评规则配置——章节权重分配">${weight}%</span></td>
                 </tr>`;
 
                 // 子行（测评方式详情）
@@ -5004,7 +5463,7 @@
                                     <thead>
                                         <tr>
                                             <th>测评方式</th>
-                                            <th style="width: 100px; text-align:right;">任务内权重</th>
+                                            <th style="width: 100px; text-align:right;">章节内权重</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -5053,11 +5512,15 @@
                 item.classList.add('active');
                 const target = document.getElementById(tabId);
                 if (target) target.classList.add('active');
-                if (tabId === 'knowledge') {
+                if (tabId === 'graph') {
                     requestAnimationFrame(() => {
                         setTimeout(() => initKnowledgeGraph(), 50);
                     });
                 }
+                if (tabId === 'goals') { renderGoalsTab(); renderSidebarNav('goalsSidebar', SCENARIO.chapters, 'goals'); initScrollSpy('goals', 'goalsSidebar', 'goalsMain'); }
+                if (tabId === 'resources') { renderResources(); renderSidebarNav('resourcesSidebar', SCENARIO.chapters, 'resources'); initScrollSpy('resources', 'resourcesSidebar', 'resourcesMain'); }
+                if (tabId === 'knowledge-points') { renderKnowledgePointsTab(); renderSidebarNav('kpSidebar', SCENARIO.chapters, 'knowledge-points'); initScrollSpy('knowledge-points', 'kpSidebar', 'kpMain'); }
+                if (tabId === 'evaluation') { renderEvaluationTab(); renderSidebarNav('evaluationSidebar', SCENARIO.chapters, 'evaluation'); initScrollSpy('evaluation', 'evaluationSidebar', 'evaluationMain'); }
             });
         });
 
@@ -5076,6 +5539,392 @@
                 this.style.borderColor = '';
             }
         });
+
+        // ==================== 侧边栏-内容联动 ====================
+
+        // 渲染左侧导航（每个tab复用）
+        function renderSidebarNav(containerId, nodes, tabName) {
+            const container = typeof containerId === 'string' ? document.getElementById(containerId) : containerId;
+            if (!container) return;
+            let html = '';
+            const walk = (node, level) => {
+                const pad = level * 8;
+                if (node.type === 'lesson') {
+                    const task = getTaskById(node.id);
+                    if (!task) return;
+                    html += `<div class="tab-sidebar-lesson" data-nav-id="${node.id}" style="padding-left:${12 + pad}px" onclick="handleSidebarClick('${tabName}', '${node.id}')">
+                        <div class="tl-sidebar-lesson-index" style="width:18px;height:18px;font-size:9px;">${task.code ? task.code.split('-').pop() : ''}</div>
+                        <div class="tl-sidebar-lesson-name">${task.name}</div>
+                    </div>`;
+                    return;
+                }
+                html += `<div class="tab-sidebar-ch-title" data-nav-id="${node.id}" style="padding-left:${8 + pad}px" onclick="handleSidebarClick('${tabName}', '${node.id}')">${node.name}</div>`;
+                if (node.children) node.children.forEach(c => walk(c, level + 1));
+            };
+            nodes.forEach(n => walk(n, 0));
+            container.innerHTML = html;
+        }
+
+        // 查找节点下所有后代叶子ID
+        function collectLeafIds(node) {
+            if (node.type === 'lesson') return [node.id];
+            const ids = [];
+            if (node.children) node.children.forEach(c => ids.push(...collectLeafIds(c)));
+            return ids;
+        }
+
+        // 根据ID查找节点
+        function findNodeById(nodes, id) {
+            for (const n of nodes) {
+                if (n.id === id) return n;
+                if (n.children) { const f = findNodeById(n.children, id); if (f) return f; }
+            }
+            return null;
+        }
+
+        // 点击侧边栏滚动到对应内容
+        function handleSidebarClick(tabName, nodeId) {
+            const mainId = { 'resources': 'resourcesMain', 'goals': 'goalsMain', 'knowledge-points': 'kpMain', 'evaluation': 'evaluationMain' }[tabName];
+            const main = document.getElementById(mainId);
+            if (!main) return;
+            let target = main.querySelector(`[data-anchor="${nodeId}"]`);
+            if (!target) {
+                const node = findNodeById(SCENARIO.chapters, nodeId);
+                if (node) {
+                    for (const lid of collectLeafIds(node)) {
+                        target = main.querySelector(`[data-anchor="${lid}"]`);
+                        if (target) break;
+                    }
+                }
+            }
+            if (target) {
+                const y = target.getBoundingClientRect().top + window.pageYOffset - 110;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        }
+
+        // 滚动监听高亮（IntersectionObserver）
+        const scrollSpyObservers = {};
+        function initScrollSpy(tabName, sidebarId, mainId) {
+            if (scrollSpyObservers[tabName]) { scrollSpyObservers[tabName].disconnect(); delete scrollSpyObservers[tabName]; }
+            const main = document.getElementById(mainId);
+            const sidebar = document.getElementById(sidebarId);
+            if (!main || !sidebar) return;
+            const anchors = Array.from(main.querySelectorAll('[data-anchor]'));
+            if (anchors.length === 0) return;
+
+            // 映射：锚点ID -> 应该高亮的导航ID
+            const anchorToNav = new Map();
+            anchors.forEach(a => {
+                const aid = a.getAttribute('data-anchor');
+                if (sidebar.querySelector(`[data-nav-id="${aid}"]`)) { anchorToNav.set(aid, aid); return; }
+                const navIds = [];
+                const findNav = (nodes) => {
+                    for (const n of nodes) {
+                        if (collectLeafIds(n).includes(aid)) navIds.push(n.id);
+                        if (n.children) findNav(n.children);
+                    }
+                };
+                findNav(SCENARIO.chapters);
+                if (navIds.length) {
+                    const deepest = navIds.reduce((a, b) => collectLeafIds(findNodeById(SCENARIO.chapters, a)).length <= collectLeafIds(findNodeById(SCENARIO.chapters, b)).length ? b : a);
+                    anchorToNav.set(aid, deepest);
+                }
+            });
+
+            const activate = (navId) => {
+                sidebar.querySelectorAll('[data-nav-id]').forEach(el => el.classList.remove('active'));
+                const el = sidebar.querySelector(`[data-nav-id="${navId}"]`);
+                if (el) {
+                    el.classList.add('active');
+                    const sb = sidebar.getBoundingClientRect(), tb = el.getBoundingClientRect();
+                    if (tb.top < sb.top || tb.bottom > sb.bottom) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                const visible = entries.filter(e => e.isIntersecting).map(e => ({
+                    navId: anchorToNav.get(e.target.getAttribute('data-anchor')),
+                    top: e.target.getBoundingClientRect().top
+                })).filter(v => v.navId);
+                if (!visible.length) return;
+                visible.sort((a, b) => Math.abs(a.top - 110) - Math.abs(b.top - 110));
+                activate(visible[0].navId);
+            }, { threshold: 0, rootMargin: '-110px 0px -50% 0px' });
+
+            anchors.forEach(a => observer.observe(a));
+            scrollSpyObservers[tabName] = observer;
+        }
+
+        // 渲染学习目标 Tab
+        function renderGoalsTab() {
+            const container = document.getElementById('goalsList');
+            if (!container) return;
+            let html = '';
+            
+            function renderGoalNode(node) {
+                if (node.type === 'lesson') {
+                    const t = getTaskById(node.id);
+                    if (!t) return '';
+                    return `
+                        <div class="goal-item" data-anchor="${node.id}">
+                            <div class="goal-title">📌 ${t.name}</div>
+                            <div class="goal-desc">${t.description || '暂无学习目标描述'}</div>
+                        </div>
+                    `;
+                }
+                let inner = '';
+                if (node.children) {
+                    node.children.forEach(child => { inner += renderGoalNode(child); });
+                }
+                if (!inner) return '';
+                return `<div data-anchor="${node.id}"><div class="anchor-subtitle">${node.name}</div>${inner}</div>`;
+            }
+            
+            SCENARIO.chapters.forEach((ch) => {
+                const chHtml = renderGoalNode(ch);
+                if (chHtml) {
+                    html += `<div class="anchor-section" data-anchor="${ch.id}">
+                        <div class="anchor-section-title">${ch.name}</div>
+                        ${chHtml}
+                    </div>`;
+                }
+            });
+            
+            // 模拟数据补充
+            if (!html) {
+                const mockGoals = [
+                    { chapterId: 'ch-1', chapter: '第一章：Web安全基础', items: [
+                        { name: '知识目标', desc: '掌握Web应用的基本架构，理解HTTP协议工作原理，了解常见Web漏洞分类' },
+                        { name: '能力目标', desc: '能够使用浏览器开发者工具分析网络请求，识别页面中的安全隐患' },
+                        { name: '素养目标', desc: '培养安全意识，树立"安全左移"的开发理念' }
+                    ]},
+                    { chapterId: 'ch-2', chapter: '第二章：前端安全', items: [
+                        { name: '知识目标', desc: '掌握XSS漏洞原理，理解DOM型、反射型、存储型XSS的区别' },
+                        { name: '能力目标', desc: '能够编写安全的JavaScript代码，实施CSP内容安全策略' }
+                    ]},
+                    { chapterId: 'ch-4', chapter: '第四章：漏洞实战', items: [
+                        { name: '知识目标', desc: '深入理解SQL注入、文件上传、命令执行等高危漏洞原理' },
+                        { name: '能力目标', desc: '能够手工构造Payload进行漏洞验证，使用自动化工具辅助检测' },
+                        { name: '素养目标', desc: '建立合法合规的渗透测试意识，掌握安全测试方法论' }
+                    ]}
+                ];
+                mockGoals.forEach((mg) => {
+                    html += `<div class="anchor-section" data-anchor="${mg.chapterId}">
+                        <div class="anchor-section-title">${mg.chapter}</div>
+                        ${mg.items.map(item => `
+                            <div class="goal-item">
+                                <div class="goal-title">📌 ${item.name}</div>
+                                <div class="goal-desc">${item.desc}</div>
+                            </div>
+                        `).join('')}
+                    </div>`;
+                });
+            }
+            
+            container.innerHTML = html || '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无学习目标</p></div>';
+        }
+
+        // 渲染知识点 Tab
+        function renderKnowledgePointsTab() {
+            const container = document.getElementById('kpList');
+            if (!container) return;
+            let html = '';
+            
+            function renderKpNode(node) {
+                if (node.type === 'lesson') {
+                    const t = getTaskById(node.id);
+                    if (!t || !t.knowledgePoints || t.knowledgePoints.length === 0) return '';
+                    const kps = t.knowledgePoints.map(kpid => getKnowledgePointById(kpid)).filter(Boolean);
+                    if (kps.length === 0) return '';
+                    return `
+                        <div class="kp-module" data-anchor="${node.id}">
+                            <div class="kp-module-header">📚 ${t.name} <span class="kp-count">${kps.length} 个知识点</span></div>
+                            <div class="kp-list">
+                                ${kps.map(kp => `<div class="kp-tag">${kp.name}</div>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                let inner = '';
+                if (node.children) {
+                    node.children.forEach(child => { inner += renderKpNode(child); });
+                }
+                if (!inner) return '';
+                return `<div data-anchor="${node.id}">${inner}</div>`;
+            }
+            
+            SCENARIO.chapters.forEach((ch) => {
+                const chHtml = renderKpNode(ch);
+                if (chHtml) {
+                    html += `<div class="anchor-section" data-anchor="${ch.id}">
+                        <div class="anchor-section-title">${ch.name}</div>
+                        ${chHtml}
+                    </div>`;
+                }
+            });
+            
+            // 模拟数据补充
+            if (!html) {
+                const mockKps = [
+                    { chapter: '第一章：Web安全基础', items: ['HTTP协议', 'TCP/IP模型', '同源策略', 'CORS机制', 'Cookie安全', 'Session管理'] },
+                    { chapter: '第二章：前端安全', items: ['XSS原理', 'DOM型XSS', 'CSP策略', 'CSRF防护', '点击劫持', '前端加密'] },
+                    { chapter: '第三章：后端安全', items: ['SQL注入', '参数化查询', 'ORM安全', '文件上传漏洞', '路径遍历', '命令注入'] },
+                    { chapter: '第四章：漏洞实战', items: ['漏洞扫描', 'Payload构造', '权限提升', '信息泄露', '逻辑漏洞', '业务安全'] },
+                    { chapter: '第五章：渗透测试', items: ['信息收集', '端口扫描', '漏洞验证', '后渗透', '权限维持', '痕迹清理'] },
+                    { chapter: '第六章：安全运维', items: ['日志分析', '入侵检测', '应急响应', '安全加固', '基线检查', '合规审计'] }
+                ];
+                const chapterIdMap = {'第一章：Web安全基础': 'ch-1', '第二章：前端安全': 'ch-2', '第三章：后端安全': 'ch-3', '第四章：漏洞实战': 'ch-4', '第五章：渗透测试': 'ch-5', '第六章：安全运维': 'ch-6'};
+                mockKps.forEach((mk) => {
+                    const cid = chapterIdMap[mk.chapter] || 'ch-1';
+                    html += `<div class="anchor-section" data-anchor="${cid}">
+                        <div class="anchor-section-title">${mk.chapter}</div>
+                        <div class="kp-module">
+                            <div class="kp-module-header">📚 本章知识点 <span class="kp-count">${mk.items.length} 个</span></div>
+                            <div class="kp-list">
+                                ${mk.items.map(item => `<div class="kp-tag">${item}</div>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+            
+            container.innerHTML = html || '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无知识点</p></div>';
+        }
+
+        // 渲染课程评价 Tab（章节 → lesson → 测评方式卡片，点击卡片前往答题）
+        function renderEvaluationTab() {
+            const container = document.getElementById('evaluationList');
+            if (!container) return;
+            
+            // 四种测评类型：试卷、题库、考试、随堂测
+            const methodConfig = {
+                paper:       { label: '试卷测评', icon: 'fa-file-alt',      color: '#1677ff', desc: '固定试卷考核' },
+                question_bank:{ label: '题库测评', icon: 'fa-database',      color: '#52c41a', desc: '题库随机抽题' },
+                exam:        { label: '考试',     icon: 'fa-book-open',     color: '#eb2f96', desc: '标准化考试' },
+                quiz:        { label: '随堂测',   icon: 'fa-file-question', color: '#13c2c2', desc: '课堂即时测验' }
+            };
+            
+            let html = '';
+            
+            // 按章节收集每个 lesson 的测评方式（只保留四种）
+            function collectEvaluations(node) {
+                if (node.type === 'lesson') {
+                    const t = getTaskById(node.id);
+                    if (!t || !t.evaluationMethods || t.evaluationMethods.length === 0) return null;
+                    const validMethods = t.evaluationMethods.filter(m => methodConfig[m]).map(m => methodConfig[m]);
+                    if (validMethods.length === 0) return null;
+                    return { nodeId: node.id, nodeName: node.name || t.name, methods: validMethods };
+                }
+                let children = [];
+                if (node.children) {
+                    node.children.forEach(child => {
+                        const childEval = collectEvaluations(child);
+                        if (childEval) children.push(childEval);
+                    });
+                }
+                if (children.length === 0) return null;
+                return { nodeId: node.id, nodeName: node.name, isGroup: true, children };
+            }
+            
+            SCENARIO.chapters.forEach((ch) => {
+                const evals = collectEvaluations(ch);
+                if (!evals) return;
+                
+                html += `<div class="anchor-section" data-anchor="${ch.id}">
+                    <div class="anchor-section-title">${ch.name}</div>`;
+                
+                function renderEvalGroup(group) {
+                    if (group.isGroup) {
+                        let inner = '';
+                        group.children.forEach(c => { inner += renderEvalGroup(c); });
+                        return inner;
+                    }
+                    // lesson 节点
+                    const methodsHtml = group.methods.map(m => `
+                        <div class="eval-method-card" onclick="alert('即将新开标签页前往答题')">
+                            <div class="eval-method-icon" style="background:${m.color}15; color:${m.color}">
+                                <i class="fas ${m.icon}"></i>
+                            </div>
+                            <div class="eval-method-info">
+                                <div class="eval-method-name">${m.label}</div>
+                                <div class="eval-method-desc">${m.desc}</div>
+                            </div>
+                            <div class="eval-method-arrow"><i class="fas fa-chevron-right"></i></div>
+                        </div>
+                    `).join('');
+                    
+                    return `
+                        <div class="eval-lesson-block" data-anchor="${group.nodeId}">
+                            <div class="eval-lesson-title">${group.nodeName}</div>
+                            <div class="eval-methods-grid">${methodsHtml}</div>
+                        </div>
+                    `;
+                }
+                
+                html += renderEvalGroup(evals);
+                html += '</div>';
+            });
+            
+            // 模拟数据补充
+            if (!html) {
+                const mockEvals = [
+                    { chapterId: 'ch-1', chapter: '第一章：Web安全基础', lessons: [
+                        { name: '需求分析与系统架构设计', methods: ['question_bank', 'quiz'] }
+                    ]},
+                    { chapterId: 'ch-3', chapter: '第三章：后端安全', lessons: [
+                        { name: '后端API接口与数据库开发', methods: ['paper', 'exam'] }
+                    ]},
+                    { chapterId: 'ch-4', chapter: '第四章：漏洞实战', lessons: [
+                        { name: 'Web应用安全漏洞实战', methods: ['exam'] }
+                    ]}
+                ];
+                mockEvals.forEach(me => {
+                    html += `<div class="anchor-section" data-anchor="${me.chapterId}">
+                        <div class="anchor-section-title">${me.chapter}</div>`;
+                    me.lessons.forEach(lesson => {
+                        const methodsHtml = lesson.methods.map(mk => {
+                            const m = methodConfig[mk];
+                            return `
+                                <div class="eval-method-card" onclick="alert('即将新开标签页前往答题')">
+                                    <div class="eval-method-icon" style="background:${m.color}15; color:${m.color}">
+                                        <i class="fas ${m.icon}"></i>
+                                    </div>
+                                    <div class="eval-method-info">
+                                        <div class="eval-method-name">${m.label}</div>
+                                        <div class="eval-method-desc">${m.desc}</div>
+                                    </div>
+                                    <div class="eval-method-arrow"><i class="fas fa-chevron-right"></i></div>
+                                </div>
+                            `;
+                        }).join('');
+                        html += `
+                            <div class="eval-lesson-block">
+                                <div class="eval-lesson-title">${lesson.name}</div>
+                                <div class="eval-methods-grid">${methodsHtml}</div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                });
+            }
+            
+            container.innerHTML = html || '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无课程评价</p></div>';
+        }
+
+        function toggleTestGroup(header) {
+            const group = header.closest('.test-group');
+            if (!group) return;
+            const content = group.querySelector('.test-group-content');
+            const icon = header.querySelector('.toggle-icon');
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                icon.classList.remove('expanded');
+            } else {
+                content.classList.add('show');
+                icon.classList.add('expanded');
+            }
+        }
 
         // 初始化渲染
         // 资源预览弹窗
@@ -5137,9 +5986,6 @@
 
             renderTaskList();
             renderResources();
-            renderAbilities();
-            renderKnowledgeTree();
-            renderWeightTables();
         }
 
         init();
