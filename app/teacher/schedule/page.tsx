@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react"
 import {
   Calendar as CalendarIcon,
-  ChevronDown,
   ChevronRight,
   FileText,
   FolderOpen,
@@ -11,42 +10,20 @@ import {
   Eye,
   Send,
   BookOpen,
-  Clock,
   Layers,
   MonitorPlay,
   Users,
   Hand,
-  Dices,
-  ClipboardCheck,
-  GraduationCap,
   X,
-  Trash2,
   MapPin,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
-  CheckSquare,
-  RefreshCw,
-  LayoutList,
-  Plus,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -56,7 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-type ScheduleType = "scene" | "course" | "exam"
+type ScheduleType = "scene" | "course"
 
 interface ScheduleItem {
   id: string
@@ -64,6 +41,9 @@ interface ScheduleItem {
   type: ScheduleType
   time: string
   location?: string
+  grade?: string
+  className?: string
+  date: string
 }
 
 interface DaySchedule {
@@ -78,22 +58,16 @@ const TYPE_MAP: Record<
   { label: string; color: string; bg: string; icon: React.ReactNode }
 > = {
   scene: {
-    label: "场景教学",
+    label: "实践场景",
     color: "text-purple-600",
     bg: "bg-purple-50",
     icon: <Layers className="w-3.5 h-3.5 text-purple-500" />,
   },
   course: {
-    label: "课程教学",
+    label: "课程",
     color: "text-blue-600",
     bg: "bg-blue-50",
     icon: <BookOpen className="w-3.5 h-3.5 text-blue-500" />,
-  },
-  exam: {
-    label: "考试",
-    color: "text-red-600",
-    bg: "bg-red-50",
-    icon: <ClipboardCheck className="w-3.5 h-3.5 text-red-500" />,
   },
 }
 
@@ -102,17 +76,17 @@ const WEEK_SCHEDULE: DaySchedule[] = [
     day: "周一",
     date: "10/16",
     courses: [
-      { id: "c1", name: "SQL注入漏洞检测", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
-      { id: "c2", name: "渗透测试基础", type: "scene", time: "10:00-11:40", location: "实训楼 B-205" },
-      { id: "c3", name: "XSS跨站脚本防御", type: "course", time: "14:00-15:40", location: "教学楼 A-302" },
+      { id: "c1", name: "SQL注入漏洞检测", type: "course", time: "08:00-09:40", location: "教学楼 A-301", grade: "2023级", className: "软件工程1班", date: "10/16" },
+      { id: "c2", name: "渗透测试基础", type: "scene", time: "10:00-11:40", location: "实训楼 B-205", grade: "2023级", className: "网络安全2班", date: "10/16" },
+      { id: "c3", name: "XSS跨站脚本防御", type: "course", time: "14:00-15:40", location: "教学楼 A-302", grade: "2022级", className: "信息安全1班", date: "10/16" },
     ],
   },
   {
     day: "周二",
     date: "10/17",
     courses: [
-      { id: "c4", name: "CSRF攻击原理与防护", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
-      { id: "c5", name: "缓冲区溢出分析", type: "exam", time: "10:00-11:40", location: "机房 C-401" },
+      { id: "c4", name: "CSRF攻击原理与防护", type: "course", time: "08:00-09:40", location: "教学楼 A-301", grade: "2023级", className: "软件工程1班", date: "10/17" },
+      { id: "c5", name: "缓冲区溢出分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205", grade: "2023级", className: "网络安全2班", date: "10/17" },
     ],
   },
   {
@@ -120,28 +94,30 @@ const WEEK_SCHEDULE: DaySchedule[] = [
     date: "10/18",
     isToday: true,
     courses: [
-      { id: "c6", name: "密码学基础", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
-      { id: "c7", name: "网络协议分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205" },
-      { id: "c8", name: "Web应用安全扫描", type: "course", time: "14:00-15:40", location: "教学楼 A-302" },
+      { id: "c6", name: "密码学基础", type: "course", time: "08:00-09:40", location: "教学楼 A-301", grade: "2023级", className: "软件工程1班", date: "10/18" },
+      { id: "c7", name: "网络协议分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205", grade: "2022级", className: "信息安全1班", date: "10/18" },
+      { id: "c8", name: "Web应用安全扫描", type: "course", time: "14:00-15:40", location: "教学楼 A-302", grade: "2023级", className: "软件工程2班", date: "10/18" },
     ],
   },
   {
     day: "周四",
     date: "10/19",
     courses: [
-      { id: "c9", name: "逆向工程入门", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
-      { id: "c10", name: "恶意代码分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205" },
+      { id: "c9", name: "逆向工程入门", type: "course", time: "08:00-09:40", location: "教学楼 A-301", grade: "2023级", className: "软件工程1班", date: "10/19" },
+      { id: "c10", name: "恶意代码分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205", grade: "2022级", className: "信息安全1班", date: "10/19" },
     ],
   },
   {
     day: "周五",
     date: "10/20",
     courses: [
-      { id: "c11", name: "安全编码规范", type: "course", time: "08:00-09:40", location: "教学楼 A-301" },
-      { id: "c12", name: "漏洞挖掘实践", type: "scene", time: "10:00-11:40", location: "实训楼 B-205" },
-      { id: "c13", name: "应急响应流程", type: "exam", time: "14:00-15:40", location: "机房 C-401" },
+      { id: "c11", name: "安全编码规范", type: "course", time: "08:00-09:40", location: "教学楼 A-301", grade: "2023级", className: "软件工程1班", date: "10/20" },
+      { id: "c12", name: "漏洞挖掘实践", type: "scene", time: "10:00-11:40", location: "实训楼 B-205", grade: "2023级", className: "网络安全2班", date: "10/20" },
+      { id: "c13", name: "应急响应流程", type: "scene", time: "14:00-15:40", location: "实训楼 B-206", grade: "2022级", className: "信息安全1班", date: "10/20" },
     ],
   },
+  { day: "周六", date: "10/21", courses: [] },
+  { day: "周日", date: "10/22", courses: [] },
 ]
 
 interface CatalogNode {
@@ -200,20 +176,57 @@ const COURSE_OPTIONS = [
   { id: "grain-2", name: "缓冲区溢出分析", type: "颗粒课" },
 ]
 
+const SCENE_TASK_DATA = [
+  {
+    id: "scene-1",
+    name: "Web渗透测试实验室",
+    tasks: [
+      { id: "task-1-1", name: "信息收集与侦察" },
+      { id: "task-1-2", name: "漏洞扫描与分析" },
+      { id: "task-1-3", name: "漏洞利用与后渗透" },
+    ],
+  },
+  {
+    id: "scene-2",
+    name: "应急响应演练",
+    tasks: [
+      { id: "task-2-1", name: "事件发现与报告" },
+      { id: "task-2-2", name: "威胁分析与溯源" },
+      { id: "task-2-3", name: "处置与恢复" },
+    ],
+  },
+  {
+    id: "scene-3",
+    name: "代码审计工坊",
+    tasks: [
+      { id: "task-3-1", name: "静态代码扫描" },
+      { id: "task-3-2", name: "漏洞模式识别" },
+      { id: "task-3-3", name: "修复方案验证" },
+    ],
+  },
+]
+
+function isCoursePast(dateStr: string) {
+  const [m, d] = dateStr.split("/").map(Number)
+  const date = new Date(2023, m - 1, d)
+  const today = new Date(2023, 9, 18)
+  return date < today
+}
+
 function ScheduleCard({
   course,
-  onDelete,
+  onPrep,
+  onGoClass,
 }: {
   course: ScheduleItem
-  onDelete?: (id: string) => void
+  onPrep?: (course: ScheduleItem) => void
+  onGoClass?: (course: ScheduleItem) => void
 }) {
   const t = TYPE_MAP[course.type]
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div
-      className="group relative rounded-md border border-gray-100 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-    >
+    <div className="group relative rounded-md border border-gray-100 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
       <div
         className="flex items-center justify-between px-3 py-2.5 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
@@ -239,39 +252,37 @@ function ScheduleCard({
             <MapPin className="w-3 h-3" />
             <span>{course.location || "教学楼 A-301"}</span>
           </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <Users className="w-3 h-3" />
+            <span>对象年级：{course.grade || "2023级"}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <Users className="w-3 h-3" />
+            <span>对象班级：{course.className || "软件工程1班"}</span>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant="outline"
-              className="h-7 text-xs flex-1 border-green-300 text-green-600 hover:bg-green-50 hover:text-green-700"
+              className="h-7 text-xs flex-1 border-[#1890ff] text-[#1890ff] hover:bg-[#e6f7ff]"
               onClick={(e) => {
                 e.stopPropagation()
-                alert(`${course.name} - 签到功能（演示）`)
+                onPrep?.(course)
               }}
             >
-              <CheckSquare className="w-3 h-3 mr-1" />
-              签到
+              <BookOpen className="w-3 h-3 mr-1" />
+              前往备课
             </Button>
             <Button
               size="sm"
               className="h-7 text-xs flex-1 bg-[#1890ff] hover:bg-[#40a9ff]"
               onClick={(e) => {
                 e.stopPropagation()
-                alert(`前往上课：${course.name}`)
+                onGoClass?.(course)
               }}
             >
+              <MonitorPlay className="w-3 h-3 mr-1" />
               前往上课
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 text-xs text-red-600 hover:text-red-700 hover:border-red-200"
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete?.(course.id)
-              }}
-            >
-              <Trash2 className="w-3 h-3" />
             </Button>
           </div>
         </div>
@@ -280,90 +291,412 @@ function ScheduleCard({
   )
 }
 
-function CatalogTree({
-  nodes,
+function WorkspaceScheduleList({
+  schedules,
   selectedId,
   onSelect,
+  filterType,
 }: {
-  nodes: CatalogNode[]
-  selectedId: string
+  schedules: DaySchedule[]
+  selectedId: string | null
   onSelect: (id: string) => void
+  filterType: ScheduleType
 }) {
+  const items = schedules.flatMap((day) =>
+    day.courses
+      .filter((c) => c.type === filterType)
+      .map((c) => ({ ...c, dayLabel: day.day, isPast: isCoursePast(c.date) }))
+  )
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center text-sm text-gray-400 py-8">
+        暂无{filterType === "course" ? "课程" : "实践场景"}日程
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col gap-1">
-      {nodes.map((node) =>
-        node.type === "chapter" ? (
-          <Collapsible key={node.id} defaultOpen>
-            <CollapsibleTrigger className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-              <ChevronRight className="w-4 h-4 text-gray-400 transition-transform data-[state=open]:rotate-90" />
-              <FolderOpen className="w-4 h-4 text-[#1890ff]" />
-              <span className="truncate">{node.title}</span>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              {node.children && (
-                <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-gray-100 pl-2">
-                  <CatalogTree
-                    nodes={node.children}
-                    selectedId={selectedId}
-                    onSelect={onSelect}
-                  />
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-        ) : (
-          <button
-            key={node.id}
-            onClick={() => onSelect(node.id)}
-            className={`
-              flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-left transition-colors
-              ${
-                selectedId === node.id
-                  ? "bg-[#e6f7ff] text-[#1890ff] font-medium border-l-2 border-[#1890ff]"
-                  : "text-gray-600 hover:bg-gray-50"
-              }
-            `}
-          >
-            <FileText className="w-4 h-4 shrink-0" />
-            <span className="truncate">{node.title}</span>
-          </button>
-        )
-      )}
+    <div className="flex flex-col gap-2">
+      {items.map((item) => (
+        <button
+          key={item.id}
+          onClick={() => onSelect(item.id)}
+          className={`text-left rounded-lg border p-3 transition-all ${
+            selectedId === item.id
+              ? "border-[#1890ff] bg-[#e6f7ff] shadow-sm"
+              : "border-gray-100 bg-white hover:border-gray-200"
+          } ${item.isPast ? "opacity-50 grayscale" : ""}`}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className={`text-sm font-medium ${selectedId === item.id ? "text-[#1890ff]" : "text-gray-800"}`}>
+              {item.name}
+            </span>
+            <Badge
+              variant="outline"
+              className={`text-[10px] font-normal border-current ${
+                item.type === "course" ? "text-blue-600 bg-blue-50" : "text-purple-600 bg-purple-50"
+              }`}
+            >
+              {TYPE_MAP[item.type].label}
+            </Badge>
+          </div>
+          <div className="text-xs text-gray-400 space-y-0.5">
+            <div>{item.dayLabel} {item.time}</div>
+            <div>{item.location}</div>
+          </div>
+        </button>
+      ))}
     </div>
   )
 }
 
+function CourseRelationSelector({
+  selectedIds,
+  onChange,
+}: {
+  selectedIds: string[]
+  onChange: (ids: string[]) => void
+}) {
+  const [courseId, setCourseId] = useState("sys-1")
+  const course = COURSE_OPTIONS.find((c) => c.id === courseId)
+
+  const toggleNode = (id: string) => {
+    if (selectedIds.includes(id)) {
+      onChange(selectedIds.filter((x) => x !== id))
+    } else {
+      onChange([...selectedIds, id])
+    }
+  }
+
+  const allLessons = CATALOG_DATA.flatMap((ch) => ch.children || [])
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Label className="text-xs text-gray-500 shrink-0">选择课程</Label>
+        <Select value={courseId} onValueChange={setCourseId}>
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {COURSE_OPTIONS.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                <span className="flex items-center gap-2">
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-gray-100 text-gray-500">{c.type}</span>
+                  {c.name}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {selectedIds.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedIds.map((id) => {
+            const name = allLessons.find((n) => n.id === id)?.title || id
+            return (
+              <Badge key={id} variant="secondary" className="text-xs font-normal gap-1">
+                {name}
+                <button
+                  type="button"
+                  onClick={() => toggleNode(id)}
+                  className="hover:text-red-500"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )
+          })}
+        </div>
+      )}
+
+      <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto">
+        {course?.type === "体系课" ? (
+          <div className="space-y-2">
+            {CATALOG_DATA.map((chapter) => (
+              <div key={chapter.id}>
+                <div className="text-xs font-medium text-gray-700 px-2 py-1 flex items-center gap-1">
+                  <FolderOpen className="w-3.5 h-3.5 text-[#1890ff]" />
+                  {chapter.title}
+                </div>
+                <div className="ml-4 space-y-0.5">
+                  {(chapter.children || []).map((lesson) => (
+                    <label
+                      key={lesson.id}
+                      className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-[#1890ff] focus:ring-[#1890ff]"
+                        checked={selectedIds.includes(lesson.id)}
+                        onChange={() => toggleNode(lesson.id)}
+                      />
+                      <FileText className="w-3.5 h-3.5 text-gray-400" />
+                      <span className="text-xs text-gray-600">{lesson.title}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <label className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-[#1890ff] focus:ring-[#1890ff]"
+              checked={selectedIds.includes(courseId)}
+              onChange={() => toggleNode(courseId)}
+            />
+            <div className="w-6 h-6 rounded bg-[#1890ff] flex items-center justify-center text-white text-[10px] font-bold">
+              颗
+            </div>
+            <span className="text-xs text-gray-600">{course?.name}</span>
+          </label>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SceneRelationSelector({
+  selectedIds,
+  onChange,
+}: {
+  selectedIds: string[]
+  onChange: (ids: string[]) => void
+}) {
+  const toggleTask = (id: string) => {
+    if (selectedIds.includes(id)) {
+      onChange(selectedIds.filter((x) => x !== id))
+    } else {
+      onChange([...selectedIds, id])
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {selectedIds.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedIds.map((id) => {
+            const task = SCENE_TASK_DATA.flatMap((s) => s.tasks).find((t) => t.id === id)
+            return (
+              <Badge key={id} variant="secondary" className="text-xs font-normal gap-1">
+                {task?.name || id}
+                <button
+                  type="button"
+                  onClick={() => toggleTask(id)}
+                  className="hover:text-red-500"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )
+          })}
+        </div>
+      )}
+
+      <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto space-y-2">
+        {SCENE_TASK_DATA.map((scene) => (
+          <div key={scene.id}>
+            <div className="text-xs font-medium text-gray-700 px-2 py-1 flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-purple-500" />
+              {scene.name}
+            </div>
+            <div className="ml-4 space-y-0.5">
+              {scene.tasks.map((task) => (
+                <label
+                  key={task.id}
+                  className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-purple-500 focus:ring-purple-500"
+                    checked={selectedIds.includes(task.id)}
+                    onChange={() => toggleTask(task.id)}
+                  />
+                  <span className="text-xs text-gray-600">{task.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PrepContent({ stage }: { stage: "pre" | "in" | "post" }) {
+  return (
+    <>
+      {stage === "pre" && (
+        <>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">教学目标</h3>
+            </div>
+            <div className="min-h-[80px] rounded-lg border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-400 leading-relaxed">
+              请输入本节课的教学目标...（富文本编辑器占位区域）
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">导学教案</h3>
+            </div>
+            <div className="min-h-[100px] rounded-lg border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-400 leading-relaxed">
+              请输入课前备课内容...（富文本编辑器占位区域）
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">课前预习</h3>
+              <div className="ml-auto flex items-center gap-2">
+                <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">+ 从题库导入</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
+              </div>
+            </div>
+            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              暂无预习题目，请点击上方按钮导入
+            </div>
+          </div>
+        </>
+      )}
+
+      {stage === "in" && (
+        <>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">课件资源</h3>
+              <div className="ml-auto">
+                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 添加资源</Button>
+              </div>
+            </div>
+            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
+              <MonitorPlay className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              暂无课件资源，可上传PPT、PDF或视频
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">随堂测验</h3>
+              <div className="ml-auto flex items-center gap-2">
+                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 从题库导入</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
+              </div>
+            </div>
+            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              暂无随堂测试题目
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">互动讨论</h3>
+              <div className="ml-auto">
+                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 添加话题</Button>
+              </div>
+            </div>
+            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
+              <Hand className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              暂无讨论话题，可添加投票或讨论主题
+            </div>
+          </div>
+        </>
+      )}
+
+      {stage === "post" && (
+        <>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">课后作业</h3>
+              <div className="ml-auto flex items-center gap-2">
+                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 添加作业</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
+              </div>
+            </div>
+            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              暂无课后作业，可添加主观题或客观题
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">课后测验</h3>
+              <div className="ml-auto flex items-center gap-2">
+                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 从题库导入</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
+              </div>
+            </div>
+            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              暂无课后测验题目
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
+              <h3 className="text-sm font-semibold text-gray-800">课后拓展</h3>
+              <div className="ml-auto">
+                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 添加拓展资料</Button>
+              </div>
+            </div>
+            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
+              <BookOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              暂无课后拓展资料，可添加推荐阅读或延伸学习资源
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  )
+}
+
 export default function SmartClassroomPage() {
-  const [selectedLessonId, setSelectedLessonId] = useState("l4")
   const [activeTab, setActiveTab] = useState("schedule")
   const [prepStage, setPrepStage] = useState<"pre" | "in" | "post">("pre")
 
   // Schedule state
-  const [schedule, setSchedule] = useState<DaySchedule[]>(WEEK_SCHEDULE)
+  const [schedule] = useState<DaySchedule[]>(WEEK_SCHEDULE)
   const [weekOffset, setWeekOffset] = useState(0)
 
-  // Course selector state
-  const [selectedCourseId, setSelectedCourseId] = useState("sys-1")
+  // Course workspace state
+  const [selectedCourseScheduleId, setSelectedCourseScheduleId] = useState<string | null>(null)
+  const [selectedCourseNodes, setSelectedCourseNodes] = useState<string[]>([])
 
-  const handleDeleteCourse = (dayIndex: number, courseId: string) => {
-    setSchedule((prev) => {
-      const next = [...prev]
-      next[dayIndex] = {
-        ...next[dayIndex],
-        courses: next[dayIndex].courses.filter((c) => c.id !== courseId),
-      }
-      return next
-    })
-  }
+  // Scene workspace state
+  const [selectedSceneScheduleId, setSelectedSceneScheduleId] = useState<string | null>(null)
+  const [selectedSceneTasks, setSelectedSceneTasks] = useState<string[]>([])
 
   const weekLabel = useMemo(() => {
     const base = new Date(2023, 9, 16)
     const start = new Date(base.getTime() + weekOffset * 7 * 24 * 60 * 60 * 1000)
-    const end = new Date(start.getTime() + 4 * 24 * 60 * 60 * 1000)
+    const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000)
     return `${start.getMonth() + 1}月${start.getDate()}日 - ${end.getMonth() + 1}月${end.getDate()}日`
   }, [weekOffset])
 
-  const selectedCourse = COURSE_OPTIONS.find((c) => c.id === selectedCourseId)
+  const handleGoPrep = (course: ScheduleItem) => {
+    if (course.type === "course") {
+      setActiveTab("workspace-course")
+      setSelectedCourseScheduleId(course.id)
+    } else {
+      setActiveTab("workspace-scene")
+      setSelectedSceneScheduleId(course.id)
+    }
+  }
+
+  const handleGoClass = (course: ScheduleItem) => {
+    alert(`前往上课：${course.name}`)
+  }
 
   return (
     <div className="min-h-screen bg-[#f0f2f5]">
@@ -400,11 +733,18 @@ export default function SmartClassroomPage() {
               教学日程
             </TabsTrigger>
             <TabsTrigger
-              value="workspace"
+              value="workspace-course"
               className="data-[state=active]:bg-[#1890ff] data-[state=active]:text-white data-[state=active]:shadow-sm"
             >
               <BookOpen className="w-4 h-4 mr-1.5" />
-              备课工作台
+              课程备课工作台
+            </TabsTrigger>
+            <TabsTrigger
+              value="workspace-scene"
+              className="data-[state=active]:bg-[#1890ff] data-[state=active]:text-white data-[state=active]:shadow-sm"
+            >
+              <Layers className="w-4 h-4 mr-1.5" />
+              实践场景备课工作台
             </TabsTrigger>
           </TabsList>
 
@@ -429,16 +769,8 @@ export default function SmartClassroomPage() {
 
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-5 text-sm">
-                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-purple-500 ring-2 ring-purple-100" /><span className="text-gray-600">场景教学</span></div>
-                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-blue-100" /><span className="text-gray-600">课程教学</span></div>
-                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-red-100" /><span className="text-gray-600">考试</span></div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <Button size="sm" variant="outline" className="gap-1.5">
-                          <RefreshCw className="w-3.5 h-3.5" />
-                          从教务系统同步
-                        </Button>
-                        <span className="text-[11px] text-gray-400 mt-1">最近同步时间 2026/05/21 18:22</span>
+                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-purple-500 ring-2 ring-purple-100" /><span className="text-gray-600">实践场景</span></div>
+                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-blue-100" /><span className="text-gray-600">课程</span></div>
                       </div>
                     </div>
                   </div>
@@ -446,8 +778,8 @@ export default function SmartClassroomPage() {
               </Card>
 
               {/* Calendar Grid */}
-              <div className="grid grid-cols-5 gap-3">
-                {schedule.map((day, dayIdx) => (
+              <div className="grid grid-cols-7 gap-3">
+                {schedule.map((day) => (
                   <div
                     key={day.day}
                     className={`flex flex-col gap-3 rounded-xl p-4 min-h-[420px] ${day.isToday ? "bg-[#f0f7ff] ring-2 ring-[#1890ff]" : "bg-white shadow-sm"}`}
@@ -462,7 +794,8 @@ export default function SmartClassroomPage() {
                         <ScheduleCard
                           key={course.id}
                           course={course}
-                          onDelete={(id) => handleDeleteCourse(dayIdx, id)}
+                          onPrep={handleGoPrep}
+                          onGoClass={handleGoClass}
                         />
                       ))}
                     </div>
@@ -472,60 +805,25 @@ export default function SmartClassroomPage() {
             </div>
           </TabsContent>
 
-          {/* 备课工作台 Tab */}
-          <TabsContent value="workspace" className="mt-0">
+          {/* 课程备课工作台 Tab */}
+          <TabsContent value="workspace-course" className="mt-0">
             <div className="flex flex-col gap-4 h-[calc(100vh-180px)]">
-              {/* Workspace Body - Prep Mode */}
               <div className="flex gap-4 flex-1 min-h-0">
-                {/* Left: Course Selector + Catalog Tree */}
-                <Card className="w-[320px] border-0 shadow-sm flex flex-col shrink-0">
+                {/* Left: Schedule List */}
+                <Card className="w-[280px] border-0 shadow-sm flex flex-col shrink-0">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-[#1890ff]" />
-                      课程目录
+                      课程日程
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-y-auto pt-0 space-y-3">
-                    {/* Course Selector */}
-                    <div className="space-y-1.5">
-                      <Label className="text-xs text-gray-500">选择课程</Label>
-                      <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COURSE_OPTIONS.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              <span className="flex items-center gap-2">
-                                <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{c.type}</span>
-                                {c.name}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="border-t border-gray-50 pt-2">
-                      {selectedCourse?.type === "体系课" ? (
-                        <CatalogTree
-                          nodes={CATALOG_DATA}
-                          selectedId={selectedLessonId}
-                          onSelect={setSelectedLessonId}
-                        />
-                      ) : (
-                        <div className="py-4 px-2">
-                          <div className="flex items-center gap-3 p-3 rounded-lg bg-[#e6f7ff] border border-[#bae7ff]">
-                            <div className="w-8 h-8 rounded-lg bg-[#1890ff] flex items-center justify-center text-white text-xs font-bold">
-                              颗
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-800">{selectedCourse?.name}</p>
-                              <p className="text-xs text-gray-500 mt-0.5">颗粒课 · 无子目录</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  <CardContent className="flex-1 overflow-y-auto pt-0">
+                    <WorkspaceScheduleList
+                      schedules={schedule}
+                      selectedId={selectedCourseScheduleId}
+                      onSelect={setSelectedCourseScheduleId}
+                      filterType="course"
+                    />
                   </CardContent>
                 </Card>
 
@@ -537,7 +835,6 @@ export default function SmartClassroomPage() {
                         <CardTitle className="text-sm font-semibold text-gray-800">
                           备课内容编辑区
                         </CardTitle>
-                        {/* 三环节切换 */}
                         <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
                           <button
                             onClick={() => setPrepStage("pre")}
@@ -585,144 +882,131 @@ export default function SmartClassroomPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1 overflow-y-auto pt-4">
-                    <div className="flex flex-col gap-6 max-w-3xl mx-auto">
-                      {prepStage === "pre" && (
-                        <>
-                          {/* 课前：教学目标 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">教学目标</h3>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-400 leading-relaxed">
-                              请输入本节课的教学目标...（富文本编辑器占位区域）
-                            </div>
+                    {selectedCourseScheduleId ? (
+                      <div className="flex flex-col gap-6 max-w-3xl mx-auto">
+                        {/* 关联体系课/颗粒课 */}
+                        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+                            <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
+                            <h3 className="text-sm font-semibold text-gray-800">关联体系课/颗粒课</h3>
                           </div>
-                          {/* 课前：导学教案 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">导学教案</h3>
-                            </div>
-                            <div className="min-h-[100px] rounded-lg border border-gray-200 bg-gray-50/50 p-4 text-sm text-gray-400 leading-relaxed">
-                              请输入课前备课内容...（富文本编辑器占位区域）
-                            </div>
-                          </div>
-                          {/* 课前：课前预习 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">课前预习</h3>
-                              <div className="ml-auto flex items-center gap-2">
-                                <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">+ 从题库导入</Button>
-                                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
-                              </div>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无预习题目，请点击上方按钮导入
-                            </div>
-                          </div>
-                        </>
-                      )}
+                          <CourseRelationSelector
+                            selectedIds={selectedCourseNodes}
+                            onChange={setSelectedCourseNodes}
+                          />
+                        </div>
+                        <PrepContent stage={prepStage} />
+                      </div>
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                        <BookOpen className="w-10 h-10 text-gray-300" />
+                        <span className="text-sm">请从左侧选择一个课程日程</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
 
-                      {prepStage === "in" && (
-                        <>
-                          {/* 课中：课件资源 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">课件资源</h3>
-                              <div className="ml-auto">
-                                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 添加资源</Button>
-                              </div>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <MonitorPlay className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无课件资源，可上传PPT、PDF或视频
-                            </div>
-                          </div>
-                          {/* 课中：随堂测 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">随堂测验</h3>
-                              <div className="ml-auto flex items-center gap-2">
-                                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 从题库导入</Button>
-                                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
-                              </div>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无随堂测试题目
-                            </div>
-                          </div>
-                          {/* 课中：互动讨论 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">互动讨论</h3>
-                              <div className="ml-auto">
-                                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 添加话题</Button>
-                              </div>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <Hand className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无讨论话题，可添加投票或讨论主题
-                            </div>
-                          </div>
-                        </>
-                      )}
+          {/* 实践场景备课工作台 Tab */}
+          <TabsContent value="workspace-scene" className="mt-0">
+            <div className="flex flex-col gap-4 h-[calc(100vh-180px)]">
+              <div className="flex gap-4 flex-1 min-h-0">
+                {/* Left: Schedule List */}
+                <Card className="w-[280px] border-0 shadow-sm flex flex-col shrink-0">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-purple-500" />
+                      实践场景日程
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-y-auto pt-0">
+                    <WorkspaceScheduleList
+                      schedules={schedule}
+                      selectedId={selectedSceneScheduleId}
+                      onSelect={setSelectedSceneScheduleId}
+                      filterType="scene"
+                    />
+                  </CardContent>
+                </Card>
 
-                      {prepStage === "post" && (
-                        <>
-                          {/* 课后：课后作业 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">课后作业</h3>
-                              <div className="ml-auto flex items-center gap-2">
-                                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 添加作业</Button>
-                                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
-                              </div>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无课后作业，可添加主观题或客观题
-                            </div>
-                          </div>
-                          {/* 课后：课后测验 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">课后测验</h3>
-                              <div className="ml-auto flex items-center gap-2">
-                                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 从题库导入</Button>
-                                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
-                              </div>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无课后测验题目
-                            </div>
-                          </div>
-                          {/* 课后：课后拓展 */}
-                          <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
-                              <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
-                              <h3 className="text-sm font-semibold text-gray-800">课后拓展</h3>
-                              <div className="ml-auto">
-                                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 添加拓展资料</Button>
-                              </div>
-                            </div>
-                            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-                              <BookOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              暂无课后拓展资料，可添加推荐阅读或延伸学习资源
-                            </div>
-                          </div>
-                        </>
-                      )}
+                {/* Right: Editor Area */}
+                <Card className="flex-1 border-0 shadow-sm flex flex-col min-h-0">
+                  <CardHeader className="pb-3 border-b border-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CardTitle className="text-sm font-semibold text-gray-800">
+                          备课内容编辑区
+                        </CardTitle>
+                        <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
+                          <button
+                            onClick={() => setPrepStage("pre")}
+                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                              prepStage === "pre" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                            }`}
+                          >
+                            课前环节
+                          </button>
+                          <button
+                            onClick={() => setPrepStage("in")}
+                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                              prepStage === "in" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                            }`}
+                          >
+                            课中环节
+                          </button>
+                          <button
+                            onClick={() => setPrepStage("post")}
+                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                              prepStage === "post" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                            }`}
+                          >
+                            课后环节
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs font-normal text-gray-500">
+                          自动保存
+                        </Badge>
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Save className="w-4 h-4" />
+                          保存
+                        </Button>
+                        <Button variant="outline" size="sm" className="gap-1.5">
+                          <Eye className="w-4 h-4" />
+                          预览
+                        </Button>
+                        <Button size="sm" className="gap-1.5 bg-[#1890ff] hover:bg-[#40a9ff]">
+                          <Send className="w-4 h-4" />
+                          提交
+                        </Button>
+                      </div>
                     </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-y-auto pt-4">
+                    {selectedSceneScheduleId ? (
+                      <div className="flex flex-col gap-6 max-w-3xl mx-auto">
+                        {/* 关联场景 */}
+                        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+                            <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
+                            <h3 className="text-sm font-semibold text-gray-800">关联场景</h3>
+                          </div>
+                          <SceneRelationSelector
+                            selectedIds={selectedSceneTasks}
+                            onChange={setSelectedSceneTasks}
+                          />
+                        </div>
+                        <PrepContent stage={prepStage} />
+                      </div>
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                        <Layers className="w-10 h-10 text-gray-300" />
+                        <span className="text-sm">请从左侧选择一个实践场景日程</span>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

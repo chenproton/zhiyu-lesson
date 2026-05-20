@@ -117,14 +117,14 @@ function AddGranularPageInner() {
 
   /* module 4: assessment */
   const [selectedEvalMethods, setSelectedEvalMethods] = useState<string[]>(
-    isEdit ? ["random_draw", "paper"] : []
+    isEdit ? ["exam", "paper"] : []
   )
 
   /* module 5: evaluation rules */
   const [evalConfigs, setEvalConfigs] = useState<Record<string, any>>(
     isEdit
       ? {
-          random_draw: {
+          exam: {
             objectType: "individual",
             subjects: [
               { type: "teacher", label: "教师", enabled: true, weightPercent: 70, params: { scorerCount: 1, aggregationRule: "average" } },
@@ -168,7 +168,7 @@ function AddGranularPageInner() {
     const quizzesForCheck = selectedEvalMethods.length > 0
       ? selectedEvalMethods.map((method, i) => ({
           id: `qz-${i}`,
-          title: method === "review" ? "现场评审" : method === "question_bank" ? "题库测验" : method === "paper" ? "试卷测验" : "现场问答",
+          title: method === "exam" ? "作业测评" : method === "question_bank" ? "题库测验" : method === "paper" ? "试卷测验" : "现场问答",
           type: method === "question_bank" ? "question_bank" as const : "paper" as const,
           questions: [] as any[],
         }))
@@ -343,6 +343,7 @@ function AddGranularPageInner() {
                 <EvaluationMethodSelector
                   selectedKeys={selectedEvalMethods}
                   onChange={setSelectedEvalMethods}
+                  isGranular={true}
                 />
               </CardContent>
             </Card>
@@ -361,7 +362,7 @@ function AddGranularPageInner() {
                   methodOptions={[
                     { key: "paper", label: "试卷", icon: <ClipboardList className="h-5 w-5" />, color: "bg-green-50 text-green-600 border-green-200", desc: "使用固定试卷进行考核" },
                     { key: "question_bank", label: "题库", icon: <Database className="h-5 w-5" />, color: "bg-orange-50 text-orange-600 border-orange-200", desc: "从题库选题组成测评资源" },
-                    { key: "exam", label: "考试", icon: <BookOpen className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "组织标准化考试进行考核" },
+                    { key: "exam", label: "作业", icon: <BookOpen className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "组织标准化作业进行考核" },
                     { key: "quiz", label: "随堂测", icon: <FileQuestion className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", desc: "课堂即时测验" },
                   ]}
                   configs={evalConfigs}
