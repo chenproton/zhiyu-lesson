@@ -300,7 +300,7 @@ function AddSystemPageInner() {
   useEffect(() => {
     const node = nodes.find((n) => n.id === selectedNodeId)
     if (node) {
-      setCourseType(node.type === "original" ? "granular" : "normal")
+      setCourseType(node.type === "original" || node.type === "quote" ? "granular" : "normal")
     }
   }, [selectedNodeId, nodes])
 
@@ -324,14 +324,14 @@ function AddSystemPageInner() {
 
   /* module 4: assessment */
   const [selectedEvalMethods, setSelectedEvalMethods] = useState<string[]>(
-    isEdit ? ["review", "question_bank"] : []
+    isEdit ? ["exam", "question_bank"] : []
   )
 
   /* module 5: evaluation rules */
   const [evalConfigs, setEvalConfigs] = useState<Record<string, any>>(
     isEdit
       ? {
-          review: {
+          exam: {
             objectType: "individual",
             subjects: [
               { type: "teacher", label: "教师", enabled: true, weightPercent: 60, params: { scorerCount: 1, aggregationRule: "average" } },
@@ -383,7 +383,7 @@ function AddSystemPageInner() {
     const quizzesForCheck = selectedEvalMethods.length > 0
       ? selectedEvalMethods.map((method, i) => ({
           id: `qz-${i}`,
-          title: method === "review" ? "现场评审" : method === "question_bank" ? "题库测验" : method === "paper" ? "试卷测验" : "现场问答",
+          title: method === "exam" ? "作业测评" : method === "question_bank" ? "题库测验" : method === "paper" ? "试卷测验" : "现场问答",
           type: method === "question_bank" ? "question_bank" as const : "paper" as const,
           questions: [] as any[],
         }))

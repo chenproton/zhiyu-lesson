@@ -98,7 +98,7 @@ interface EvalResourceConfig {
   timeLimit?: number
   passScore?: number
 
-  /* 试卷 / 考试 */
+  /* 试卷 / 作业 */
   paperId?: string | null
   duration?: number
   allowRetake?: boolean
