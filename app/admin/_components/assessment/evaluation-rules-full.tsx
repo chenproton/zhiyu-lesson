@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   Trash2,
+  UserCheck,
   X,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -32,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 
@@ -107,6 +109,13 @@ interface EvalResourceConfig {
   /* 题库 / 随堂测 */
   selectedQuestionIds?: string[]
   questionScores?: Record<string, number>
+
+  /* 作业 / 评审 */
+  requiresMaterial?: boolean
+  materialTypes?: string[]
+  submitFormatDesc?: string
+  deadlineDays?: number
+  allowResubmit?: boolean
 }
 
 interface EvalMethodConfig {
@@ -141,18 +150,11 @@ function ensureConfig(configs: Record<string, EvalMethodConfig>, key: string): E
       scheduledTime: "",
     },
     exam: {
-      questionCount: 10,
-      difficulty: "mixed",
-      shuffle: true,
-      showScore: true,
-      timeLimit: 60,
-      passScore: 60,
-      paperId: null,
-      duration: 60,
-      allowRetake: false,
-      retakeCount: 1,
-      activationMode: "manual",
-      scheduledTime: "",
+      requiresMaterial: true,
+      materialTypes: ["项目报告", "代码仓库"],
+      submitFormatDesc: "请提交完整的项目报告和代码仓库链接。",
+      deadlineDays: 7,
+      allowResubmit: false,
     },
     question_bank: {
       questionCount: 10,
@@ -564,10 +566,10 @@ export function EvaluationRulesFullEditor({
         </div>
 
         <div className="border rounded-xl p-4">
-          <p className="text-sm font-medium mb-3">考卷设置</p>
+          <p className="text-sm font-medium mb-3">测评设置</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs text-gray-500">考试时长（分钟）</Label>
+              <Label className="text-xs text-gray-500">测评时长（分钟）</Label>
               <Input
                 type="number"
                 value={res.duration}
@@ -686,6 +688,123 @@ export function EvaluationRulesFullEditor({
                 />
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ---------- Homework / Review Panel ---------- */
+  const HomeworkPanel = ({ methodKey }: { methodKey: string }) => {
+    const cfg = ensureConfig(configs, methodKey)
+    const res = cfg.resource!
+
+    return (
+      <div className="space-y-4">
+        <div className="border rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium">作业材料要求</p>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={res.requiresMaterial}
+                onCheckedChange={(v) =>
+                  updateConfig(methodKey, (c) => ({
+                    ...c,
+                    resource: { ...c.resource!, requiresMaterial: v },
+                  }))
+                }
+              />
+              <span className="text-xs text-gray-600">是否需要提交作业材料</span>
+            </div>
+          </div>
+          {res.requiresMaterial && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-gray-500">提交截止（距任务开始天数）</Label>
+                  <Input
+                    type="number"
+                    value={res.deadlineDays}
+                    onChange={(e) =>
+                      updateConfig(methodKey, (c) => ({
+                        ...c,
+                        resource: { ...c.resource!, deadlineDays: Math.max(1, parseInt(e.target.value) || 1) },
+                      }))
+                    }
+                    className="mt-1 text-sm"
+                    min={1}
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <Label className="text-xs text-gray-500 mb-1.5">上传文件类型</Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {(res.materialTypes || []).map((type: string, idx: number) => (
+                    <Badge key={idx} variant="secondary" className="text-xs gap-1">
+                      {type}
+                      <button
+                        className="text-gray-400 hover:text-red-500"
+                        onClick={() => {
+                          const newTypes = (res.materialTypes || []).filter((_, i) => i !== idx)
+                          updateConfig(methodKey, (c) => ({
+                            ...c,
+                            resource: { ...c.resource!, materialTypes: newTypes },
+                          }))
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <Input
+                  placeholder="输入文件类型后按回车添加，如：PDF、代码仓库、设计文档"
+                  className="text-sm h-8"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const val = (e.target as HTMLInputElement).value.trim()
+                      if (val) {
+                        updateConfig(methodKey, (c) => ({
+                          ...c,
+                          resource: { ...c.resource!, materialTypes: [...(c.resource!.materialTypes || []), val] },
+                        }))
+                        ;(e.target as HTMLInputElement).value = ''
+                      }
+                    }
+                  }}
+                />
+              </div>
+              <div className="mt-3">
+                <Label className="text-xs text-gray-500 mb-1.5">提交材料要求说明</Label>
+                <Textarea
+                  value={res.submitFormatDesc}
+                  onChange={(e) =>
+                    updateConfig(methodKey, (c) => ({
+                      ...c,
+                      resource: { ...c.resource!, submitFormatDesc: e.target.value },
+                    }))
+                  }
+                  placeholder="请说明学生需要提交的材料类型及具体要求..."
+                  rows={2}
+                  className="text-sm"
+                />
+              </div>
+            </>
+          )}
+          <div className="mt-3">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={res.allowResubmit}
+                onCheckedChange={(v) =>
+                  updateConfig(methodKey, (c) => ({
+                    ...c,
+                    resource: { ...c.resource!, allowResubmit: v },
+                  }))
+                }
+              />
+              <span className="text-xs text-gray-600">允许重新提交</span>
+            </div>
           </div>
         </div>
       </div>
@@ -841,22 +960,54 @@ export function EvaluationRulesFullEditor({
 
     return (
       <div className="space-y-5">
-        <div className="p-4 bg-amber-50 rounded-lg border border-amber-100 text-sm text-amber-700">
-          <div className="flex items-center gap-2 mb-2">
-            <Info className="h-4 w-4" />
-            <span className="font-medium">资源配置说明</span>
+        {methodKey === "exam" ? (
+          <div className="p-5 rounded-lg border text-sm" style={{ background: '#f9f0ff', borderColor: '#d3adf7' }}>
+            <div className="flex items-center gap-2 mb-2 font-semibold" style={{ color: '#722ed1', fontSize: 15 }}>
+              <UserCheck className="h-4 w-4" />
+              作业评审测评
+            </div>
+            <div className="text-gray-600 space-y-1">
+              <p>本章节采用「作业评审」方式评分。请配置作业要求、提交方式和评审规则。</p>
+              <p>教师将按照评审量规的多维度评价点进行打分。</p>
+            </div>
+            <div className="mt-3 space-y-2">
+              {[
+                { label: '发布作业', desc: '教师发布作业要求和截止时间' },
+                { label: '学生提交', desc: '学生按时完成作业并上传成果' },
+                { label: '教师评审', desc: '教师根据量规进行多维评价' },
+              ].map((step, i) => (
+                <div key={i} className="flex items-center gap-2.5 px-3.5 py-2.5 bg-white rounded-md text-xs">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-semibold shrink-0" style={{ background: '#722ed1' }}>
+                    {i + 1}
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-800">{step.label}</div>
+                    <div className="text-gray-400 mt-0.5">{step.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <p>
-            {methodKey === "paper" || methodKey === "exam"
-              ? "请选择已有试卷或新建试卷，并配置考试时长、重考规则等参数。"
-              : methodKey === "question_bank"
-              ? "从题库中选择题目，配置抽题规则和评分标准。"
-              : "配置随堂测验的题目和规则。"}
-          </p>
-        </div>
+        ) : (
+          <div className="p-4 bg-amber-50 rounded-lg border border-amber-100 text-sm text-amber-700">
+            <div className="flex items-center gap-2 mb-2">
+              <Info className="h-4 w-4" />
+              <span className="font-medium">资源配置说明</span>
+            </div>
+            <p>
+              {methodKey === "paper"
+                ? "请选择已有试卷或新建试卷，并配置测评时长、重考规则等参数。"
+                : methodKey === "question_bank"
+                ? "从题库中选择题目，配置抽题规则和评分标准。"
+                : "配置随堂测验的题目和规则。"}
+            </p>
+          </div>
+        )}
 
-        {methodKey === "paper" || methodKey === "exam" ? (
+        {methodKey === "paper" ? (
           <PaperSelectorPanel methodKey={methodKey} />
+        ) : methodKey === "exam" ? (
+          <HomeworkPanel methodKey={methodKey} />
         ) : methodKey === "question_bank" || methodKey === "quiz" ? (
           <QuestionBankPanel methodKey={methodKey} />
         ) : null}
@@ -869,7 +1020,7 @@ export function EvaluationRulesFullEditor({
     const res = cfg.resource
     if (!res) return null
 
-    if (methodKey === "paper" || methodKey === "exam") {
+    if (methodKey === "paper") {
       const paper = paperMocks.find((p) => p.id === res.paperId)
       return (
         <div className="mt-3 grid grid-cols-4 gap-3 text-xs">
@@ -878,7 +1029,7 @@ export function EvaluationRulesFullEditor({
             <p className="font-medium text-gray-700 truncate">{paper ? paper.name : "未选择"}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-2.5">
-            <p className="text-gray-400 mb-0.5">考试时长</p>
+            <p className="text-gray-400 mb-0.5">测评时长</p>
             <p className="font-medium text-gray-700">{res.duration} 分钟</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-2.5">
@@ -890,6 +1041,29 @@ export function EvaluationRulesFullEditor({
             <p className="font-medium text-gray-700">
               {res.activationMode === "manual" ? "手动启用" : res.activationMode === "scheduled" ? "定时启用" : "随时作答"}
             </p>
+          </div>
+        </div>
+      )
+    }
+
+    if (methodKey === "exam") {
+      return (
+        <div className="mt-3 grid grid-cols-4 gap-3 text-xs">
+          <div className="bg-gray-50 rounded-lg p-2.5">
+            <p className="text-gray-400 mb-0.5">需要材料</p>
+            <p className="font-medium text-gray-700">{res.requiresMaterial ? "是" : "否"}</p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-2.5">
+            <p className="text-gray-400 mb-0.5">截止时间</p>
+            <p className="font-medium text-gray-700">{res.deadlineDays} 天内</p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-2.5">
+            <p className="text-gray-400 mb-0.5">文件类型</p>
+            <p className="font-medium text-gray-700 truncate">{(res.materialTypes || []).join("、") || "未配置"}</p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-2.5">
+            <p className="text-gray-400 mb-0.5">允许重提交</p>
+            <p className="font-medium text-gray-700">{res.allowResubmit ? "是" : "否"}</p>
           </div>
         </div>
       )
@@ -962,8 +1136,8 @@ export function EvaluationRulesFullEditor({
             const cfg = ensureConfig(configs, methodKey)
             const res = cfg.resource
             const hasConfig = !!res && (
-              (methodKey === "paper" || methodKey === "exam" ? !!res.paperId : true) ||
-              (methodKey === "question_bank" || methodKey === "quiz" ? (res.selectedQuestionIds?.length || 0) > 0 : true)
+              (methodKey === "paper" ? !!res.paperId : true) &&
+              ((methodKey === "question_bank" || methodKey === "quiz") ? (res.selectedQuestionIds?.length || 0) > 0 : true)
             )
 
             return (

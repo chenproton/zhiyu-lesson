@@ -45,6 +45,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
 import { INDUSTRIES, MAJORS } from "@/lib/types"
 import type { SystemCourseNode, NodeResource, NodeRefType } from "@/lib/types"
 
@@ -283,6 +284,7 @@ function AddSystemPageInner() {
   /* ========== current node form state ========== */
   const selectedNode = nodes.find((n) => n.id === selectedNodeId)
   const isQuoteNode = selectedNode?.type === "quote"
+  const isGranularNode = selectedNode?.type === "original" || selectedNode?.type === "quote"
 
   /* module 1: basic info */
   const [contentName, setContentName] = useState(selectedNode?.name || "")
@@ -577,11 +579,35 @@ function AddSystemPageInner() {
               <>
                 {/* Module 1: Basic Info */}
                 <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 flex flex-row items-center justify-between">
                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-[#1890ff]" />
                       基本信息配置
                     </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">是否将该课程保存为颗粒课</span>
+                      <Switch
+                        checked={courseType === "granular"}
+                        onCheckedChange={(checked) => {
+                          const newType = checked ? "granular" : "normal"
+                          if (newType === "granular" && courseType === "normal") {
+                            setPendingCourseType(newType)
+                            setShowGranularConfirm(true)
+                          } else {
+                            setCourseType(newType)
+                            if (selectedNodeId) {
+                              setNodes((prev) =>
+                                prev.map((n) =>
+                                  n.id === selectedNodeId
+                                    ? { ...n, type: newType === "granular" ? "original" : "normal" }
+                                    : n
+                                )
+                              )
+                            }
+                          }
+                        }}
+                      />
+                    </div>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -597,39 +623,6 @@ function AddSystemPageInner() {
                       <div className="space-y-1.5">
                         <Label className="text-xs">预计课时</Label>
                         <Input type="number" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="请输入课时数" className="h-9 text-sm" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">类型</Label>
-                        <Select
-                          value={courseType}
-                          onValueChange={(v) => {
-                            const newType = v as "normal" | "granular"
-                            if (newType === "granular" && courseType === "normal") {
-                              setPendingCourseType(newType)
-                              setShowGranularConfirm(true)
-                            } else {
-                              setCourseType(newType)
-                              // update node type
-                              if (selectedNodeId) {
-                                setNodes((prev) =>
-                                  prev.map((n) =>
-                                    n.id === selectedNodeId
-                                      ? { ...n, type: newType === "granular" ? "original" : "normal" }
-                                      : n
-                                  )
-                                )
-                              }
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="h-9 text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="normal">普通课程</SelectItem>
-                            <SelectItem value="granular">颗粒课</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs">难度等级</Label>
@@ -710,6 +703,7 @@ function AddSystemPageInner() {
                     <EvaluationMethodSelector
                       selectedKeys={selectedEvalMethods}
                       onChange={setSelectedEvalMethods}
+                      isGranular={isGranularNode}
                     />
                   </CardContent>
                 </Card>
@@ -728,7 +722,7 @@ function AddSystemPageInner() {
                       methodOptions={[
                         { key: "paper", label: "试卷", icon: <ClipboardList className="h-5 w-5" />, color: "bg-green-50 text-green-600 border-green-200", desc: "使用固定试卷进行考核" },
                         { key: "question_bank", label: "题库", icon: <Database className="h-5 w-5" />, color: "bg-orange-50 text-orange-600 border-orange-200", desc: "从题库选题组成测评资源" },
-                        { key: "exam", label: "考试", icon: <BookOpen className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "组织标准化考试进行考核" },
+                        { key: "exam", label: "作业", icon: <BookOpen className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "组织标准化作业进行考核" },
                         { key: "quiz", label: "随堂测", icon: <FileQuestion className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", desc: "课堂即时测验" },
                       ]}
                       configs={evalConfigs}

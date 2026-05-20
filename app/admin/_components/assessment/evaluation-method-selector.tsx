@@ -22,16 +22,17 @@ export interface EvalMethodOption {
 interface EvaluationMethodSelectorProps {
   selectedKeys: string[]
   onChange: (keys: string[]) => void
+  isGranular?: boolean
 }
 
 const evaluationMethodOptions: EvalMethodOption[] = [
   { key: "paper", label: "试卷", icon: <ClipboardList className="h-5 w-5" />, color: "bg-green-50 text-green-600 border-green-200", available: true, desc: "使用固定试卷进行考核" },
   { key: "question_bank", label: "题库", icon: <Database className="h-5 w-5" />, color: "bg-orange-50 text-orange-600 border-orange-200", available: true, desc: "从题库选题组成测评资源" },
-  { key: "exam", label: "考试", icon: <BookOpen className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", available: true, desc: "组织标准化考试进行考核" },
+  { key: "exam", label: "作业", icon: <BookOpen className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", available: true, desc: "组织标准化作业进行考核" },
   { key: "quiz", label: "随堂测", icon: <FileQuestion className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", available: true, desc: "课堂即时测验" },
 ]
 
-export function EvaluationMethodSelector({ selectedKeys, onChange }: EvaluationMethodSelectorProps) {
+export function EvaluationMethodSelector({ selectedKeys, onChange, isGranular }: EvaluationMethodSelectorProps) {
   const toggleMethod = (key: string) => {
     const opts = evaluationMethodOptions.find((o) => o.key === key)
     if (!opts || !opts.available) return
@@ -39,10 +40,14 @@ export function EvaluationMethodSelector({ selectedKeys, onChange }: EvaluationM
     onChange(enabled ? selectedKeys.filter((m) => m !== key) : [...selectedKeys, key])
   }
 
+  const visibleOptions = isGranular
+    ? evaluationMethodOptions.filter((o) => o.key !== "quiz")
+    : evaluationMethodOptions
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        {evaluationMethodOptions.map((method) => {
+        {visibleOptions.map((method) => {
           const enabled = selectedKeys.includes(method.key)
           return (
             <button

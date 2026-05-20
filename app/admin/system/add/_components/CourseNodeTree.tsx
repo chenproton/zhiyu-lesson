@@ -242,20 +242,9 @@ export default function CourseNodeTree({
           <span className="flex-1 truncate" title={node.name}>
             {node.name}
           </span>
-          {isQuote && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded shrink-0 bg-blue-50 text-blue-600 border border-blue-200 flex items-center gap-0.5">
-              <Lock className="w-2.5 h-2.5" />
-              引用
-            </span>
-          )}
-          {node.type === 'original' && (
-            <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS[node.type]}`}>
-              {NODE_REF_TYPE_LABELS[node.type]}
-            </span>
-          )}
-          {node.type === 'clone' && (
-            <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS[node.type]}`}>
-              克隆
+          {(node.type === 'original' || node.type === 'quote') && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS['original']}`}>
+              {NODE_REF_TYPE_LABELS['original']}
             </span>
           )}
           <DropdownMenu>
@@ -386,9 +375,9 @@ export default function CourseNodeTree({
               }}
             >
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="clone">克隆其他颗粒课</TabsTrigger>
-                <TabsTrigger value="quote">引用其他颗粒课</TabsTrigger>
-                <TabsTrigger value="normal">新建普通课程</TabsTrigger>
+                <TabsTrigger value="normal">上传节点课程资源</TabsTrigger>
+                <TabsTrigger value="clone">克隆颗粒课</TabsTrigger>
+                <TabsTrigger value="quote">引用颗粒课</TabsTrigger>
               </TabsList>
 
               {/* Clone tab */}
