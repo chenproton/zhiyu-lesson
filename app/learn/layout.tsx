@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { PlatformShell } from "@/platform-navigation-shell"
+import { PlatformShell } from "@/components/platform-shell"
 import { learnNavigationConfig } from "@/lib/navigation-config"
 
 export default function LearnLayout({

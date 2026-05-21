@@ -1,6 +1,6 @@
 "use client"
 
-import { PlatformShell } from "@/platform-navigation-shell"
+import { PlatformShell } from "@/components/platform-shell"
 import { adminNavigationConfig } from "@/lib/navigation-config"
 
 export default function AdminLayout({
