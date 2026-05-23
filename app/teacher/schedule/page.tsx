@@ -18,6 +18,8 @@ import {
   MapPin,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
+  ChevronDown,
+  Settings2,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { EvaluationConfigModal, type EvalMethodKey } from "./_components/evaluation-config-modal"
 
 type ScheduleType = "scene" | "course"
 
@@ -223,70 +226,62 @@ function ScheduleCard({
   onGoClass?: (course: ScheduleItem) => void
 }) {
   const t = TYPE_MAP[course.type]
-  const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="group relative rounded-md border border-gray-100 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-      <div
-        className="flex items-center justify-between px-3 py-2.5 cursor-pointer"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <span className="text-sm font-medium text-gray-800 truncate">{course.name}</span>
-          <span className="text-xs text-gray-400">{course.time}</span>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0 ml-2">
-          {t.icon}
+    <div className={`group relative rounded-xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-gray-200 overflow-hidden ${course.type === "course" ? "border-l-4 border-l-blue-400 border-gray-100" : "border-l-4 border-l-purple-400 border-gray-100"}`}>
+      <div className="px-4 py-3.5">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h4 className="text-sm font-semibold text-gray-800 leading-snug">{course.name}</h4>
           <Badge
             variant="outline"
-            className={`text-xs font-normal border-current ${t.color} ${t.bg}`}
+            className={`text-[10px] font-medium border-current shrink-0 mt-0.5 ${t.color} ${t.bg}`}
           >
             {t.label}
           </Badge>
         </div>
-      </div>
 
-      {expanded && (
-        <div className="px-3 pb-3 border-t border-gray-50 pt-2 space-y-2">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+          <div className={`w-1.5 h-1.5 rounded-full ${course.type === "course" ? "bg-blue-500" : "bg-purple-500"}`} />
+          <span className="font-medium">{course.time}</span>
+        </div>
+
+        <div className="space-y-1.5 mb-3">
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <MapPin className="w-3 h-3" />
+            <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
             <span>{course.location || "教学楼 A-301"}</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Users className="w-3 h-3" />
-            <span>对象年级：{course.grade || "2023级"}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Users className="w-3 h-3" />
-            <span>对象班级：{course.className || "软件工程1班"}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 text-xs flex-1 border-[#1890ff] text-[#1890ff] hover:bg-[#e6f7ff]"
-              onClick={(e) => {
-                e.stopPropagation()
-                onPrep?.(course)
-              }}
-            >
-              <BookOpen className="w-3 h-3 mr-1" />
-              前往备课
-            </Button>
-            <Button
-              size="sm"
-              className="h-7 text-xs flex-1 bg-[#1890ff] hover:bg-[#40a9ff]"
-              onClick={(e) => {
-                e.stopPropagation()
-                onGoClass?.(course)
-              }}
-            >
-              <MonitorPlay className="w-3 h-3 mr-1" />
-              前往上课
-            </Button>
+            <Users className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <span>{course.grade || "2023级"} · {course.className || "软件工程1班"}</span>
           </div>
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs flex-1 border-[#1890ff] text-[#1890ff] hover:bg-[#e6f7ff]"
+            onClick={(e) => {
+              e.stopPropagation()
+              onPrep?.(course)
+            }}
+          >
+            <BookOpen className="w-3.5 h-3.5 mr-1" />
+            前往备课
+          </Button>
+          <Button
+            size="sm"
+            className="h-8 text-xs flex-1 bg-[#1890ff] hover:bg-[#40a9ff]"
+            onClick={(e) => {
+              e.stopPropagation()
+              onGoClass?.(course)
+            }}
+          >
+            <MonitorPlay className="w-3.5 h-3.5 mr-1" />
+            前往上课
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -305,7 +300,7 @@ function WorkspaceScheduleList({
   const items = schedules.flatMap((day) =>
     day.courses
       .filter((c) => c.type === filterType)
-      .map((c) => ({ ...c, dayLabel: day.day, isPast: isCoursePast(c.date) }))
+      .map((c) => ({ ...c, dayLabel: day.day }))
   )
 
   if (items.length === 0) {
@@ -326,7 +321,7 @@ function WorkspaceScheduleList({
             selectedId === item.id
               ? "border-[#1890ff] bg-[#e6f7ff] shadow-sm"
               : "border-gray-100 bg-white hover:border-gray-200"
-          } ${item.isPast ? "opacity-50 grayscale" : ""}`}
+          }`}
         >
           <div className="flex items-center justify-between mb-1">
             <span className={`text-sm font-medium ${selectedId === item.id ? "text-[#1890ff]" : "text-gray-800"}`}>
@@ -672,10 +667,17 @@ export default function SmartClassroomPage() {
   // Course workspace state
   const [selectedCourseScheduleId, setSelectedCourseScheduleId] = useState<string | null>(null)
   const [selectedCourseNodes, setSelectedCourseNodes] = useState<string[]>([])
+  const [courseRelationExpanded, setCourseRelationExpanded] = useState(false)
 
   // Scene workspace state
   const [selectedSceneScheduleId, setSelectedSceneScheduleId] = useState<string | null>(null)
   const [selectedSceneTasks, setSelectedSceneTasks] = useState<string[]>([])
+  const [sceneRelationExpanded, setSceneRelationExpanded] = useState(false)
+
+  // Evaluation config modal state
+  const [evalModalOpen, setEvalModalOpen] = useState(false)
+  const [evalModalTaskName, setEvalModalTaskName] = useState("")
+  const [evalModalMethods, setEvalModalMethods] = useState<EvalMethodKey[]>([])
 
   const weekLabel = useMemo(() => {
     const base = new Date(2023, 9, 16)
@@ -698,117 +700,213 @@ export default function SmartClassroomPage() {
     alert(`前往上课：${course.name}`)
   }
 
+  // Deterministically assign 1-6 random evaluation methods per task
+  const getTaskEvalMethods = useMemo(() => {
+    const allMethods: EvalMethodKey[] = ["random_draw", "review", "paper", "question_bank", "homework", "outcome"]
+    const cache = new Map<string, EvalMethodKey[]>()
+    return (taskId: string): EvalMethodKey[] => {
+      if (cache.has(taskId)) return cache.get(taskId)!
+      let hash = 0
+      for (let i = 0; i < taskId.length; i++) {
+        hash = ((hash << 5) - hash + taskId.charCodeAt(i)) | 0
+      }
+      const count = (Math.abs(hash) % 6) + 1
+      const shuffled = [...allMethods].sort((a, b) => {
+        const ha = ((hash + a.charCodeAt(0)) % 7) - ((hash + b.charCodeAt(0)) % 7)
+        return ha
+      })
+      const methods = shuffled.slice(0, count)
+      cache.set(taskId, methods)
+      return methods
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#f0f2f5]">
-      {/* Page Header */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-[1440px] mx-auto px-6 py-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold flex items-center gap-2">
-                <Layers className="w-5 h-5 text-[#1890ff]" />
-                智慧课堂管理
-              </h1>
-              <p className="text-muted-foreground mt-1">教学日程与备课系统</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-md">
-                <CalendarIcon className="w-4 h-4" />
-                <span>2023年10月 第3周</span>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* Page Header */}
+        <div className="bg-white border-b border-gray-100">
+          <div className="max-w-[1440px] mx-auto px-6 py-4">
+            {/* 第一行：标题 + Tabs */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-semibold flex items-center gap-2 text-gray-900">
+                  <Layers className="w-5 h-5 text-[#1890ff]" />
+                  智慧课堂管理
+                </h1>
+                <p className="text-xs text-gray-400 mt-0.5">教学日程与备课系统</p>
               </div>
+              <TabsList className="bg-gray-50/80 border border-gray-100 shadow-sm h-9">
+                <TabsTrigger
+                  value="schedule"
+                  className="text-xs data-[state=active]:bg-[#1890ff] data-[state=active]:text-white data-[state=active]:shadow-sm px-3"
+                >
+                  <CalendarIcon className="w-3.5 h-3.5 mr-1" />
+                  教学日程
+                </TabsTrigger>
+                <TabsTrigger
+                  value="workspace-course"
+                  className="text-xs data-[state=active]:bg-[#1890ff] data-[state=active]:text-white data-[state=active]:shadow-sm px-3"
+                >
+                  <BookOpen className="w-3.5 h-3.5 mr-1" />
+                  课程备课
+                </TabsTrigger>
+                <TabsTrigger
+                  value="workspace-scene"
+                  className="text-xs data-[state=active]:bg-[#1890ff] data-[state=active]:text-white data-[state=active]:shadow-sm px-3"
+                >
+                  <Layers className="w-3.5 h-3.5 mr-1" />
+                  场景备课
+                </TabsTrigger>
+              </TabsList>
             </div>
+
+            {/* 第二行：工具栏（根据 tab 变化） */}
+            {activeTab === "schedule" && (
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1">
+                    <Button size="sm" className="h-7 text-xs bg-white text-[#1890ff] shadow-sm hover:bg-white hover:text-[#1890ff]">周视图</Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs text-gray-500 hover:text-gray-700">月视图</Button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => setWeekOffset((w) => w - 1)} className="p-1 rounded hover:bg-gray-100 text-gray-500 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+                    <span className="text-sm text-gray-700 font-medium min-w-[160px] text-center">{weekLabel}</span>
+                    <button onClick={() => setWeekOffset((w) => w + 1)} className="p-1 rounded hover:bg-gray-100 text-gray-500 transition-colors"><ChevronRightIcon className="w-4 h-4" /></button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-5 text-xs">
+                  <div className="flex items-center gap-1.5"><span className="inline-block w-2 h-2 rounded-full bg-purple-500 ring-2 ring-purple-100" /><span className="text-gray-500">实践场景</span></div>
+                  <div className="flex items-center gap-1.5"><span className="inline-block w-2 h-2 rounded-full bg-blue-500 ring-2 ring-blue-100" /><span className="text-gray-500">课程</span></div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "workspace-course" && (
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <BookOpen className="w-3.5 h-3.5 text-[#1890ff]" />
+                  <span>课程备课工作台</span>
+                  <span className="text-gray-300">|</span>
+                  <span>请从左侧选择一个课程日程开始备课</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] font-normal text-gray-500 h-6">
+                    自动保存
+                  </Badge>
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                    <Save className="w-3 h-3" />
+                    保存
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                    <Eye className="w-3 h-3" />
+                    预览
+                  </Button>
+                  <Button size="sm" className="h-7 text-xs gap-1 bg-[#1890ff] hover:bg-[#40a9ff]">
+                    <Send className="w-3 h-3" />
+                    提交
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "workspace-scene" && (
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Layers className="w-3.5 h-3.5 text-purple-500" />
+                  <span>实践场景备课工作台</span>
+                  <span className="text-gray-300">|</span>
+                  <span>请从左侧选择一个场景日程开始备课</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] font-normal text-gray-500 h-6">
+                    自动保存
+                  </Badge>
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                    <Save className="w-3 h-3" />
+                    保存
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                    <Eye className="w-3 h-3" />
+                    预览
+                  </Button>
+                  <Button size="sm" className="h-7 text-xs gap-1 bg-[#1890ff] hover:bg-[#40a9ff]">
+                    <Send className="w-3 h-3" />
+                    提交
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-[1440px] mx-auto px-6 py-5">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-4">
-          <TabsList className="w-fit bg-white border border-gray-100 shadow-sm">
-            <TabsTrigger
-              value="schedule"
-              className="data-[state=active]:bg-[#1890ff] data-[state=active]:text-white data-[state=active]:shadow-sm"
-            >
-              <CalendarIcon className="w-4 h-4 mr-1.5" />
-              教学日程
-            </TabsTrigger>
-            <TabsTrigger
-              value="workspace-course"
-              className="data-[state=active]:bg-[#1890ff] data-[state=active]:text-white data-[state=active]:shadow-sm"
-            >
-              <BookOpen className="w-4 h-4 mr-1.5" />
-              课程备课工作台
-            </TabsTrigger>
-            <TabsTrigger
-              value="workspace-scene"
-              className="data-[state=active]:bg-[#1890ff] data-[state=active]:text-white data-[state=active]:shadow-sm"
-            >
-              <Layers className="w-4 h-4 mr-1.5" />
-              实践场景备课工作台
-            </TabsTrigger>
-          </TabsList>
-
+        {/* Main Content */}
+        <div className="px-6 py-5">
           {/* 教学日程 Tab */}
           <TabsContent value="schedule" className="mt-0">
-            <div className="flex flex-col gap-4">
-              {/* Toolbar */}
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1">
-                        <Button size="sm" className="bg-white text-[#1890ff] shadow-sm hover:bg-white hover:text-[#1890ff]">周视图</Button>
-                        <Button size="sm" variant="ghost" className="text-gray-500 hover:text-gray-700">月视图</Button>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => setWeekOffset((w) => w - 1)} className="p-1 rounded hover:bg-gray-100 text-gray-500"><ChevronLeft className="w-4 h-4" /></button>
-                        <span className="text-sm text-gray-600 min-w-[180px] text-center">{weekLabel}</span>
-                        <button onClick={() => setWeekOffset((w) => w + 1)} className="p-1 rounded hover:bg-gray-100 text-gray-500"><ChevronRightIcon className="w-4 h-4" /></button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-5 text-sm">
-                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-purple-500 ring-2 ring-purple-100" /><span className="text-gray-600">实践场景</span></div>
-                        <div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-blue-100" /><span className="text-gray-600">课程</span></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
+            <div className="max-w-[1440px] mx-auto">
               {/* Calendar Grid */}
-              <div className="grid grid-cols-7 gap-3">
-                {schedule.map((day) => (
-                  <div
-                    key={day.day}
-                    className={`flex flex-col gap-3 rounded-xl p-4 min-h-[420px] ${day.isToday ? "bg-[#f0f7ff] ring-2 ring-[#1890ff]" : "bg-white shadow-sm"}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-800">{day.day} ({day.date})</span>
-                      {day.isToday && <Badge className="bg-[#1890ff] text-white text-xs font-normal hover:bg-[#1890ff]">今日</Badge>}
-                    </div>
+              <div className="relative">
+                {/* 左滑提示 */}
+                <div className="absolute left-0 top-0 bottom-3 w-8 bg-gradient-to-r from-[#f0f2f5] to-transparent pointer-events-none z-10 rounded-l-xl" />
+                {/* 右滑提示 */}
+                <div className="absolute right-0 top-0 bottom-3 w-8 bg-gradient-to-l from-[#f0f2f5] to-transparent pointer-events-none z-10 rounded-r-xl" />
+                <div className="overflow-x-auto pb-3" style={{ scrollbarWidth: "thin", scrollbarColor: "#d1d5db transparent" }}>
+                  <div className="flex gap-4 min-w-max px-1">
+                    {schedule.map((day) => (
+                      <div
+                        key={day.day}
+                        className={`flex flex-col gap-3 rounded-xl p-4 min-h-[460px] w-[300px] flex-shrink-0 ${
+                          day.isToday
+                            ? "bg-gradient-to-b from-[#f0f7ff] to-white ring-2 ring-[#1890ff] shadow-md"
+                            : "bg-white shadow-sm border border-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between pb-2 border-b border-dashed border-gray-200">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-base font-bold ${day.isToday ? "text-[#1890ff]" : "text-gray-800"}`}>
+                              {day.day}
+                            </span>
+                            <span className="text-xs text-gray-400 font-medium">{day.date}</span>
+                          </div>
+                          {day.isToday && (
+                            <Badge className="bg-[#1890ff] text-white text-[10px] font-medium hover:bg-[#1890ff] px-2 py-0.5">
+                              今日
+                            </Badge>
+                          )}
+                        </div>
 
-                    <div className="flex flex-col gap-2.5">
-                      {day.courses.map((course) => (
-                        <ScheduleCard
-                          key={course.id}
-                          course={course}
-                          onPrep={handleGoPrep}
-                          onGoClass={handleGoClass}
-                        />
-                      ))}
-                    </div>
+                        <div className="flex flex-col gap-3 flex-1">
+                          {day.courses.length === 0 ? (
+                            <div className="flex-1 flex flex-col items-center justify-center text-gray-300 gap-2 min-h-[120px]">
+                              <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+                                <CalendarIcon className="w-5 h-5 text-gray-300" />
+                              </div>
+                              <span className="text-xs">暂无安排</span>
+                            </div>
+                          ) : (
+                            day.courses.map((course) => (
+                              <ScheduleCard
+                                key={course.id}
+                                course={course}
+                                onPrep={handleGoPrep}
+                                onGoClass={handleGoClass}
+                              />
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </TabsContent>
 
           {/* 课程备课工作台 Tab */}
           <TabsContent value="workspace-course" className="mt-0">
-            <div className="flex flex-col gap-4 h-[calc(100vh-180px)]">
-              <div className="flex gap-4 flex-1 min-h-0">
+            <div className="flex gap-4 h-[calc(100vh-152px)]">
                 {/* Left: Schedule List */}
                 <Card className="w-[280px] border-0 shadow-sm flex flex-col shrink-0">
                   <CardHeader className="pb-3">
@@ -830,73 +928,83 @@ export default function SmartClassroomPage() {
                 {/* Right: Editor Area */}
                 <Card className="flex-1 border-0 shadow-sm flex flex-col min-h-0">
                   <CardHeader className="pb-3 border-b border-gray-50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CardTitle className="text-sm font-semibold text-gray-800">
-                          备课内容编辑区
-                        </CardTitle>
-                        <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
-                          <button
-                            onClick={() => setPrepStage("pre")}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                              prepStage === "pre" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                            }`}
-                          >
-                            课前环节
-                          </button>
-                          <button
-                            onClick={() => setPrepStage("in")}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                              prepStage === "in" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                            }`}
-                          >
-                            课中环节
-                          </button>
-                          <button
-                            onClick={() => setPrepStage("post")}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                              prepStage === "post" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                            }`}
-                          >
-                            课后环节
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs font-normal text-gray-500">
-                          自动保存
-                        </Badge>
-                        <Button variant="outline" size="sm" className="gap-1.5">
-                          <Save className="w-4 h-4" />
-                          保存
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1.5">
-                          <Eye className="w-4 h-4" />
-                          预览
-                        </Button>
-                        <Button size="sm" className="gap-1.5 bg-[#1890ff] hover:bg-[#40a9ff]">
-                          <Send className="w-4 h-4" />
-                          提交
-                        </Button>
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-sm font-semibold text-gray-800">
+                        备课内容编辑区
+                      </CardTitle>
+                      <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
+                        <button
+                          onClick={() => setPrepStage("pre")}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            prepStage === "pre" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          课前环节
+                        </button>
+                        <button
+                          onClick={() => setPrepStage("in")}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            prepStage === "in" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          课中环节
+                        </button>
+                        <button
+                          onClick={() => setPrepStage("post")}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            prepStage === "post" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          课后环节
+                        </button>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-y-auto pt-4">
-                    {selectedCourseScheduleId ? (
-                      <div className="flex flex-col gap-6 max-w-3xl mx-auto">
-                        {/* 关联体系课/颗粒课 */}
-                        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+
+                  {/* 关联体系课/颗粒课 - 可折叠 */}
+                  {selectedCourseScheduleId && (
+                    <div className="border-b border-gray-50">
+                      <div
+                        className="flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                        onClick={() => setCourseRelationExpanded((v) => !v)}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center gap-2 shrink-0">
                             <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
-                            <h3 className="text-sm font-semibold text-gray-800">关联体系课/颗粒课</h3>
+                            <span className="text-sm font-medium text-gray-800">关联体系课/颗粒课</span>
                           </div>
+                          {selectedCourseNodes.length > 0 ? (
+                            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+                              <Badge variant="secondary" className="text-[10px] h-5 shrink-0">
+                                已关联 {selectedCourseNodes.length} 项
+                              </Badge>
+                              <span className="text-xs text-gray-400 truncate">
+                                {(() => {
+                                  const allLessons = CATALOG_DATA.flatMap((ch) => ch.children || [])
+                                  return selectedCourseNodes.map((id) => allLessons.find((n) => n.id === id)?.title).filter(Boolean).join("、")
+                                })()}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">未关联</span>
+                          )}
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 ml-2 transition-transform duration-200 ${courseRelationExpanded ? "rotate-180" : ""}`} />
+                      </div>
+                      {courseRelationExpanded && (
+                        <div className="px-5 pb-4 bg-gray-50/30">
                           <CourseRelationSelector
                             selectedIds={selectedCourseNodes}
                             onChange={setSelectedCourseNodes}
                           />
                         </div>
-                        <PrepContent stage={prepStage} />
-                      </div>
+                      )}
+                    </div>
+                  )}
+
+                  <CardContent className="flex-1 overflow-y-auto pt-4">
+                    {selectedCourseScheduleId ? (
+                      <PrepContent stage={prepStage} />
                     ) : (
                       <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
                         <BookOpen className="w-10 h-10 text-gray-300" />
@@ -906,13 +1014,11 @@ export default function SmartClassroomPage() {
                   </CardContent>
                 </Card>
               </div>
-            </div>
           </TabsContent>
 
           {/* 实践场景备课工作台 Tab */}
           <TabsContent value="workspace-scene" className="mt-0">
-            <div className="flex flex-col gap-4 h-[calc(100vh-180px)]">
-              <div className="flex gap-4 flex-1 min-h-0">
+            <div className="flex gap-4 h-[calc(100vh-152px)]">
                 {/* Left: Schedule List */}
                 <Card className="w-[280px] border-0 shadow-sm flex flex-col shrink-0">
                   <CardHeader className="pb-3">
@@ -934,73 +1040,145 @@ export default function SmartClassroomPage() {
                 {/* Right: Editor Area */}
                 <Card className="flex-1 border-0 shadow-sm flex flex-col min-h-0">
                   <CardHeader className="pb-3 border-b border-gray-50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CardTitle className="text-sm font-semibold text-gray-800">
-                          备课内容编辑区
-                        </CardTitle>
-                        <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
-                          <button
-                            onClick={() => setPrepStage("pre")}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                              prepStage === "pre" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                            }`}
-                          >
-                            课前环节
-                          </button>
-                          <button
-                            onClick={() => setPrepStage("in")}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                              prepStage === "in" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                            }`}
-                          >
-                            课中环节
-                          </button>
-                          <button
-                            onClick={() => setPrepStage("post")}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                              prepStage === "post" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
-                            }`}
-                          >
-                            课后环节
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs font-normal text-gray-500">
-                          自动保存
-                        </Badge>
-                        <Button variant="outline" size="sm" className="gap-1.5">
-                          <Save className="w-4 h-4" />
-                          保存
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1.5">
-                          <Eye className="w-4 h-4" />
-                          预览
-                        </Button>
-                        <Button size="sm" className="gap-1.5 bg-[#1890ff] hover:bg-[#40a9ff]">
-                          <Send className="w-4 h-4" />
-                          提交
-                        </Button>
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-sm font-semibold text-gray-800">
+                        备课内容编辑区
+                      </CardTitle>
+                      <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-0.5">
+                        <button
+                          onClick={() => setPrepStage("pre")}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            prepStage === "pre" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          课前环节
+                        </button>
+                        <button
+                          onClick={() => setPrepStage("in")}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            prepStage === "in" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          课中环节
+                        </button>
+                        <button
+                          onClick={() => setPrepStage("post")}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            prepStage === "post" ? "bg-white text-[#1890ff] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          课后环节
+                        </button>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-y-auto pt-4">
-                    {selectedSceneScheduleId ? (
-                      <div className="flex flex-col gap-6 max-w-3xl mx-auto">
-                        {/* 关联场景 */}
-                        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+
+                  {/* 关联场景/任务 - 可折叠 */}
+                  {selectedSceneScheduleId && (
+                    <div className="border-b border-gray-50">
+                      <div
+                        className="flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                        onClick={() => setSceneRelationExpanded((v) => !v)}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center gap-2 shrink-0">
                             <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
-                            <h3 className="text-sm font-semibold text-gray-800">关联场景</h3>
+                            <span className="text-sm font-medium text-gray-800">关联场景/任务</span>
                           </div>
+                          {selectedSceneTasks.length > 0 ? (
+                            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+                              <Badge variant="secondary" className="text-[10px] h-5 shrink-0">
+                                已关联 {selectedSceneTasks.length} 项
+                              </Badge>
+                              <span className="text-xs text-gray-400 truncate">
+                                {(() => {
+                                  const allTasks = SCENE_TASK_DATA.flatMap((s) => s.tasks)
+                                  return selectedSceneTasks.map((id) => allTasks.find((t) => t.id === id)?.name).filter(Boolean).join("、")
+                                })()}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">未关联</span>
+                          )}
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 ml-2 transition-transform duration-200 ${sceneRelationExpanded ? "rotate-180" : ""}`} />
+                      </div>
+                      {sceneRelationExpanded && (
+                        <div className="px-5 pb-4 bg-gray-50/30">
                           <SceneRelationSelector
                             selectedIds={selectedSceneTasks}
                             onChange={setSelectedSceneTasks}
                           />
                         </div>
+                      )}
+                    </div>
+                  )}
+
+                  <CardContent className="flex-1 overflow-y-auto pt-4 space-y-4">
+                    {selectedSceneScheduleId ? (
+                      <>
+                        {/* Selected task rows */}
+                        {selectedSceneTasks.length > 0 && (
+                          <div className="space-y-2">
+                            {selectedSceneTasks.map((taskId) => {
+                              const allTasks = SCENE_TASK_DATA.flatMap((s) => s.tasks)
+                              const task = allTasks.find((t) => t.id === taskId)
+                              if (!task) return null
+                              const methods = getTaskEvalMethods(taskId)
+                              return (
+                                <div
+                                  key={taskId}
+                                  className="flex items-center justify-between rounded-lg border border-gray-100 bg-white px-4 py-3 shadow-sm"
+                                >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full shrink-0" />
+                                    <span className="text-sm font-medium text-gray-800 truncate">{task.name}</span>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      {methods.map((m) => {
+                                        const labelMap: Record<string, string> = {
+                                          random_draw: "现场问答",
+                                          review: "现场评审",
+                                          paper: "试卷",
+                                          question_bank: "题库",
+                                          homework: "作业",
+                                          outcome: "成果评价",
+                                        }
+                                        const colorMap: Record<string, string> = {
+                                          random_draw: "bg-blue-50 text-blue-600 border-blue-200",
+                                          review: "bg-purple-50 text-purple-600 border-purple-200",
+                                          paper: "bg-green-50 text-green-600 border-green-200",
+                                          question_bank: "bg-orange-50 text-orange-600 border-orange-200",
+                                          homework: "bg-pink-50 text-pink-600 border-pink-200",
+                                          outcome: "bg-cyan-50 text-cyan-600 border-cyan-200",
+                                        }
+                                        return (
+                                          <Badge key={m} variant="outline" className={`text-[10px] h-5 px-1.5 ${colorMap[m]}`}>
+                                            {labelMap[m]}
+                                          </Badge>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs gap-1 shrink-0 ml-2"
+                                    onClick={() => {
+                                      setEvalModalTaskName(task.name)
+                                      setEvalModalMethods(methods)
+                                      setEvalModalOpen(true)
+                                    }}
+                                  >
+                                    <Settings2 className="h-3 w-3" />
+                                    测评方式配置
+                                  </Button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
                         <PrepContent stage={prepStage} />
-                      </div>
+                      </>
                     ) : (
                       <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
                         <Layers className="w-10 h-10 text-gray-300" />
@@ -1010,10 +1188,16 @@ export default function SmartClassroomPage() {
                   </CardContent>
                 </Card>
               </div>
-            </div>
           </TabsContent>
-        </Tabs>
-      </div>
+        </div>
+      </Tabs>
+
+      <EvaluationConfigModal
+        open={evalModalOpen}
+        onOpenChange={setEvalModalOpen}
+        taskName={evalModalTaskName}
+        methods={evalModalMethods}
+      />
     </div>
   )
 }
