@@ -6,12 +6,12 @@ const replacements = [
   { file: 'app/(public)/page.tsx', map: {
     "kechengqiantaixiangqingkelike.html": "/courses/granular/1",
     "kechengqiantaixiangqingtixike.html": "/courses/system/1",
-    "yingyongfuwuzhognxin.html": "http://47.251.48.187:3001/portal/apps",
+    "yingyongfuwuzhognxin.html": "http://111.170.170.202:3001/portal/apps",
   }},
   // admin granular
   { file: 'app/admin/granular/page.tsx', map: {
     "kechengqiantai.html": "/",
-    "yingyongfuwuzhognxin.html": "http://47.251.48.187:3001/portal/apps",
+    "yingyongfuwuzhognxin.html": "http://111.170.170.202:3001/portal/apps",
     "kechengkeliketianjia.html": "/admin/granular/add",
     "PlanA.html": "#",
   }},
@@ -23,7 +23,7 @@ const replacements = [
   // admin system
   { file: 'app/admin/system/page.tsx', map: {
     "kechengqiantai.html": "/",
-    "yingyongfuwuzhognxin.html": "http://47.251.48.187:3001/portal/apps",
+    "yingyongfuwuzhognxin.html": "http://111.170.170.202:3001/portal/apps",
     "kechengtixiketianjia.html": "/admin/system/add",
     "PlanA.html": "#",
   }},
@@ -34,7 +34,7 @@ const replacements = [
   // smart classroom
   { file: 'app/admin/smart-classroom/page.tsx', map: {
     "kechengqiantai.html": "/",
-    "yingyongfuwuzhognxin.html": "http://47.251.48.187:3001/portal/apps",
+    "yingyongfuwuzhognxin.html": "http://111.170.170.202:3001/portal/apps",
   }},
   // course detail granular
   { file: 'app/courses/granular/[id]/page.tsx', map: {
