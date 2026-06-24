@@ -14,6 +14,7 @@ import {
   Line,
 } from "recharts"
 import { MonitorPlay, Download, ClipboardCheck, FileBarChart } from "lucide-react"
+import { ClassSchedulePicker } from "../_components/class-schedule-picker"
 
 const videoData = [
   { course: "SQL注入", completion: 88 },
@@ -55,6 +56,8 @@ export default function ResourceAnalyticsPage() {
         <h1 className="text-2xl font-semibold">资源分析</h1>
         <p className="text-muted-foreground mt-1">分析教学资源的使用情况与学习效果</p>
       </div>
+
+      <ClassSchedulePicker />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>

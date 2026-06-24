@@ -251,7 +251,7 @@ export function PlatformSideNav({ config }: { config: PlatformNavigationConfig }
   }
 
   return (
-    <aside className="sticky top-14 flex h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col overflow-hidden border-r border-gray-100 bg-white">
+    <aside className="sticky top-14 flex h-[calc(100vh-3.5rem)] w-56 shrink-0 flex-col overflow-hidden overflow-y-auto border-r border-gray-100 bg-white">
       <div className="border-b border-gray-100 p-4">
         <div className="flex items-center gap-3">
           <Link
@@ -267,7 +267,7 @@ export function PlatformSideNav({ config }: { config: PlatformNavigationConfig }
         </div>
       </div>
 
-      <nav className="flex-1 p-3">
+      <nav className="flex-1 overflow-y-auto p-3">
         {config.sideNavItems.map((item) => {
           const Icon = resolvePlatformIcon(item.icon)
           const hasChildren = Boolean(item.children?.length)

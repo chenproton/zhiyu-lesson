@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Users, BookOpen, ClipboardCheck, UserCheck, Send } from "lucide-react"
+import { ClassSchedulePicker } from "../_components/class-schedule-picker"
 
 const scoreDist = [
   { range: "90-100", count: 8 },
@@ -69,6 +70,8 @@ export default function ClassAnalyticsPage() {
         <h1 className="text-2xl font-semibold">班级学情</h1>
         <p className="text-muted-foreground mt-1">查看班级整体学习数据与趋势分析</p>
       </div>
+
+      <ClassSchedulePicker />
 
       {/* 核心指标 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

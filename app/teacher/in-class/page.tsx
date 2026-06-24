@@ -20,6 +20,7 @@ import {
   ChevronRight as ChevronRightIcon,
   ChevronDown,
   Settings2,
+  CheckCircle2,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,6 +28,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -35,8 +39,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { EvaluationConfigModal, type EvalMethodKey } from "./_components/evaluation-config-modal"
+import { toast } from "sonner"
 
-type ScheduleType = "scene" | "course"
+type ScheduleType = "scene" | "course" | "hybrid"
 
 interface ScheduleItem {
   id: string
@@ -72,6 +77,12 @@ const TYPE_MAP: Record<
     bg: "bg-blue-50",
     icon: <BookOpen className="w-3.5 h-3.5 text-blue-500" />,
   },
+  hybrid: {
+    label: "混合课程",
+    color: "text-pink-600",
+    bg: "bg-pink-50",
+    icon: <MonitorPlay className="w-3.5 h-3.5 text-pink-500" />,
+  },
 }
 
 const WEEK_SCHEDULE: DaySchedule[] = [
@@ -90,6 +101,7 @@ const WEEK_SCHEDULE: DaySchedule[] = [
     courses: [
       { id: "c4", name: "CSRF攻击原理与防护", type: "course", time: "08:00-09:40", location: "教学楼 A-301", grade: "2023级", className: "软件工程1班", date: "10/17" },
       { id: "c5", name: "缓冲区溢出分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205", grade: "2023级", className: "网络安全2班", date: "10/17" },
+      { id: "h1", name: "Web前端开发混合课程", type: "hybrid", time: "14:00-15:40", location: "教学楼 A-201", grade: "2026级", className: "软件工程1班", date: "10/17" },
     ],
   },
   {
@@ -99,7 +111,7 @@ const WEEK_SCHEDULE: DaySchedule[] = [
     courses: [
       { id: "c6", name: "密码学基础", type: "course", time: "08:00-09:40", location: "教学楼 A-301", grade: "2023级", className: "软件工程1班", date: "10/18" },
       { id: "c7", name: "网络协议分析", type: "scene", time: "10:00-11:40", location: "实训楼 B-205", grade: "2022级", className: "信息安全1班", date: "10/18" },
-      { id: "c8", name: "Web应用安全扫描", type: "course", time: "14:00-15:40", location: "教学楼 A-302", grade: "2023级", className: "软件工程2班", date: "10/18" },
+      { id: "h2", name: "软件测试技术混合课程", type: "hybrid", time: "14:00-15:40", location: "实训楼 C-102", grade: "2026级", className: "软件工程2班", date: "10/18" },
     ],
   },
   {
@@ -116,7 +128,7 @@ const WEEK_SCHEDULE: DaySchedule[] = [
     courses: [
       { id: "c11", name: "安全编码规范", type: "course", time: "08:00-09:40", location: "教学楼 A-301", grade: "2023级", className: "软件工程1班", date: "10/20" },
       { id: "c12", name: "漏洞挖掘实践", type: "scene", time: "10:00-11:40", location: "实训楼 B-205", grade: "2023级", className: "网络安全2班", date: "10/20" },
-      { id: "c13", name: "应急响应流程", type: "scene", time: "14:00-15:40", location: "实训楼 B-206", grade: "2022级", className: "信息安全1班", date: "10/20" },
+      { id: "h3", name: "机器学习混合课程", type: "hybrid", time: "14:00-15:40", location: "机房 D-305", grade: "2026级", className: "人工智能1班", date: "10/20" },
     ],
   },
   { day: "周六", date: "10/21", courses: [] },
@@ -177,6 +189,9 @@ const COURSE_OPTIONS = [
   { id: "sys-2", name: "数据结构与算法", type: "体系课" },
   { id: "grain-1", name: "SQL注入原理与分类", type: "颗粒课" },
   { id: "grain-2", name: "缓冲区溢出分析", type: "颗粒课" },
+  { id: "hyb-1", name: "Web前端开发混合课程", type: "混合课程" },
+  { id: "hyb-2", name: "软件测试技术混合课程", type: "混合课程" },
+  { id: "hyb-3", name: "机器学习混合课程", type: "混合课程" },
 ]
 
 const SCENE_TASK_DATA = [
@@ -228,7 +243,11 @@ function ScheduleCard({
   const t = TYPE_MAP[course.type]
 
   return (
-    <div className={`group relative rounded-xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-gray-200 overflow-hidden ${course.type === "course" ? "border-l-4 border-l-blue-400 border-gray-100" : "border-l-4 border-l-purple-400 border-gray-100"}`}>
+    <div className={`group relative rounded-xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-gray-200 overflow-hidden border-l-4 ${
+      course.type === "course" ? "border-l-blue-400 border-gray-100" :
+      course.type === "hybrid" ? "border-l-pink-400 border-gray-100" :
+      "border-l-purple-400 border-gray-100"
+    }`}>
       <div className="px-4 py-3.5">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h4 className="text-sm font-semibold text-gray-800 leading-snug">{course.name}</h4>
@@ -241,7 +260,11 @@ function ScheduleCard({
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
-          <div className={`w-1.5 h-1.5 rounded-full ${course.type === "course" ? "bg-blue-500" : "bg-purple-500"}`} />
+          <div className={`w-1.5 h-1.5 rounded-full ${
+            course.type === "course" ? "bg-blue-500" :
+            course.type === "hybrid" ? "bg-pink-500" :
+            "bg-purple-500"
+          }`} />
           <span className="font-medium">{course.time}</span>
         </div>
 
@@ -330,7 +353,9 @@ function WorkspaceScheduleList({
             <Badge
               variant="outline"
               className={`text-[10px] font-normal border-current ${
-                item.type === "course" ? "text-blue-600 bg-blue-50" : "text-purple-600 bg-purple-50"
+                item.type === "course" ? "text-blue-600 bg-blue-50" :
+                item.type === "hybrid" ? "text-pink-600 bg-pink-50" :
+                "text-purple-600 bg-purple-50"
               }`}
             >
               {TYPE_MAP[item.type].label}
@@ -523,6 +548,119 @@ function SceneRelationSelector({
 }
 
 function PrepContent({ stage }: { stage: "pre" | "in" | "post" }) {
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogType, setDialogType] = useState<string>("")
+  const [dialogTitle, setDialogTitle] = useState("")
+
+  // Items added by dialogs
+  const [preQuestions, setPreQuestions] = useState<string[]>([])
+  const [coursewares, setCoursewares] = useState<string[]>([])
+  const [inClassQuestions, setInClassQuestions] = useState<string[]>([])
+  const [topics, setTopics] = useState<string[]>([])
+  const [homeworks, setHomeworks] = useState<string[]>([])
+  const [postQuestions, setPostQuestions] = useState<string[]>([])
+  const [extensions, setExtensions] = useState<string[]>([])
+
+  // Dialog form state
+  const [selectedBankItems, setSelectedBankItems] = useState<string[]>([])
+  const [newItemName, setNewItemName] = useState("")
+  const [batchScore, setBatchScore] = useState("")
+  const [targetItems, setTargetItems] = useState<string[]>([])
+
+  const questionBank = [
+    "HTML5 新特性有哪些？",
+    "CSS 盒模型包含哪些部分？",
+    "JavaScript 中 var/let/const 的区别？",
+    "什么是闭包，有什么应用场景？",
+    "Flexbox 布局的核心属性有哪些？",
+    "响应式设计的实现方式有哪些？",
+  ]
+
+  const openBankDialog = (title: string, type: string) => {
+    setDialogTitle(title)
+    setDialogType(type)
+    setSelectedBankItems([])
+    setDialogOpen(true)
+  }
+
+  const openAddDialog = (title: string, type: string) => {
+    setDialogTitle(title)
+    setDialogType(type)
+    setNewItemName("")
+    setDialogOpen(true)
+  }
+
+  const openBatchDialog = (title: string, items: string[]) => {
+    setDialogTitle(title)
+    setDialogType("batch-score")
+    setTargetItems(items)
+    setBatchScore("")
+    setDialogOpen(true)
+  }
+
+  const toggleBankItem = (item: string) => {
+    setSelectedBankItems((prev) =>
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+    )
+  }
+
+  const handleConfirm = () => {
+    if (dialogType === "bank-pre") {
+      setPreQuestions((prev) => [...prev, ...selectedBankItems])
+      toast.success(`已导入 ${selectedBankItems.length} 道课前预习题`)
+    } else if (dialogType === "bank-in") {
+      setInClassQuestions((prev) => [...prev, ...selectedBankItems])
+      toast.success(`已导入 ${selectedBankItems.length} 道随堂测验题`)
+    } else if (dialogType === "bank-post") {
+      setPostQuestions((prev) => [...prev, ...selectedBankItems])
+      toast.success(`已导入 ${selectedBankItems.length} 道课后测验题`)
+    } else if (dialogType === "add-resource") {
+      if (!newItemName) { toast.error("请输入资源名称"); return }
+      setCoursewares((prev) => [...prev, newItemName])
+      toast.success(`已添加课件资源：${newItemName}`)
+    } else if (dialogType === "add-topic") {
+      if (!newItemName) { toast.error("请输入话题名称"); return }
+      setTopics((prev) => [...prev, newItemName])
+      toast.success(`已添加讨论话题：${newItemName}`)
+    } else if (dialogType === "add-homework") {
+      if (!newItemName) { toast.error("请输入作业名称"); return }
+      setHomeworks((prev) => [...prev, newItemName])
+      toast.success(`已添加课后作业：${newItemName}`)
+    } else if (dialogType === "add-extension") {
+      if (!newItemName) { toast.error("请输入资料名称"); return }
+      setExtensions((prev) => [...prev, newItemName])
+      toast.success(`已添加拓展资料：${newItemName}`)
+    } else if (dialogType === "batch-score") {
+      toast.success(`已为 ${targetItems.length} 项设置分数：${batchScore} 分`)
+    }
+    setDialogOpen(false)
+  }
+
+  const renderItems = (items: string[], icon: React.ReactNode, emptyText: string, onRemove?: (item: string) => void) => {
+    if (items.length === 0) {
+      return (
+        <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
+          {icon}
+          {emptyText}
+        </div>
+      )
+    }
+    return (
+      <div className="space-y-2">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+            <span className="text-sm">{item}</span>
+            {onRemove && (
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(item)}>
+                <X className="h-4 w-4 text-gray-400" />
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <>
       {stage === "pre" && (
@@ -550,14 +688,11 @@ function PrepContent({ stage }: { stage: "pre" | "in" | "post" }) {
               <div className="w-1 h-4 bg-gradient-to-b from-[#1890ff] to-[#66b1ff] rounded-full" />
               <h3 className="text-sm font-semibold text-gray-800">课前预习</h3>
               <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">+ 从题库导入</Button>
-                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
+                <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]" onClick={() => openBankDialog("从题库导入课前预习", "bank-pre")}>+ 从题库导入</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openBatchDialog("批量设置课前预习分数", preQuestions)}>批量设置分数</Button>
               </div>
             </div>
-            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              暂无预习题目，请点击上方按钮导入
-            </div>
+            {renderItems(preQuestions, <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />, "暂无预习题目，请点击上方按钮导入", (item) => setPreQuestions((prev) => prev.filter((i) => i !== item)))}
           </div>
         </>
       )}
@@ -569,40 +704,31 @@ function PrepContent({ stage }: { stage: "pre" | "in" | "post" }) {
               <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
               <h3 className="text-sm font-semibold text-gray-800">课件资源</h3>
               <div className="ml-auto">
-                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 添加资源</Button>
+                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600" onClick={() => openAddDialog("添加课件资源", "add-resource")}>+ 添加资源</Button>
               </div>
             </div>
-            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-              <MonitorPlay className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              暂无课件资源，可上传PPT、PDF或视频
-            </div>
+            {renderItems(coursewares, <MonitorPlay className="w-8 h-8 mx-auto mb-2 text-gray-300" />, "暂无课件资源，可上传PPT、PDF或视频", (item) => setCoursewares((prev) => prev.filter((i) => i !== item)))}
           </div>
           <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
               <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
               <h3 className="text-sm font-semibold text-gray-800">随堂测验</h3>
               <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 从题库导入</Button>
-                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
+                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600" onClick={() => openBankDialog("从题库导入随堂测验", "bank-in")}>+ 从题库导入</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openBatchDialog("批量设置随堂测验分数", inClassQuestions)}>批量设置分数</Button>
               </div>
             </div>
-            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              暂无随堂测试题目
-            </div>
+            {renderItems(inClassQuestions, <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />, "暂无随堂测试题目", (item) => setInClassQuestions((prev) => prev.filter((i) => i !== item)))}
           </div>
           <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
               <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
               <h3 className="text-sm font-semibold text-gray-800">互动讨论</h3>
               <div className="ml-auto">
-                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600">+ 添加话题</Button>
+                <Button size="sm" className="h-7 text-xs bg-green-500 hover:bg-green-600" onClick={() => openAddDialog("添加讨论话题", "add-topic")}>+ 添加话题</Button>
               </div>
             </div>
-            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-              <Hand className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              暂无讨论话题，可添加投票或讨论主题
-            </div>
+            {renderItems(topics, <Hand className="w-8 h-8 mx-auto mb-2 text-gray-300" />, "暂无讨论话题，可添加投票或讨论主题", (item) => setTopics((prev) => prev.filter((i) => i !== item)))}
           </div>
         </>
       )}
@@ -614,44 +740,85 @@ function PrepContent({ stage }: { stage: "pre" | "in" | "post" }) {
               <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
               <h3 className="text-sm font-semibold text-gray-800">课后作业</h3>
               <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 添加作业</Button>
-                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
+                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600" onClick={() => openAddDialog("添加课后作业", "add-homework")}>+ 添加作业</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openBatchDialog("批量设置课后作业分数", homeworks)}>批量设置分数</Button>
               </div>
             </div>
-            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              暂无课后作业，可添加主观题或客观题
-            </div>
+            {renderItems(homeworks, <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />, "暂无课后作业，可添加主观题或客观题", (item) => setHomeworks((prev) => prev.filter((i) => i !== item)))}
           </div>
           <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
               <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
               <h3 className="text-sm font-semibold text-gray-800">课后测验</h3>
               <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 从题库导入</Button>
-                <Button size="sm" variant="outline" className="h-7 text-xs">批量设置分数</Button>
+                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600" onClick={() => openBankDialog("从题库导入课后测验", "bank-post")}>+ 从题库导入</Button>
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openBatchDialog("批量设置课后测验分数", postQuestions)}>批量设置分数</Button>
               </div>
             </div>
-            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-              <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              暂无课后测验题目
-            </div>
+            {renderItems(postQuestions, <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />, "暂无课后测验题目", (item) => setPostQuestions((prev) => prev.filter((i) => i !== item)))}
           </div>
           <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
               <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
               <h3 className="text-sm font-semibold text-gray-800">课后拓展</h3>
               <div className="ml-auto">
-                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600">+ 添加拓展资料</Button>
+                <Button size="sm" className="h-7 text-xs bg-purple-500 hover:bg-purple-600" onClick={() => openAddDialog("添加拓展资料", "add-extension")}>+ 添加拓展资料</Button>
               </div>
             </div>
-            <div className="min-h-[80px] rounded-lg border border-dashed border-gray-200 bg-gray-50/30 p-6 text-center text-sm text-gray-400">
-              <BookOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              暂无课后拓展资料，可添加推荐阅读或延伸学习资源
-            </div>
+            {renderItems(extensions, <BookOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />, "暂无课后拓展资料，可添加推荐阅读或延伸学习资源", (item) => setExtensions((prev) => prev.filter((i) => i !== item)))}
           </div>
         </>
       )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            {dialogType.startsWith("bank") && (
+              <DialogDescription>从题库中选择要导入的题目</DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            {dialogType.startsWith("bank") && (
+              <>
+                {questionBank.map((q) => {
+                  const checked = selectedBankItems.includes(q)
+                  return (
+                    <label
+                      key={q}
+                      onClick={() => toggleBankItem(q)}
+                      className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${checked ? "bg-blue-50 border-blue-300" : "hover:bg-muted/50"}`}
+                    >
+                      <Checkbox checked={checked} className="mt-0.5" />
+                      <span className="text-sm">{q}</span>
+                    </label>
+                  )
+                })}
+              </>
+            )}
+            {["add-resource", "add-topic", "add-homework", "add-extension"].includes(dialogType) && (
+              <div className="space-y-2">
+                <Label>名称</Label>
+                <Input value={newItemName} onChange={(e) => setNewItemName(e.target.value)} placeholder="请输入名称" />
+              </div>
+            )}
+            {dialogType === "batch-score" && (
+              <div className="space-y-2">
+                <Label>统一分数</Label>
+                <Input type="number" value={batchScore} onChange={(e) => setBatchScore(e.target.value)} placeholder="请输入分数" />
+                <p className="text-xs text-muted-foreground">将应用于 {targetItems.length} 项</p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>取消</Button>
+            <Button size="sm" onClick={handleConfirm}>
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              确认
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -687,12 +854,12 @@ export default function SmartClassroomPage() {
   }, [weekOffset])
 
   const handleGoPrep = (course: ScheduleItem) => {
-    if (course.type === "course") {
-      setActiveTab("workspace-course")
-      setSelectedCourseScheduleId(course.id)
-    } else {
+    if (course.type === "scene") {
       setActiveTab("workspace-scene")
       setSelectedSceneScheduleId(course.id)
+    } else {
+      setActiveTab("workspace-course")
+      setSelectedCourseScheduleId(course.id)
     }
   }
 

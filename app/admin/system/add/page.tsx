@@ -19,6 +19,7 @@ import {
   Info,
   Lock,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -419,11 +420,11 @@ function AddSystemPageInner() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-1">
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => toast.success("草稿已保存")}>
                 <Save className="h-4 w-4" />
                 保存草稿
               </Button>
-              <Button size="sm" className="gap-1 bg-[#1890ff] hover:bg-[#40a9ff]">
+              <Button size="sm" className="gap-1 bg-[#1890ff] hover:bg-[#40a9ff]" onClick={() => toast.success("课程已提交审核")}>
                 <Send className="h-4 w-4" />
                 提交
               </Button>
@@ -560,7 +561,7 @@ function AddSystemPageInner() {
                   <span>上次保存：2025-01-15 14:10</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="text-xs h-8">
+                  <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => toast.success("节点草稿已暂存")}>
                     <Save className="h-3 w-3 mr-1" />
                     暂存草稿
                   </Button>

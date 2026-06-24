@@ -1,7 +1,7 @@
 "use client"
 
 import { PlatformShell } from "@/components/platform-shell"
-import { teacherNavigationConfig } from "@/lib/navigation-config"
+import { unifiedNavigationConfig } from "@/lib/navigation-config"
 
 export default function TeacherLayout({
   children,
@@ -9,7 +9,7 @@ export default function TeacherLayout({
   children: React.ReactNode
 }) {
   return (
-    <PlatformShell config={teacherNavigationConfig}>
+    <PlatformShell config={unifiedNavigationConfig}>
       {children}
     </PlatformShell>
   )

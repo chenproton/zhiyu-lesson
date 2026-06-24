@@ -50,6 +50,8 @@ export default function HomePage() {
       result = result.filter((c) => c.type === "system")
     } else if (activeSort === "granular") {
       result = result.filter((c) => c.type === "granular")
+    } else if (activeSort === "hybrid") {
+      result = result.filter((c) => c.type === "hybrid")
     }
     if (search.trim()) {
       const kw = search.trim().toLowerCase()
@@ -62,6 +64,7 @@ export default function HomePage() {
     { label: "收录课程总数", value: courseStats.totalCourses, icon: BookOpen, color: "text-blue-600 bg-blue-100" },
     { label: "体系课总数", value: courseStats.systemCourses, icon: Link2, color: "text-indigo-600 bg-indigo-100" },
     { label: "颗粒课总数", value: courseStats.granularCourses, icon: Microscope, color: "text-emerald-600 bg-emerald-100" },
+    { label: "混合课程总数", value: courseStats.hybridCourses, icon: Layers, color: "text-purple-600 bg-purple-100" },
     { label: "知识点总数", value: courseStats.knowledgePoints, icon: Eye, color: "text-amber-600 bg-amber-100" },
   ]
 
@@ -72,6 +75,7 @@ export default function HomePage() {
     { key: "frontier", label: "前沿课程" },
     { key: "system", label: "体系课" },
     { key: "granular", label: "颗粒课" },
+    { key: "hybrid", label: "混合课程" },
   ]
 
   const tagColorMap: Record<string, string> = {
@@ -79,6 +83,7 @@ export default function HomePage() {
     "数智化通识课": "bg-green-100 text-green-700",
     "专业基础课": "bg-orange-100 text-orange-700",
     "专业核心课": "bg-purple-100 text-purple-700",
+    "专业拓展课": "bg-pink-100 text-pink-700",
   }
 
   return (
@@ -235,7 +240,7 @@ export default function HomePage() {
         {filteredCourses.map((course) => (
           <Link
             key={course.id}
-            href="/student.html"
+            href={course.type === "hybrid" ? `/learn/courses/hybrid/${course.id}` : "/student.html"}
           >
             <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer overflow-hidden group">
               {/* Cover */}

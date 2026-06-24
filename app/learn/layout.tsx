@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { PlatformShell } from "@/components/platform-shell"
-import { learnNavigationConfig } from "@/lib/navigation-config"
+import { unifiedNavigationConfig } from "@/lib/navigation-config"
 
 export default function LearnLayout({
   children,
@@ -13,7 +13,7 @@ export default function LearnLayout({
   const isPortal = pathname === "/learn" || pathname.startsWith("/learn/courses")
 
   const config = {
-    ...learnNavigationConfig,
+    ...unifiedNavigationConfig,
     hideSideNav: isPortal,
   }
 

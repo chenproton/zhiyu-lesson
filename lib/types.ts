@@ -1,5 +1,5 @@
 export type CourseStatus = 'draft' | 'pending' | 'rejected' | 'published'
-export type CourseType = 'system' | 'granular'
+export type CourseType = 'system' | 'granular' | 'hybrid'
 
 export interface Course {
   id: string
@@ -20,12 +20,25 @@ export interface Course {
   status: CourseStatus
   coverColor?: string
   courseTag?: string
+  /** 混合课程：线上学时 */
+  onlineHours?: number
+  /** 混合课程：线下学时 */
+  offlineHours?: number
+  /** 混合课程：线上成绩权重 */
+  onlineWeight?: number
+  /** 混合课程：线下成绩权重 */
+  offlineWeight?: number
+  /** 混合课程：学期 */
+  semester?: string
+  /** 混合课程：班级 */
+  className?: string
 }
 
 export interface CourseStats {
   totalCourses: number
   systemCourses: number
   granularCourses: number
+  hybridCourses: number
   knowledgePoints: number
 }
 
@@ -84,7 +97,20 @@ export const COURSE_TYPE_OPTIONS = [
   { value: 'all', label: '全部' },
   { value: 'system', label: '体系课' },
   { value: 'granular', label: '颗粒课' },
+  { value: 'hybrid', label: '混合课程' },
 ]
+
+export const COURSE_TYPE_LABELS: Record<CourseType, string> = {
+  system: '体系课',
+  granular: '颗粒课',
+  hybrid: '混合课程',
+}
+
+export const COURSE_TYPE_COLORS: Record<CourseType, string> = {
+  system: 'bg-blue-100 text-blue-700',
+  granular: 'bg-emerald-100 text-emerald-700',
+  hybrid: 'bg-purple-100 text-purple-700',
+}
 
 // ====== 体系课节点相关类型 ======
 

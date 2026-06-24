@@ -1,7 +1,7 @@
 "use client"
 
 import { PlatformShell } from "@/components/platform-shell"
-import { adminNavigationConfig } from "@/lib/navigation-config"
+import { unifiedNavigationConfig } from "@/lib/navigation-config"
 
 export default function AdminLayout({
   children,
@@ -9,7 +9,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <PlatformShell config={adminNavigationConfig}>
+    <PlatformShell config={unifiedNavigationConfig}>
       {children}
     </PlatformShell>
   )
