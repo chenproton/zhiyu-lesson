@@ -52,11 +52,11 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
     },
     {
       id: "course-open",
-      label: "智慧教学工作台",
+      label: "教学课时中心",
       icon: "layoutGrid",
       children: [
-        { id: "claim", label: "课程节次开课管理", href: "/teacher/claim", matchers: ["/teacher/claim"] },
-        { id: "my-class-hours", label: "我的课时", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
+        { id: "claim", label: "开课计划管理", href: "/teacher/claim", matchers: ["/teacher/claim"] },
+        { id: "my-class-hours", label: "我的课程表", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
         { id: "course-config", label: "课程模式配置", href: "/teacher/course-config", matchers: ["/teacher/course-config"], hidden: true },
         { id: "syllabus", label: "课程设计与大纲", href: "/teacher/syllabus", matchers: ["/teacher/syllabus"], hidden: true },
         { id: "grade-rules", label: "成绩规则配置", href: "/teacher/grade-rules", matchers: ["/teacher/grade-rules"], hidden: true },
@@ -217,11 +217,11 @@ export const teacherNavigationConfig: PlatformNavigationConfig = {
   sideNavItems: [
     {
       id: "course-open",
-      label: "智慧教学工作台",
+      label: "教学课时中心",
       icon: "layoutGrid",
       children: [
-        { id: "claim", label: "课程节次开课管理", href: "/teacher/claim", matchers: ["/teacher/claim"] },
-        { id: "my-class-hours", label: "我的课时", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
+        { id: "claim", label: "开课计划管理", href: "/teacher/claim", matchers: ["/teacher/claim"] },
+        { id: "my-class-hours", label: "我的课程表", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
         { id: "course-config", label: "课程模式配置", href: "/teacher/course-config", matchers: ["/teacher/course-config"], hidden: true },
         { id: "syllabus", label: "课程设计与大纲", href: "/teacher/syllabus", matchers: ["/teacher/syllabus"], hidden: true },
         { id: "grade-rules", label: "成绩规则配置", href: "/teacher/grade-rules", matchers: ["/teacher/grade-rules"], hidden: true },

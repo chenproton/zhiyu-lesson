@@ -34,7 +34,7 @@ import {
 
 // ==================== Mock Data ====================
 
-const MOCK_STUDENTS = [
+export const MOCK_STUDENTS = [
   { id: "s1", name: "李明", status: "present" },
   { id: "s2", name: "王芳", status: "present" },
   { id: "s3", name: "张伟", status: "absent" },
@@ -52,13 +52,13 @@ const MOCK_STUDENTS = [
   { id: "s15", name: "胡军", status: "present" },
 ]
 
-const VOTE_RESULTS = [
+export const VOTE_RESULTS = [
   { option: "选项 A：支持", count: 8, percent: 53 },
   { option: "选项 B：反对", count: 3, percent: 20 },
   { option: "选项 C：弃权", count: 4, percent: 27 },
 ]
 
-const SURVEY_RESULTS = [
+export const SURVEY_RESULTS = [
   { question: "本节课内容是否理解？", type: "radio", options: ["完全理解", "基本理解", "不太理解", "完全不懂"], counts: [6, 7, 2, 0] },
   { question: "课堂节奏是否合适？", type: "radio", options: ["太快", "适中", "太慢"], counts: [2, 11, 2] },
   { question: "对教师的建议", type: "text", sampleAnswers: ["希望多举例", "讲解很清晰", "可以增加互动"] },
@@ -92,7 +92,7 @@ function FeatureCard({
 
 // ==================== Roll Call Panel ====================
 
-function RollCallPanel({ onBack }: { onBack: () => void }) {
+export function RollCallPanel({ onBack }: { onBack?: () => void }) {
   const [mode, setMode] = useState<"random" | "sequential" | "all">("random")
   const [count, setCount] = useState(5)
   const [duration, setDuration] = useState(30)
@@ -101,10 +101,12 @@ function RollCallPanel({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <h3 className="text-base font-medium">课堂点名</h3>
-      </div>
+      {onBack && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
+          <h3 className="text-base font-medium">课堂点名</h3>
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6 space-y-4">
@@ -169,7 +171,7 @@ function RollCallPanel({ onBack }: { onBack: () => void }) {
 
 // ==================== CheckIn Panel ====================
 
-function CheckInPanel({ onBack }: { onBack: () => void }) {
+export function CheckInPanel({ onBack }: { onBack?: () => void }) {
   const [mode, setMode] = useState<"gps" | "qrcode" | "password">("qrcode")
   const [password, setPassword] = useState("CS101")
   const [gpsRadius, setGpsRadius] = useState(100)
@@ -184,10 +186,12 @@ function CheckInPanel({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <h3 className="text-base font-medium">签到管理</h3>
-      </div>
+      {onBack && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
+          <h3 className="text-base font-medium">签到管理</h3>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold">{stats.total}</p><p className="text-xs text-muted-foreground">应到人数</p></CardContent></Card>
@@ -264,7 +268,7 @@ function CheckInPanel({ onBack }: { onBack: () => void }) {
 
 // ==================== Vote Panel ====================
 
-function VotePanel({ onBack }: { onBack: () => void }) {
+export function VotePanel({ onBack }: { onBack?: () => void }) {
   const [title, setTitle] = useState("是否同意本次课程的教学方案调整？")
   const [options, setOptions] = useState(["支持", "反对", "弃权"])
   const [allowMultiple, setAllowMultiple] = useState(false)
@@ -280,10 +284,12 @@ function VotePanel({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <h3 className="text-base font-medium">课堂投票</h3>
-      </div>
+      {onBack && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
+          <h3 className="text-base font-medium">课堂投票</h3>
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6 space-y-4">
@@ -340,16 +346,18 @@ function VotePanel({ onBack }: { onBack: () => void }) {
 
 // ==================== Survey Panel ====================
 
-function SurveyPanel({ onBack }: { onBack: () => void }) {
+export function SurveyPanel({ onBack }: { onBack?: () => void }) {
   const [title, setTitle] = useState("课程满意度调查")
   const [isActive, setIsActive] = useState(false)
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <h3 className="text-base font-medium">课堂问卷</h3>
-      </div>
+      {onBack && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
+          <h3 className="text-base font-medium">课堂问卷</h3>
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6 space-y-4">
@@ -407,7 +415,7 @@ function SurveyPanel({ onBack }: { onBack: () => void }) {
 
 // ==================== Quick Quiz (Rush Answer) Panel ====================
 
-function QuickQuizPanel({ onBack }: { onBack: () => void }) {
+export function QuickQuizPanel({ onBack }: { onBack?: () => void }) {
   const [questions, setQuestions] = useState([
     { id: "qq-1", content: "Java中interface和abstract class的区别是什么？", timeLimit: 60 },
     { id: "qq-2", content: "什么是RESTful API设计原则？", timeLimit: 90 },
@@ -416,10 +424,12 @@ function QuickQuizPanel({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <h3 className="text-base font-medium">课堂抢答</h3>
-      </div>
+      {onBack && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
+          <h3 className="text-base font-medium">课堂抢答</h3>
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6 space-y-4">
@@ -472,7 +482,7 @@ function QuickQuizPanel({ onBack }: { onBack: () => void }) {
 
 // ==================== Grouping Panel ====================
 
-function GroupingPanel({ onBack }: { onBack: () => void }) {
+export function GroupingPanel({ onBack }: { onBack?: () => void }) {
   const [groupSize, setGroupSize] = useState(3)
   const [method, setMethod] = useState<"random" | "ability" | "free">("random")
   const [groups, setGroups] = useState<{ id: number; members: string[] }[]>([])
@@ -489,10 +499,12 @@ function GroupingPanel({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <h3 className="text-base font-medium">随机分组</h3>
-      </div>
+      {onBack && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
+          <h3 className="text-base font-medium">随机分组</h3>
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6 space-y-4">
@@ -550,7 +562,7 @@ function GroupingPanel({ onBack }: { onBack: () => void }) {
 
 // ==================== Discussion Panel ====================
 
-function DiscussionPanel({ onBack }: { onBack: () => void }) {
+export function DiscussionPanel({ onBack }: { onBack?: () => void }) {
   const [topics, setTopics] = useState([
     { id: "d-1", title: "面向对象设计在实际项目中的应用", author: "周建国", replies: 8, likes: 12, time: "10分钟前" },
     { id: "d-2", title: "如何优化数据库查询性能？", author: "李明", replies: 5, likes: 7, time: "25分钟前" },
@@ -567,10 +579,12 @@ function DiscussionPanel({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <h3 className="text-base font-medium">课堂讨论</h3>
-      </div>
+      {onBack && (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
+          <h3 className="text-base font-medium">课堂讨论</h3>
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6 space-y-3">

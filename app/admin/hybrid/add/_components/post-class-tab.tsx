@@ -30,7 +30,7 @@ import { TaskEvaluationConfig } from "../_types/registrar-adapted"
 
 // ==================== Mock Data ====================
 
-const INITIAL_CONFIG: TaskEvaluationConfig = {
+export const INITIAL_CONFIG: TaskEvaluationConfig = {
   enabledMethods: ["random_quiz", "peer_review", "homework", "classwork"],
   randomDrawQuestions: [
     { id: "rq-1", name: "随机抽题一", description: "简述 Spring Boot 自动配置的原理", answer: "通过 @EnableAutoConfiguration 与 spring.factories 加载自动配置类...", major: "软件工程" },
