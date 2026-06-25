@@ -250,7 +250,7 @@ function HybridCourseAddForm() {
                 </div>
               )}
 
-              {selectedNode && selectedNodeId === FIRST_NODE_ID && (
+              {selectedNode && (
                 <div className="space-y-6">
                   <Tabs defaultValue="basic" className="space-y-4">
                     <TabsList className="flex-wrap h-auto gap-y-2">
@@ -510,13 +510,6 @@ function HybridCourseAddForm() {
                       <PostClassTab />
                     </TabsContent>
                   </Tabs>
-                </div>
-              )}
-
-              {selectedNode && selectedNodeId !== FIRST_NODE_ID && (
-                <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
-                  <Info className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                  <p className="text-sm">该节点内容为空</p>
                 </div>
               )}
 
