@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Save, Send, BookOpen, MonitorPlay, Users, FileText, Layers, Plus, Trash2, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, Info, Sun, School, Moon } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
@@ -459,6 +460,15 @@ function HybridCourseAddForm() {
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {count > 0 ? `已选择 ${count} 项` : "点击选择或引用资源"}
                                   </p>
+                                  {count > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                      {selectedResources[type.key].map((name) => (
+                                        <Badge key={name} variant="secondary" className="text-xs font-normal truncate max-w-full">
+                                          {name}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               )
                             })}
