@@ -1,235 +1,301 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Plus, Trash2, PlayCircle, FileText, CheckCircle2, MessageCircle } from "lucide-react"
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Eye, Download, CheckCircle2, Circle } from "lucide-react"
 import { toast } from "sonner"
+import { MOCK_PREP_CONTENT, MOCK_RESOURCES } from "../_mock/registrar-task-mock"
+import type { TaskResource } from "../_types/registrar-adapted"
 
-type PreTaskType = "video" | "quiz" | "doc" | "discuss"
-
-interface PreTask {
-  id: string
-  name: string
-  type: PreTaskType
-  resource: string
-  dueDate: string
-  required: boolean
-}
-
-const TYPE_CONFIG: Record<
-  PreTaskType,
-  { label: string; icon: React.ReactNode; color: string }
-> = {
-  video: {
-    label: "微课",
-    icon: <PlayCircle className="w-3.5 h-3.5" />,
-    color: "bg-blue-100 text-blue-700",
-  },
-  quiz: {
-    label: "测验",
-    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-    color: "bg-green-100 text-green-700",
-  },
-  doc: {
-    label: "讲义",
-    icon: <FileText className="w-3.5 h-3.5" />,
-    color: "bg-orange-100 text-orange-700",
-  },
-  discuss: {
-    label: "讨论",
-    icon: <MessageCircle className="w-3.5 h-3.5" />,
-    color: "bg-purple-100 text-purple-700",
-  },
+const resourceTypeLabel: Record<string, string> = {
+  textbook: "教材",
+  ppt: "课件",
+  video: "视频",
+  link: "链接",
+  document: "文档",
+  scene_link: "场景链接",
 }
 
 export function PreClassTab() {
-  const [tasks, setTasks] = useState<PreTask[]>([
-    {
-      id: "p1",
-      name: "HTML基础微课",
-      type: "video",
-      resource: "HTML基础视频.mp4",
-      dueDate: "2026-09-05",
-      required: true,
-    },
-    {
-      id: "p2",
-      name: "CSS选择器预习测验",
-      type: "quiz",
-      resource: "CSS基础题库",
-      dueDate: "2026-09-05",
-      required: true,
-    },
-    {
-      id: "p3",
-      name: "电子讲义：Web前端概述",
-      type: "doc",
-      resource: "Web前端概述.pdf",
-      dueDate: "2026-09-06",
-      required: false,
-    },
-  ])
-
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [form, setForm] = useState<Partial<PreTask>>({
-    type: "video",
-    required: true,
+  const [prepStage, setPrepStage] = useState<"pre" | "in" | "post">("pre")
+  const [task] = useState({
+    objectives: ["了解 Web 前端开发岗位能力要求", "掌握 HTML/CSS/JavaScript 基础", "能够完成 Vue 组件开发"],
+    syllabus: "本课程系统介绍 Web 前端开发技术栈...",
+    prepContent: MOCK_PREP_CONTENT,
+    resources: MOCK_RESOURCES,
   })
 
-  const handleAdd = () => {
-    if (!form.name || !form.dueDate) return
-    const newTask: PreTask = {
-      id: `p-${Date.now()}`,
-      name: form.name,
-      type: (form.type as PreTaskType) || "video",
-      resource: form.resource || "",
-      dueDate: form.dueDate,
-      required: form.required ?? true,
-    }
-    setTasks([...tasks, newTask])
-    setDialogOpen(false)
-    setForm({ type: "video", required: true })
-    toast.success("课前任务已添加")
-  }
-
-  const handleDelete = (id: string) => {
-    setTasks(tasks.filter((t) => t.id !== id))
-  }
+  const resources = task.resources || []
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          配置学生课前需要完成的线上自主学习任务
-        </p>
-        <Button size="sm" onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" /> 添加课前任务
+      <div className="flex justify-end">
+        <Button variant="outline" onClick={() => toast("前往备课（演示）")}>
+          前往备课
         </Button>
       </div>
 
-      <div className="space-y-3">
-        {tasks.map((task) => {
-          const cfg = TYPE_CONFIG[task.type]
-          return (
-            <Card key={task.id}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${cfg.color} gap-1`}>
-                        {cfg.icon}
-                        {cfg.label}
-                      </Badge>
-                      {task.required && <Badge variant="outline">必做</Badge>}
-                    </div>
-                    <p className="font-medium text-sm">{task.name}</p>
-                    <div className="text-xs text-muted-foreground space-y-0.5">
-                      <p>关联资源：{task.resource || "—"}</p>
-                      <p>截止时间：{task.dueDate}</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(task.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle>添加课前任务</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>任务名称</Label>
-              <Input
-                value={form.name || ""}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="如：HTML基础微课"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>任务类型</Label>
-              <Select
-                value={form.type}
-                onValueChange={(v) =>
-                  setForm({ ...form, type: v as PreTaskType })
-                }
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">备课内容</CardTitle>
+            <div className="inline-flex items-center gap-1 rounded-lg bg-muted p-0.5">
+              <button
+                onClick={() => setPrepStage("pre")}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  prepStage === "pre"
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="video">微课视频</SelectItem>
-                  <SelectItem value="doc">电子讲义/文档</SelectItem>
-                  <SelectItem value="quiz">课前小测</SelectItem>
-                  <SelectItem value="discuss">讨论话题</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>关联资源</Label>
-              <Input
-                value={form.resource || ""}
-                onChange={(e) =>
-                  setForm({ ...form, resource: e.target.value })
-                }
-                placeholder="如：HTML基础视频.mp4"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>截止时间</Label>
-              <Input
-                type="date"
-                value={form.dueDate || ""}
-                onChange={(e) =>
-                  setForm({ ...form, dueDate: e.target.value })
-                }
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label className="cursor-pointer">是否必做</Label>
-              <Switch
-                checked={form.required}
-                onCheckedChange={(v) => setForm({ ...form, required: v })}
-              />
+                课前环节
+              </button>
+              <button
+                onClick={() => setPrepStage("in")}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  prepStage === "in"
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                课中环节
+              </button>
+              <button
+                onClick={() => setPrepStage("post")}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  prepStage === "post"
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                课后环节
+              </button>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={handleAdd}>确认添加</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {prepStage === "pre" && (
+            <>
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">教学目标</h3>
+                </div>
+                {task.prepContent?.pre?.objectives ? (
+                  <div className="text-sm whitespace-pre-wrap">{task.prepContent.pre.objectives}</div>
+                ) : task.objectives && task.objectives.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {task.objectives.map((obj, idx) => (
+                      <li key={idx}>{obj}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无教学目标</div>
+                )}
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">导学教案</h3>
+                </div>
+                {task.prepContent?.pre?.guidePlan ? (
+                  <div className="text-sm whitespace-pre-wrap">{task.prepContent.pre.guidePlan}</div>
+                ) : task.syllabus ? (
+                  <div className="text-sm whitespace-pre-wrap">{task.syllabus}</div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无导学教案</div>
+                )}
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">课前预习</h3>
+                </div>
+                {task.prepContent?.pre?.previewQuestions && task.prepContent.pre.previewQuestions.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {task.prepContent.pre.previewQuestions.map((q, idx) => (
+                      <li key={idx}>{q}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无预习题目</div>
+                )}
+              </div>
+            </>
+          )}
+
+          {prepStage === "in" && (
+            <>
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">课件资源</h3>
+                </div>
+                {task.prepContent?.in?.coursewareResources && task.prepContent.in.coursewareResources.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {task.prepContent.in.coursewareResources.map((r: TaskResource) => (
+                      <Badge key={r.id} variant="secondary" className="text-xs">{r.name}</Badge>
+                    ))}
+                  </div>
+                ) : task.resources && task.resources.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {task.resources.map((r: TaskResource) => (
+                      <Badge key={r.id} variant="secondary" className="text-xs">{r.name}</Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无课件资源</div>
+                )}
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">随堂测验</h3>
+                </div>
+                {task.prepContent?.in?.quizQuestions && task.prepContent.in.quizQuestions.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {task.prepContent.in.quizQuestions.map((q, idx) => (
+                      <li key={idx}>{q}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无随堂测试题目</div>
+                )}
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-green-400 to-green-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">互动讨论</h3>
+                </div>
+                {task.prepContent?.in?.discussionTopics && task.prepContent.in.discussionTopics.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {task.prepContent.in.discussionTopics.map((t, idx) => (
+                      <li key={idx}>{t}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无讨论话题</div>
+                )}
+              </div>
+            </>
+          )}
+
+          {prepStage === "post" && (
+            <>
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">课后作业</h3>
+                </div>
+                {task.prepContent?.post?.homework ? (
+                  <div className="text-sm whitespace-pre-wrap">{task.prepContent.post.homework}</div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无课后作业</div>
+                )}
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">课后测验</h3>
+                </div>
+                {task.prepContent?.post?.quizQuestions && task.prepContent.post.quizQuestions.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {task.prepContent.post.quizQuestions.map((q, idx) => (
+                      <li key={idx}>{q}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无课后测验题目</div>
+                )}
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                  <div className="w-1 h-4 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full" />
+                  <h3 className="text-sm font-semibold">课后拓展</h3>
+                </div>
+                {task.prepContent?.post?.extensionResources && task.prepContent.post.extensionResources.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {task.prepContent.post.extensionResources.map((r, idx) => (
+                      <li key={idx}>{r}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-muted-foreground">暂无课后拓展资料</div>
+                )}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">备课资源</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {resources.length === 0 ? (
+            <p className="text-sm text-muted-foreground">暂无备课资源</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>资源名称</TableHead>
+                  <TableHead>类型</TableHead>
+                  <TableHead>上传者</TableHead>
+                  <TableHead>上传时间</TableHead>
+                  <TableHead>学生可见</TableHead>
+                  <TableHead className="text-right">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {resources.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="text-sm font-medium">{r.name}</TableCell>
+                    <TableCell className="text-sm">{resourceTypeLabel[r.type] || r.type}</TableCell>
+                    <TableCell className="text-sm">{r.uploadBy}</TableCell>
+                    <TableCell className="text-sm">{r.uploadedAt}</TableCell>
+                    <TableCell>
+                      {r.isVisibleToStudents ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => toast("预览资源（演示）")}>
+                          <Eye className="h-3 w-3 mr-1" />
+                          预览
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => toast("下载资源（演示）")}>
+                          <Download className="h-3 w-3 mr-1" />
+                          下载
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
