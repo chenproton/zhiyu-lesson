@@ -601,43 +601,109 @@ function HybridCourseAddForm() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="in-class" className="pt-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {availableModules
-                    .filter((m) => m.category === "in-class")
-                    .map((m) => {
-                      const Icon = m.icon
-                      return (
-                        <button
-                          key={m.key}
-                          onClick={() => addModule(m.key)}
-                          className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                        >
-                          <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                          <span className="text-sm">{m.label}</span>
-                        </button>
-                      )
-                    })}
+              <TabsContent value="in-class" className="space-y-5 pt-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">课堂互动</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableModules
+                      .filter((m) => ["vote", "survey", "quickQuiz", "discussion"].includes(m.key))
+                      .map((m) => {
+                        const Icon = m.icon
+                        return (
+                          <button
+                            key={m.key}
+                            onClick={() => addModule(m.key)}
+                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                          >
+                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                            <span className="text-sm">{m.label}</span>
+                          </button>
+                        )
+                      })}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">课堂管理</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableModules
+                      .filter((m) => ["rollCall", "checkIn", "grouping", "todayAttendance"].includes(m.key))
+                      .map((m) => {
+                        const Icon = m.icon
+                        return (
+                          <button
+                            key={m.key}
+                            onClick={() => addModule(m.key)}
+                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                          >
+                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                            <span className="text-sm">{m.label}</span>
+                          </button>
+                        )
+                      })}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">随堂测评</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableModules
+                      .filter((m) => m.key === "quiz")
+                      .map((m) => {
+                        const Icon = m.icon
+                        return (
+                          <button
+                            key={m.key}
+                            onClick={() => addModule(m.key)}
+                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                          >
+                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                            <span className="text-sm">{m.label}</span>
+                          </button>
+                        )
+                      })}
+                  </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="post-class" className="pt-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {availableModules
-                    .filter((m) => m.category === "post-class")
-                    .map((m) => {
-                      const Icon = m.icon
-                      return (
-                        <button
-                          key={m.key}
-                          onClick={() => addModule(m.key)}
-                          className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                        >
-                          <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                          <span className="text-sm">{m.label}</span>
-                        </button>
-                      )
-                    })}
+              <TabsContent value="post-class" className="space-y-5 pt-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">课后练习</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableModules
+                      .filter((m) => m.key === "postClassAssessment" || m.key === "homework")
+                      .map((m) => {
+                        const Icon = m.icon
+                        return (
+                          <button
+                            key={m.key}
+                            onClick={() => addModule(m.key)}
+                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                          >
+                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                            <span className="text-sm">{m.label}</span>
+                          </button>
+                        )
+                      })}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">考核评价</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableModules
+                      .filter((m) => m.key === "finalExam" || m.key === "gradeStats")
+                      .map((m) => {
+                        const Icon = m.icon
+                        return (
+                          <button
+                            key={m.key}
+                            onClick={() => addModule(m.key)}
+                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                          >
+                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                            <span className="text-sm">{m.label}</span>
+                          </button>
+                        )
+                      })}
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>

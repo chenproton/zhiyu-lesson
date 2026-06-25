@@ -24,6 +24,9 @@ import {
   Shuffle,
   MessageSquare,
   HelpCircle,
+  FileText,
+  Award,
+  TrendingUp,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -72,6 +75,9 @@ export type AtomicModuleKey =
   | "quiz"
   | "todayAttendance"
   | "postClassAssessment"
+  | "homework"
+  | "finalExam"
+  | "gradeStats"
 
 export interface CourseBasicForm {
   name: string
@@ -487,6 +493,95 @@ function PostClassAssessmentModule({ nodeId }: AtomicModuleProps) {
   )
 }
 
+function HomeworkModule(_props: AtomicModuleProps) {
+  return (
+    <CardContent>
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>作业名称</Label>
+            <Input defaultValue="课后综合练习一" placeholder="请输入作业名称" />
+          </div>
+          <div className="space-y-2">
+            <Label>截止时间</Label>
+            <Input defaultValue="2026-07-10 23:59" placeholder="请选择截止时间" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>作业要求</Label>
+          <Textarea defaultValue="完成本章课后习题，提交电子版实验报告。" rows={3} placeholder="请输入作业要求" />
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          <span>已模拟配置：允许补交、需附件提交</span>
+        </div>
+      </div>
+    </CardContent>
+  )
+}
+
+function FinalExamModule(_props: AtomicModuleProps) {
+  return (
+    <CardContent>
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>考试名称</Label>
+            <Input defaultValue="期末综合考试" placeholder="请输入考试名称" />
+          </div>
+          <div className="space-y-2">
+            <Label>考试时长（分钟）</Label>
+            <Input type="number" defaultValue={90} placeholder="请输入考试时长" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>开考时间</Label>
+            <Input defaultValue="2026-07-15 14:00" placeholder="请选择开考时间" />
+          </div>
+          <div className="space-y-2">
+            <Label>及格分数线</Label>
+            <Input type="number" defaultValue={60} placeholder="请输入及格分数线" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Award className="h-3.5 w-3.5" />
+          <span>已模拟配置：随机抽题、限时提交、防作弊监控</span>
+        </div>
+      </div>
+    </CardContent>
+  )
+}
+
+function GradeStatsModule(_props: AtomicModuleProps) {
+  return (
+    <CardContent>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="space-y-1">
+          <p className="text-2xl font-bold">92</p>
+          <p className="text-xs text-muted-foreground">平均分</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-2xl font-bold text-green-600">85%</p>
+          <p className="text-xs text-muted-foreground">及格率</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-2xl font-bold text-amber-500">12</p>
+          <p className="text-xs text-muted-foreground">优秀人数</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-2xl font-bold text-blue-600">3</p>
+          <p className="text-xs text-muted-foreground">待补考</p>
+        </div>
+      </div>
+      <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+        <TrendingUp className="h-3.5 w-3.5" />
+        <span>已模拟成绩分布：正态分布，含平时/作业/考试加权统计</span>
+      </div>
+    </CardContent>
+  )
+}
+
 // ==================== Module registry ====================
 
 export const ATOMIC_MODULES: AtomicModuleMeta[] = [
@@ -510,6 +605,9 @@ export const ATOMIC_MODULES: AtomicModuleMeta[] = [
   { key: "quiz", label: "随堂测验", category: "in-class", icon: HelpCircle, component: QuizModule },
   { key: "todayAttendance", label: "今日签到统计", category: "in-class", icon: BarChart3, component: TodayAttendanceModule },
   { key: "postClassAssessment", label: "课后测验", category: "post-class", icon: BookOpen, component: PostClassAssessmentModule },
+  { key: "homework", label: "课后作业", category: "post-class", icon: FileText, component: HomeworkModule },
+  { key: "finalExam", label: "课程考试", category: "post-class", icon: Award, component: FinalExamModule },
+  { key: "gradeStats", label: "成绩统计", category: "post-class", icon: TrendingUp, component: GradeStatsModule },
 ]
 
 export const ATOMIC_MODULES_BY_KEY = Object.fromEntries(
