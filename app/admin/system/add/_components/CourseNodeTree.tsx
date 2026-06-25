@@ -221,13 +221,13 @@ export default function CourseNodeTree({
       <div key={node.id}>
         <div
           className={cn(
-            "tree-node flex items-center gap-1.5 px-2 py-1.5 rounded cursor-pointer text-sm transition-colors select-none",
+            "tree-node flex items-center gap-1 px-1 py-1 rounded cursor-pointer text-sm transition-colors select-none",
             isActive ? "bg-blue-50 text-blue-600 border-l-2 border-blue-500" : "text-gray-600 hover:bg-gray-50",
             isDragging && "opacity-40",
             isDragOver && "border-t-2 border-blue-500",
             isQuote && !isActive && "bg-blue-50/30"
           )}
-          style={{ paddingLeft: `${12 + level * 16}px` }}
+          style={{ paddingLeft: `${8 + level * 10}px` }}
           draggable
           onDragStart={(e) => handleDragStart(e, node.id)}
           onDragOver={(e) => handleDragOver(e, node.id)}
@@ -238,7 +238,7 @@ export default function CourseNodeTree({
           <span className="text-gray-300 cursor-grab opacity-0 hover:opacity-50 transition-opacity">
             <GripVertical className="w-3 h-3" />
           </span>
-          <span className="text-gray-400 text-xs w-6 shrink-0">{seq}</span>
+          <span className="text-gray-400 text-xs w-5 shrink-0">{seq}</span>
           <span className="flex-1 truncate" title={node.name}>
             {node.name}
           </span>
@@ -273,7 +273,7 @@ export default function CourseNodeTree({
           </DropdownMenu>
         </div>
         {children.length > 0 && (
-          <div className="border-l border-gray-100 ml-4">
+          <div className="border-l border-gray-100 ml-3">
             {children.map((child, idx) => renderTreeNode(child, `${seq}.${idx + 1}`))}
           </div>
         )}
@@ -287,11 +287,11 @@ export default function CourseNodeTree({
 
   return (
     <aside className="w-64 shrink-0">
-      <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-[88px]">
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-white rounded-xl border border-gray-100 p-3 sticky top-[88px]">
+        <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-800 flex items-center gap-1.5">
             <BookOpen className="w-4 h-4 text-blue-500" />
-            课程目录
+            混合课目录
           </h3>
         </div>
         <div className="space-y-0.5 text-sm">
