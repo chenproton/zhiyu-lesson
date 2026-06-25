@@ -53,13 +53,21 @@ export default function ClassClaimPage() {
   const termSessions = sessions.filter((s) => termClassIds.has(s.classId))
   const associatedCount = termSessions.filter((s) => s.status === "associated").length
 
-  const handleOpenHybridAdd = (courseName: string, classSessions: ClassSession[]) => {
-    const payload = classSessions.map((s) => ({
-      week: s.week,
-      weekday: s.weekday,
-      period: s.period,
-      venue: s.venue,
-    }))
+  const MOCK_TEACHERS = ["张教授", "李讲师", "王老师", "赵副教授", "陈老师"]
+
+  const handleOpenHybridAdd = (courseName: string, className: string, classSessions: ClassSession[]) => {
+    const teacher = MOCK_TEACHERS[className.length % MOCK_TEACHERS.length]
+    const payload = {
+      course: courseName,
+      teacher,
+      className,
+      sessions: classSessions.map((s) => ({
+        week: s.week,
+        weekday: s.weekday,
+        period: s.period,
+        venue: s.venue,
+      })),
+    }
     const encoded = btoa(encodeURIComponent(JSON.stringify(payload)))
     const url = `/admin/hybrid/add?claimCourse=${encodeURIComponent(courseName)}&claimSessions=${encodeURIComponent(encoded)}`
     window.open(url, "_blank")
@@ -148,7 +156,7 @@ export default function ClassClaimPage() {
                     <Button
                       size="sm"
                       className="shrink-0"
-                      onClick={() => handleOpenHybridAdd(cls.course, classSessions)}
+                      onClick={() => handleOpenHybridAdd(cls.course, cls.name, classSessions)}
                       disabled={classSessions.length === 0}
                     >
                       <Rocket className="h-3.5 w-3.5 mr-1" />

@@ -46,16 +46,35 @@ function HybridCourseAddForm() {
   const claimSessionsParam = searchParams.get("claimSessions")
   const existing = editId ? hybridCourses.find((c) => c.id === editId) : null
 
-  const claimSessionNames = useMemo<string[]>(() => {
-    if (!claimSessionsParam) return []
+  interface ClaimPayload {
+    course?: string
+    teacher?: string
+    className?: string
+    sessions: Array<{ week: number; weekday: string; period: string; venue?: string }>
+  }
+
+  const claimPayload = useMemo<ClaimPayload | null>(() => {
+    if (!claimSessionsParam) return null
     try {
       const decoded = decodeURIComponent(atob(claimSessionsParam))
-      const sessions = JSON.parse(decoded) as Array<{ week: number; weekday: string; period: string; venue?: string }>
-      return sessions.map((s) => `第 ${s.week} 周 · ${s.weekday} · ${s.period}`)
+      const parsed = JSON.parse(decoded)
+      if (Array.isArray(parsed)) {
+        return { sessions: parsed }
+      }
+      return {
+        course: parsed.course,
+        teacher: parsed.teacher,
+        className: parsed.className,
+        sessions: parsed.sessions || [],
+      }
     } catch {
-      return []
+      return null
     }
   }, [claimSessionsParam])
+
+  const claimSessionNames = useMemo<string[]>(() => {
+    return (claimPayload?.sessions || []).map((s) => `第 ${s.week} 周 · ${s.weekday} · ${s.period}`)
+  }, [claimPayload])
 
   /* ========== course node tree ========== */
   const initialNodes = useMemo<SystemCourseNode[]>(() => {
@@ -102,13 +121,13 @@ function HybridCourseAddForm() {
   /* ========== independent data per node ========== */
   const [nodeDataMap, setNodeDataMap] = useState<Record<string, NodeModuleData>>(() => ({
     [FIRST_NODE_ID]: createDefaultNodeModuleData({
-      name: existing?.name,
+      name: claimCourse || existing?.name,
       code: existing?.code,
       major: existing?.major,
       industry: existing?.industry,
-      teacher: existing?.teacher,
+      teacher: claimPayload?.teacher || existing?.teacher,
       semester: existing?.semester,
-      className: existing?.className,
+      className: claimPayload?.className || existing?.className,
       category: existing?.category,
     }),
   }))
@@ -148,17 +167,17 @@ function HybridCourseAddForm() {
     setNodeDataMap((prev) => ({
       ...prev,
       [newNode.id]: createDefaultNodeModuleData({
-        name: existing?.name,
+        name: claimCourse || existing?.name,
         code: existing?.code,
         major: existing?.major,
         industry: existing?.industry,
-        teacher: existing?.teacher,
+        teacher: claimPayload?.teacher || existing?.teacher,
         semester: existing?.semester,
-        className: existing?.className,
+        className: claimPayload?.className || existing?.className,
         category: existing?.category,
       }),
     }))
-  }, [editId, existing])
+  }, [editId, existing, claimCourse, claimPayload?.teacher, claimPayload?.className])
 
   const handleUpdateNode = useCallback((nodeId: string, updates: Partial<SystemCourseNode>) => {
     setNodes((prev) => prev.map((n) => (n.id === nodeId ? { ...n, ...updates } : n)))
@@ -219,13 +238,13 @@ function HybridCourseAddForm() {
   const ensureNodeData = (nodeId: string): NodeModuleData => {
     if (!nodeDataMap[nodeId]) {
       const next = createDefaultNodeModuleData({
-        name: existing?.name,
+        name: claimCourse || existing?.name,
         code: existing?.code,
         major: existing?.major,
         industry: existing?.industry,
-        teacher: existing?.teacher,
+        teacher: claimPayload?.teacher || existing?.teacher,
         semester: existing?.semester,
-        className: existing?.className,
+        className: claimPayload?.className || existing?.className,
         category: existing?.category,
       })
       setNodeDataMap((prev) => ({ ...prev, [nodeId]: next }))
