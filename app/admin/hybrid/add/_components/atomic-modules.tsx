@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import type { TaskEvaluationConfig } from "../_types/registrar-adapted"
 import {
   BookOpen,
@@ -34,7 +35,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { INDUSTRIES, MAJORS } from "@/lib/types"
-import { INITIAL_CONFIG } from "./post-class-tab"
+import { INITIAL_CONFIG, PostClassTab } from "./post-class-tab"
 import {
   RollCallPanel,
   CheckInPanel,
@@ -413,4 +414,113 @@ function ResourceGroupModule({ data, onChange, resourceKey }: AtomicModuleProps 
       </Dialog>
     </CardContent>
   )
+}
+
+// ==================== In-class modules ====================
+
+function RollCallModule({ nodeId }: AtomicModuleProps) {
+  return <RollCallPanel key={`${nodeId}-rollcall`} />
+}
+
+function CheckInModule({ nodeId }: AtomicModuleProps) {
+  return <CheckInPanel key={`${nodeId}-checkin`} />
+}
+
+function VoteModule({ nodeId }: AtomicModuleProps) {
+  return <VotePanel key={`${nodeId}-vote`} />
+}
+
+function SurveyModule({ nodeId }: AtomicModuleProps) {
+  return <SurveyPanel key={`${nodeId}-survey`} />
+}
+
+function QuickQuizModule({ nodeId }: AtomicModuleProps) {
+  return <QuickQuizPanel key={`${nodeId}-quickquiz`} />
+}
+
+function GroupingModule({ nodeId }: AtomicModuleProps) {
+  return <GroupingPanel key={`${nodeId}-grouping`} />
+}
+
+function DiscussionModule({ nodeId }: AtomicModuleProps) {
+  return <DiscussionPanel key={`${nodeId}-discussion`} />
+}
+
+function QuizModule({ nodeId }: AtomicModuleProps) {
+  return <QuickQuizPanel key={`${nodeId}-quiz`} />
+}
+
+function TodayAttendanceModule(_props: AtomicModuleProps) {
+  return (
+    <CardContent>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="space-y-1">
+          <p className="text-2xl font-bold">{MOCK_STUDENTS.length}</p>
+          <p className="text-xs text-muted-foreground">应到人数</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-2xl font-bold text-green-600">{MOCK_STUDENTS.filter((s) => s.status === "present").length}</p>
+          <p className="text-xs text-muted-foreground">实到人数</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-2xl font-bold text-amber-500">{MOCK_STUDENTS.filter((s) => s.status === "late").length}</p>
+          <p className="text-xs text-muted-foreground">迟到人数</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-2xl font-bold text-blue-600">{Math.round((MOCK_STUDENTS.filter((s) => s.status === "present").length / MOCK_STUDENTS.length) * 100)}%</p>
+          <p className="text-xs text-muted-foreground">出勤率</p>
+        </div>
+      </div>
+    </CardContent>
+  )
+}
+
+// ==================== Post-class module ====================
+
+function PostClassAssessmentModule({ nodeId }: AtomicModuleProps) {
+  return (
+    <CardContent>
+      <div className="-mx-6 -my-4">
+        <PostClassTab key={`${nodeId}-postclass`} />
+      </div>
+    </CardContent>
+  )
+}
+
+// ==================== Module registry ====================
+
+export const ATOMIC_MODULES: AtomicModuleMeta[] = [
+  { key: "courseBasicInfo", label: "课程基本信息", category: "basic", icon: BookOpen, component: CourseBasicInfoModule },
+  { key: "onlineOfflineConfig", label: "线上线下配置", category: "basic", icon: MonitorPlay, component: OnlineOfflineConfigModule },
+  { key: "teachingObjectives", label: "教学目标", category: "pre-class", icon: Sun, component: TeachingObjectivesModule },
+  { key: "teachingUnits", label: "教学单元", category: "pre-class", icon: Layers, component: TeachingUnitsModule },
+  { key: "resourceGroup-system", label: "体系课资源", category: "pre-class", icon: BookMarked, component: (props) => <ResourceGroupModule {...props} resourceKey="system" /> },
+  { key: "resourceGroup-granular", label: "颗粒微课", category: "pre-class", icon: Microscope, component: (props) => <ResourceGroupModule {...props} resourceKey="granular" /> },
+  { key: "resourceGroup-case", label: "产业案例/场景任务", category: "pre-class", icon: Briefcase, component: (props) => <ResourceGroupModule {...props} resourceKey="case" /> },
+  { key: "resourceGroup-question", label: "题库资源", category: "pre-class", icon: Database, component: (props) => <ResourceGroupModule {...props} resourceKey="question" /> },
+  { key: "resourceGroup-material", label: "课件教案", category: "pre-class", icon: FileStack, component: (props) => <ResourceGroupModule {...props} resourceKey="material" /> },
+  { key: "resourceGroup-simulation", label: "虚拟仿真资源", category: "pre-class", icon: Monitor, component: (props) => <ResourceGroupModule {...props} resourceKey="simulation" /> },
+  { key: "rollCall", label: "课堂点名", category: "in-class", icon: Users, component: RollCallModule },
+  { key: "checkIn", label: "签到管理", category: "in-class", icon: CheckCircle2, component: CheckInModule },
+  { key: "vote", label: "课堂投票", category: "in-class", icon: BarChart3, component: VoteModule },
+  { key: "survey", label: "课堂问卷", category: "in-class", icon: ClipboardList, component: SurveyModule },
+  { key: "quickQuiz", label: "课堂抢答", category: "in-class", icon: Zap, component: QuickQuizModule },
+  { key: "grouping", label: "随机分组", category: "in-class", icon: Shuffle, component: GroupingModule },
+  { key: "discussion", label: "课堂讨论", category: "in-class", icon: MessageSquare, component: DiscussionModule },
+  { key: "quiz", label: "随堂测验", category: "in-class", icon: HelpCircle, component: QuizModule },
+  { key: "todayAttendance", label: "今日签到统计", category: "in-class", icon: BarChart3, component: TodayAttendanceModule },
+  { key: "postClassAssessment", label: "课后测验", category: "post-class", icon: BookOpen, component: PostClassAssessmentModule },
+]
+
+export const ATOMIC_MODULES_BY_KEY = Object.fromEntries(
+  ATOMIC_MODULES.map((m) => [m.key, m])
+) as Record<AtomicModuleKey, AtomicModuleMeta>
+
+export const DEFAULT_MODULES: AtomicModuleKey[] = ["courseBasicInfo"]
+
+export const CATEGORY_LABELS: Record<AtomicModuleCategory, string> = {
+  basic: "基本信息",
+  "pre-class": "课前准备",
+  "in-class": "教学实施",
+  "post-class": "课后测验",
 }
