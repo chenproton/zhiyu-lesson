@@ -52,7 +52,7 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
     },
     {
       id: "course-open",
-      label: "教学课时中心",
+      label: "教学空间",
       icon: "layoutGrid",
       children: [
         { id: "claim", label: "开课计划管理", href: "/teacher/claim", matchers: ["/teacher/claim"] },
@@ -217,7 +217,7 @@ export const teacherNavigationConfig: PlatformNavigationConfig = {
   sideNavItems: [
     {
       id: "course-open",
-      label: "教学课时中心",
+      label: "教学空间",
       icon: "layoutGrid",
       children: [
         { id: "claim", label: "开课计划管理", href: "/teacher/claim", matchers: ["/teacher/claim"] },
