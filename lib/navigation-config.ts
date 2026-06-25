@@ -52,21 +52,15 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
     },
     {
       id: "course-open",
-      label: "开课管理",
-      icon: "folderOpen",
+      label: "智慧教学工作台",
+      icon: "layoutGrid",
       children: [
         { id: "claim", label: "教学班认领", href: "/teacher/claim", matchers: ["/teacher/claim"] },
+        { id: "my-class-hours", label: "我的课时", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
         { id: "course-config", label: "课程模式配置", href: "/teacher/course-config", matchers: ["/teacher/course-config"], hidden: true },
         { id: "syllabus", label: "课程设计与大纲", href: "/teacher/syllabus", matchers: ["/teacher/syllabus"], hidden: true },
         { id: "grade-rules", label: "成绩规则配置", href: "/teacher/grade-rules", matchers: ["/teacher/grade-rules"], hidden: true },
       ],
-    },
-    {
-      id: "smart-teaching-workbench",
-      label: "智慧教学工作台",
-      icon: "layoutGrid",
-      href: "/teacher/in-class",
-      matchers: ["/teacher/in-class"],
     },
     {
       id: "course-prep",
@@ -124,7 +118,6 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
   defaultExpandedSideNavIds: [
     "resource-center",
     "course-open",
-    "smart-teaching-workbench",
     "approval-center",
   ],
   platformSwitchItems: [],
@@ -224,21 +217,15 @@ export const teacherNavigationConfig: PlatformNavigationConfig = {
   sideNavItems: [
     {
       id: "course-open",
-      label: "开课管理",
-      icon: "folderKanban",
+      label: "智慧教学工作台",
+      icon: "layoutGrid",
       children: [
         { id: "claim", label: "教学班认领", href: "/teacher/claim", matchers: ["/teacher/claim"] },
+        { id: "my-class-hours", label: "我的课时", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
         { id: "course-config", label: "课程模式配置", href: "/teacher/course-config", matchers: ["/teacher/course-config"], hidden: true },
         { id: "syllabus", label: "课程设计与大纲", href: "/teacher/syllabus", matchers: ["/teacher/syllabus"], hidden: true },
         { id: "grade-rules", label: "成绩规则配置", href: "/teacher/grade-rules", matchers: ["/teacher/grade-rules"], hidden: true },
       ],
-    },
-    {
-      id: "smart-teaching-workbench",
-      label: "智慧教学工作台",
-      icon: "layoutGrid",
-      href: "/teacher/in-class",
-      matchers: ["/teacher/in-class"],
     },
     {
       id: "course-prep",
@@ -283,7 +270,7 @@ export const teacherNavigationConfig: PlatformNavigationConfig = {
       ],
     },
   ],
-  defaultExpandedSideNavIds: ["course-open", "smart-teaching-workbench"],
+  defaultExpandedSideNavIds: ["course-open"],
   platformSwitchItems: platformSwitchItems?.filter((p) => p.id !== "teacher"),
   shellClassName: "bg-background",
   mainClassName: "min-w-0 flex-1",
