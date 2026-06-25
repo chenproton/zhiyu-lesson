@@ -152,8 +152,6 @@ const scheduleMap = new Map<string, ScheduleItem[]>()
 WEEK_SCHEDULE.forEach((d) => scheduleMap.set(d.date, d.courses))
 
 function ScheduleCard({ course }: { course: ScheduleItem }) {
-  const t = TYPE_MAP[course.type]
-
   return (
     <div
       className={`group relative rounded-xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-gray-200 overflow-hidden border-l-4 ${
@@ -165,16 +163,10 @@ function ScheduleCard({ course }: { course: ScheduleItem }) {
       }`}
     >
       <div className="px-4 py-3.5">
-        <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="mb-2">
           <h4 className="text-sm font-semibold text-gray-800 leading-snug">
             {course.name}
           </h4>
-          <Badge
-            variant="outline"
-            className={`text-[10px] font-medium border-current shrink-0 mt-0.5 ${t.color} ${t.bg}`}
-          >
-            {t.label}
-          </Badge>
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
