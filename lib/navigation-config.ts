@@ -55,7 +55,7 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
       label: "智慧教学工作台",
       icon: "layoutGrid",
       children: [
-        { id: "claim", label: "教学班认领", href: "/teacher/claim", matchers: ["/teacher/claim"] },
+        { id: "claim", label: "排课下发确认", href: "/teacher/claim", matchers: ["/teacher/claim"] },
         { id: "my-class-hours", label: "我的课时", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
         { id: "course-config", label: "课程模式配置", href: "/teacher/course-config", matchers: ["/teacher/course-config"], hidden: true },
         { id: "syllabus", label: "课程设计与大纲", href: "/teacher/syllabus", matchers: ["/teacher/syllabus"], hidden: true },
@@ -220,7 +220,7 @@ export const teacherNavigationConfig: PlatformNavigationConfig = {
       label: "智慧教学工作台",
       icon: "layoutGrid",
       children: [
-        { id: "claim", label: "教学班认领", href: "/teacher/claim", matchers: ["/teacher/claim"] },
+        { id: "claim", label: "排课下发确认", href: "/teacher/claim", matchers: ["/teacher/claim"] },
         { id: "my-class-hours", label: "我的课时", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
         { id: "course-config", label: "课程模式配置", href: "/teacher/course-config", matchers: ["/teacher/course-config"], hidden: true },
         { id: "syllabus", label: "课程设计与大纲", href: "/teacher/syllabus", matchers: ["/teacher/syllabus"], hidden: true },
