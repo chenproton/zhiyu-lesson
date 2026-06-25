@@ -1,22 +1,10 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { BookOpen, Users, Calendar, CheckCircle2, Search, MapPin, Link2 } from "lucide-react"
-import { toast } from "sonner"
-import { hybridCourses } from "@/lib/mock-data"
+import { BookOpen, Users, Calendar, CheckCircle2, MapPin, Clock } from "lucide-react"
 
 const semesters = [
   "2025 年第一学期",
@@ -54,60 +42,15 @@ const initialSessions: ClassSession[] = [
 
 const weekdayOrder = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
 
-const hybridStatusLabel: Record<string, string> = {
-  published: "已发布",
-  pending: "审批中",
-  draft: "未提交",
-  rejected: "已驳回",
-}
-
 export default function ClassClaimPage() {
   const [classes] = useState(initialClasses)
-  const [sessions, setSessions] = useState<ClassSession[]>(initialSessions)
+  const [sessions] = useState<ClassSession[]>(initialSessions)
   const [selectedTerm, setSelectedTerm] = useState(semesters[0])
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
 
   const termClasses = classes.filter((c) => c.term === selectedTerm)
   const termClassIds = new Set(termClasses.map((c) => c.id))
   const termSessions = sessions.filter((s) => termClassIds.has(s.classId))
   const associatedCount = termSessions.filter((s) => s.status === "associated").length
-
-  const activeSession = useMemo(
-    () => sessions.find((s) => s.id === activeSessionId),
-    [sessions, activeSessionId]
-  )
-
-  const filteredHybridCourses = useMemo(() => {
-    const q = searchQuery.trim()
-    if (!q) return hybridCourses
-    return hybridCourses.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q.toLowerCase()) ||
-        c.code.toLowerCase().includes(q.toLowerCase())
-    )
-  }, [searchQuery])
-
-  const openAssociateDialog = (sessionId: string) => {
-    setActiveSessionId(sessionId)
-    setSearchQuery("")
-    setDialogOpen(true)
-  }
-
-  const handleAssociate = (courseId: string) => {
-    setSessions((prev) =>
-      prev.map((s) =>
-        s.id === activeSessionId
-          ? { ...s, status: "associated", hybridCourseId: courseId }
-          : s
-      )
-    )
-    const course = hybridCourses.find((c) => c.id === courseId)
-    toast.success(`已关联混合课程：${course?.name}`)
-    setDialogOpen(false)
-    setActiveSessionId(null)
-  }
 
   return (
     <div className="space-y-6">
@@ -190,50 +133,28 @@ export default function ClassClaimPage() {
                   </div>
 
                   {classSessions.length > 0 ? (
-                    <div className="space-y-2 pl-4 border-l-2 border-muted">
-                      {classSessions.map((session) => {
-                        const associatedHybrid = session.hybridCourseId
-                          ? hybridCourses.find((c) => c.id === session.hybridCourseId)
-                          : null
-
-                        return (
-                          <div
-                            key={session.id}
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-muted/40 rounded-md"
-                          >
-                            <div className="flex-1 min-w-0 space-y-2">
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
-                                <div className="flex items-center gap-1 text-muted-foreground">
-                                  <MapPin className="h-3.5 w-3.5" />
-                                  <span>{session.venue}</span>
-                                </div>
-                                <div>第 {session.week} 周</div>
-                                <div>{session.weekday}</div>
-                                <div>{session.period}</div>
-                              </div>
-                              {associatedHybrid && (
-                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                  <Link2 className="h-3.5 w-3.5 shrink-0" />
-                                  <span className="shrink-0">已关联混合课程：</span>
-                                  <Badge variant="secondary" className="text-xs truncate max-w-[240px]">
-                                    {associatedHybrid.name}
-                                  </Badge>
-                                </div>
-                              )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {classSessions.map((session) => (
+                        <div
+                          key={session.id}
+                          className="border rounded-lg p-4 bg-card hover:shadow-sm transition-shadow"
+                        >
+                          <div className="space-y-2">
+                            <div className="text-sm font-semibold">第 {session.week} 周</div>
+                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Clock className="h-3.5 w-3.5 shrink-0" />
+                              <span>{session.weekday} · {session.period}</span>
                             </div>
-                            <Button
-                              size="sm"
-                              variant={session.status === "associated" ? "outline" : "default"}
-                              onClick={() => openAssociateDialog(session.id)}
-                            >
-                              {session.status === "associated" ? "已关联混合课程" : "开课"}
-                            </Button>
+                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <MapPin className="h-3.5 w-3.5 shrink-0" />
+                              <span>{session.venue}</span>
+                            </div>
                           </div>
-                        )
-                      })}
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="pl-4 text-sm text-muted-foreground">暂无课程节次</div>
+                    <div className="text-sm text-muted-foreground">暂无课程节次</div>
                   )}
                 </div>
               )
@@ -241,59 +162,6 @@ export default function ClassClaimPage() {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>关联混合课程</DialogTitle>
-            <DialogDescription>
-              {activeSession
-                ? `为 ${activeSession.venue} · 第 ${activeSession.week} 周 · ${activeSession.weekday} · ${activeSession.period} 选择混合课程`
-                : "选择要关联的混合课程"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="搜索混合课程名称或编号"
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="max-h-[300px] overflow-y-auto space-y-2">
-              {filteredHybridCourses.length === 0 ? (
-                <div className="text-center py-6 text-sm text-muted-foreground">未找到匹配的混合课程</div>
-              ) : (
-                filteredHybridCourses.map((course) => (
-                  <button
-                    key={course.id}
-                    type="button"
-                    className="w-full text-left p-3 border rounded-md hover:bg-muted transition-colors"
-                    onClick={() => handleAssociate(course.id)}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{course.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {course.code} · {course.major} · {course.teacher}
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="text-xs shrink-0">
-                        {hybridStatusLabel[course.status] ?? course.status}
-                      </Badge>
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
