@@ -255,8 +255,6 @@ function HybridCourseAddForm() {
                   <Tabs defaultValue="basic" className="space-y-4">
                     <TabsList className="flex-wrap h-auto gap-y-2">
                       <TabsTrigger value="basic"><BookOpen className="h-4 w-4 mr-1" /> 基本信息</TabsTrigger>
-                      <TabsTrigger value="outline"><Layers className="h-4 w-4 mr-1" /> 课程大纲</TabsTrigger>
-                      <TabsTrigger value="resources"><FileText className="h-4 w-4 mr-1" /> 资源组课</TabsTrigger>
                       <TabsTrigger value="pre-class"><Sun className="h-4 w-4 mr-1" /> 课前准备</TabsTrigger>
                       <TabsTrigger value="in-class"><School className="h-4 w-4 mr-1" /> 教学实施</TabsTrigger>
                       <TabsTrigger value="post-class"><Moon className="h-4 w-4 mr-1" /> 课后测验</TabsTrigger>
@@ -369,7 +367,7 @@ function HybridCourseAddForm() {
                       </Card>
                     </TabsContent>
 
-                    <TabsContent value="outline" className="space-y-4">
+                    <TabsContent value="pre-class" className="space-y-4">
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-base">教学目标</CardTitle>
@@ -438,9 +436,7 @@ function HybridCourseAddForm() {
                           ))}
                         </CardContent>
                       </Card>
-                    </TabsContent>
 
-                    <TabsContent value="resources" className="space-y-4">
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-base">资源组课</CardTitle>
@@ -496,10 +492,6 @@ function HybridCourseAddForm() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                    </TabsContent>
-
-                    <TabsContent value="pre-class" className="space-y-4">
-                      <PreClassTab />
                     </TabsContent>
 
                     <TabsContent value="in-class" className="space-y-4">
