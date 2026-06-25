@@ -516,7 +516,7 @@ export const ATOMIC_MODULES_BY_KEY = Object.fromEntries(
   ATOMIC_MODULES.map((m) => [m.key, m])
 ) as Record<AtomicModuleKey, AtomicModuleMeta>
 
-export const DEFAULT_MODULES: AtomicModuleKey[] = ["courseBasicInfo"]
+export const DEFAULT_MODULES: AtomicModuleKey[] = []
 
 export const CATEGORY_LABELS: Record<AtomicModuleCategory, string> = {
   basic: "基本信息",

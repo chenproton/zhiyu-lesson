@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, MonitorPlay, Users, Sun, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { INDUSTRIES, MAJORS } from "@/lib/types"
+import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, MonitorPlay, Users, Sun, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
@@ -21,6 +27,7 @@ import {
   createDefaultNodeModuleData,
   type AtomicModuleKey,
   type NodeModuleData,
+  type CourseBasicForm,
 } from "./_components/atomic-modules"
 
 const FIRST_NODE_ID = "hybrid-node-1"
@@ -107,6 +114,19 @@ function HybridCourseAddForm() {
   }))
 
   const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [globalInfoOpen, setGlobalInfoOpen] = useState(true)
+
+  const rootForm = nodeDataMap[FIRST_NODE_ID]?.form || createDefaultNodeModuleData().form
+
+  const updateRootForm = useCallback((patch: Partial<CourseBasicForm>) => {
+    setNodeDataMap((prev) => ({
+      ...prev,
+      [FIRST_NODE_ID]: {
+        ...prev[FIRST_NODE_ID],
+        form: { ...prev[FIRST_NODE_ID].form, ...patch },
+      },
+    }))
+  }, [])
 
   const handleAddNode = useCallback((parentId: string | null, name: string, order: number, type?: NodeRefType, sourceId?: string, sourceName?: string) => {
     const newNode: SystemCourseNode = {
@@ -244,11 +264,11 @@ function HybridCourseAddForm() {
   }
 
   const handleSave = () => {
-    toast.success(`${editId ? "更新" : "保存"}混合课程：${currentData?.form.name || ""}（演示）`)
+    toast.success(`${editId ? "更新" : "保存"}混合课程：${rootForm.name || ""}（演示）`)
   }
 
   const handleSubmit = () => {
-    toast.success(`提交混合课程审批：${currentData?.form.name || ""}（演示）`)
+    toast.success(`提交混合课程审批：${rootForm.name || ""}（演示）`)
   }
 
   const availableModules = ATOMIC_MODULES.filter((m) => !currentModules.includes(m.key))
@@ -276,7 +296,7 @@ function HybridCourseAddForm() {
               </Link>
               <h1 className="text-lg font-semibold text-gray-900">
                 {editId ? "编辑混合课程" : "新建混合课程"}
-                {currentData?.form.name && <span className="text-gray-400 font-normal ml-2">- {currentData.form.name}</span>}
+                {rootForm.name && <span className="text-gray-400 font-normal ml-2">- {rootForm.name}</span>}
               </h1>
             </div>
             <div className="flex items-center gap-2">
@@ -294,6 +314,133 @@ function HybridCourseAddForm() {
       </div>
 
       <div className="max-w-[1400px] mx-auto px-6 py-6">
+        {/* ========== Global Course Info (collapsible, spans full width) ========== */}
+        <Collapsible open={globalInfoOpen} onOpenChange={setGlobalInfoOpen} className="mb-6">
+          <Card className="border-0 shadow-sm">
+            <CollapsibleTrigger asChild>
+              <button className="w-full">
+                <CardHeader className="pb-3 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-[#1890ff]" />
+                      课程基本信息
+                      <span className="text-xs font-normal text-gray-400">
+                        {rootForm.name ? `《${rootForm.name}》` : "未填写课程名称"}
+                      </span>
+                      {rootForm.industry && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                          {rootForm.industry}
+                        </span>
+                      )}
+                      {rootForm.major && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                          {rootForm.major}
+                        </span>
+                      )}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <span className="text-xs">
+                        {globalInfoOpen ? "收起" : "展开编辑"}
+                      </span>
+                      {globalInfoOpen ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">课程名称</Label>
+                    <Input
+                      value={rootForm.name}
+                      onChange={(e) => updateRootForm({ name: e.target.value })}
+                      placeholder="请输入课程名称"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">课程编码</Label>
+                    <Input
+                      value={rootForm.code}
+                      onChange={(e) => updateRootForm({ code: e.target.value })}
+                      placeholder="请输入课程编码"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">所属专业</Label>
+                    <Select value={rootForm.major} onValueChange={(v) => updateRootForm({ major: v })}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="请选择所属专业" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MAJORS.filter((m) => m !== "全部").map((m) => (
+                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">所属行业</Label>
+                    <Select value={rootForm.industry} onValueChange={(v) => updateRootForm({ industry: v })}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="请选择所属行业" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDUSTRIES.filter((i) => i !== "全部").map((i) => (
+                          <SelectItem key={i} value={i}>{i}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">授课教师</Label>
+                    <Input
+                      value={rootForm.teacher}
+                      onChange={(e) => updateRootForm({ teacher: e.target.value })}
+                      placeholder="请输入授课教师"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">课程分类</Label>
+                    <Input
+                      value={rootForm.category}
+                      onChange={(e) => updateRootForm({ category: e.target.value })}
+                      placeholder="如：专业核心课"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">学期</Label>
+                    <Input
+                      value={rootForm.semester}
+                      onChange={(e) => updateRootForm({ semester: e.target.value })}
+                      placeholder="如：2026-2027-1"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">上课班级</Label>
+                    <Input
+                      value={rootForm.className}
+                      onChange={(e) => updateRootForm({ className: e.target.value })}
+                      placeholder="如：软件工程2026级1班"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
         {/* ========== Two-column layout ========== */}
         <div className="grid grid-cols-[260px_1fr] gap-6">
 
