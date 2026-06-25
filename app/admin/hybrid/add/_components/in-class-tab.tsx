@@ -1,186 +1,260 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { CalendarDays, Users, FileText, Download, ChevronDown, ChevronUp } from "lucide-react"
-import { ClassSchedulePicker } from "../../../../teacher/_components/class-schedule-picker"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
+  Plus,
+  Trash2,
+  UserCheck,
+  Presentation,
+  ClipboardCheck,
+  Users,
+  Wrench,
+  Zap,
+} from "lucide-react"
+import { toast } from "sonner"
 
-const records = [
-  {
-    id: "r1",
-    courseName: "HTML 基础与语义化",
-    className: "软件工程2026级1班",
-    date: "2026-09-11",
-    time: "08:00-09:40",
-    duration: "1小时40分",
-    attendance: { total: 45, present: 42, rate: 93 },
-    quizAvg: 82,
-    interactions: 5,
+type ActivityType = "sign" | "lecture" | "quiz" | "discuss" | "practical" | "interactive"
+
+interface ClassActivity {
+  id: string
+  name: string
+  type: ActivityType
+  duration: number
+  platformLink: boolean
+}
+
+const TYPE_CONFIG: Record<
+  ActivityType,
+  { label: string; icon: React.ReactNode; color: string }
+> = {
+  sign: {
+    label: "签到",
+    icon: <UserCheck className="w-3.5 h-3.5" />,
+    color: "bg-green-100 text-green-700",
   },
-  {
-    id: "r2",
-    courseName: "CSS 选择器与文本样式",
-    className: "软件工程2026级1班",
-    date: "2026-09-13",
-    time: "10:00-11:40",
-    duration: "1小时40分",
-    attendance: { total: 45, present: 40, rate: 89 },
-    quizAvg: 78,
-    interactions: 4,
+  lecture: {
+    label: "讲授",
+    icon: <Presentation className="w-3.5 h-3.5" />,
+    color: "bg-blue-100 text-blue-700",
   },
-  {
-    id: "r3",
-    courseName: "Flexbox 弹性布局",
-    className: "软件工程2026级1班",
-    date: "2026-09-18",
-    time: "14:00-15:40",
-    duration: "1小时40分",
-    attendance: { total: 45, present: 43, rate: 96 },
-    quizAvg: 85,
-    interactions: 6,
+  quiz: {
+    label: "随堂测",
+    icon: <ClipboardCheck className="w-3.5 h-3.5" />,
+    color: "bg-purple-100 text-purple-700",
   },
-]
+  discuss: {
+    label: "讨论",
+    icon: <Users className="w-3.5 h-3.5" />,
+    color: "bg-orange-100 text-orange-700",
+  },
+  practical: {
+    label: "实训",
+    icon: <Wrench className="w-3.5 h-3.5" />,
+    color: "bg-cyan-100 text-cyan-700",
+  },
+  interactive: {
+    label: "互动",
+    icon: <Zap className="w-3.5 h-3.5" />,
+    color: "bg-pink-100 text-pink-700",
+  },
+}
 
 export function InClassTab() {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [activities, setActivities] = useState<ClassActivity[]>([
+    {
+      id: "a1",
+      name: "课堂签到",
+      type: "sign",
+      duration: 5,
+      platformLink: true,
+    },
+    {
+      id: "a2",
+      name: "CSS 选择器讲解",
+      type: "lecture",
+      duration: 35,
+      platformLink: false,
+    },
+    {
+      id: "a3",
+      name: "随堂小测",
+      type: "quiz",
+      duration: 10,
+      platformLink: true,
+    },
+    {
+      id: "a4",
+      name: "Flexbox 小组实训",
+      type: "practical",
+      duration: 40,
+      platformLink: true,
+    },
+  ])
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [form, setForm] = useState<Partial<ClassActivity>>({
+    type: "sign",
+    platformLink: true,
+  })
+
+  const handleAdd = () => {
+    if (!form.name || !form.duration) return
+    const newActivity: ClassActivity = {
+      id: `a-${Date.now()}`,
+      name: form.name,
+      type: (form.type as ActivityType) || "sign",
+      duration: Number(form.duration),
+      platformLink: form.platformLink ?? true,
+    }
+    setActivities([...activities, newActivity])
+    setDialogOpen(false)
+    setForm({ type: "sign", platformLink: true })
+    toast.success("教学活动已添加")
+  }
+
+  const handleDelete = (id: string) => {
+    setActivities(activities.filter((a) => a.id !== id))
+  }
+
+  const totalDuration = activities.reduce((sum, a) => sum + a.duration, 0)
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">查看课堂出勤、随堂测验、互动数据，实现线下课堂与平台联动</p>
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <Download className="h-4 w-4" />
-          导出 Excel
+        <p className="text-sm text-muted-foreground">
+          配置线下课堂活动及需要平台联动的教学环节
+        </p>
+        <Button size="sm" onClick={() => setDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-1" /> 添加教学活动
         </Button>
       </div>
 
-      <ClassSchedulePicker />
-
-      <div className="space-y-4">
-        {records.map((r) => (
-          <Card key={r.id}>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-sm">{r.courseName}</h3>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1">
-                        <CalendarDays className="h-3 w-3" />
-                        {r.date} {r.time}
-                      </span>
-                      <span>{r.className}</span>
-                      <span>时长：{r.duration}</span>
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                >
-                  {expandedId === r.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </div>
-
-              {expandedId === r.id && (
-                <div className="mt-4 pt-4 border-t space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="bg-green-50 border-green-100">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-green-600" />
-                          <span className="text-sm text-green-700">出勤情况</span>
-                        </div>
-                        <p className="text-lg font-bold text-green-800 mt-1">
-                          {r.attendance.present} / {r.attendance.total}
-                        </p>
-                        <p className="text-xs text-green-600">出勤率 {r.attendance.rate}%</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="bg-blue-50 border-blue-100">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm text-blue-700">随堂测验平均分</span>
-                        </div>
-                        <p className="text-lg font-bold text-blue-800 mt-1">{r.quizAvg} 分</p>
-                        <p className="text-xs text-blue-600">共 3 题 / 满分 30 分</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="bg-purple-50 border-purple-100">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-purple-600" />
-                          <span className="text-sm text-purple-700">课堂互动</span>
-                        </div>
-                        <p className="text-lg font-bold text-purple-800 mt-1">{r.interactions} 次</p>
-                        <p className="text-xs text-purple-600">签到/抢答/点名/讨论</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">出勤明细</h4>
-                    <div className="rounded-lg border overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-slate-50">
-                            <TableHead className="text-xs">姓名</TableHead>
-                            <TableHead className="text-xs">学号</TableHead>
-                            <TableHead className="text-xs">签到时间</TableHead>
-                            <TableHead className="text-xs">签到方式</TableHead>
-                            <TableHead className="text-xs">状态</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {["李明", "王芳", "张伟", "刘洋", "陈静"].map((name, i) => (
-                            <TableRow key={i}>
-                              <TableCell className="text-sm">{name}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground">20230100{10 + i}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground">
-                                {i < 4 ? "08:02" : "—"}
-                              </TableCell>
-                              <TableCell className="text-sm text-muted-foreground">
-                                {i < 4 ? "普通签到" : "—"}
-                              </TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant="secondary"
-                                  className={
-                                    i < 4
-                                      ? "bg-green-50 text-green-600 text-xs"
-                                      : "bg-red-50 text-red-600 text-xs"
-                                  }
-                                >
-                                  {i < 4 ? "出勤" : "缺勤"}
-                                </Badge>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span>活动总数：{activities.length}</span>
+        <span>·</span>
+        <span>预计总时长：{totalDuration} 分钟</span>
       </div>
+
+      <div className="space-y-3">
+        {activities.map((activity) => {
+          const cfg = TYPE_CONFIG[activity.type]
+          return (
+            <Card key={activity.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Badge className={`${cfg.color} gap-1`}>
+                        {cfg.icon}
+                        {cfg.label}
+                      </Badge>
+                      {activity.platformLink && (
+                        <Badge variant="outline">平台联动</Badge>
+                      )}
+                    </div>
+                    <p className="font-medium text-sm">{activity.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      预计时长：{activity.duration} 分钟
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(activity.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>添加教学活动</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>活动名称</Label>
+              <Input
+                value={form.name || ""}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="如：课堂签到"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>活动类型</Label>
+              <Select
+                value={form.type}
+                onValueChange={(v) =>
+                  setForm({ ...form, type: v as ActivityType })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sign">签到</SelectItem>
+                  <SelectItem value="lecture">课堂讲授</SelectItem>
+                  <SelectItem value="quiz">随堂测验</SelectItem>
+                  <SelectItem value="discuss">小组讨论</SelectItem>
+                  <SelectItem value="practical">实训任务</SelectItem>
+                  <SelectItem value="interactive">抢答/点名/互动</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>预计时长（分钟）</Label>
+              <Input
+                type="number"
+                value={form.duration || ""}
+                onChange={(e) =>
+                  setForm({ ...form, duration: Number(e.target.value) })
+                }
+                placeholder="如：10"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="cursor-pointer">平台联动采集数据</Label>
+              <Switch
+                checked={form.platformLink}
+                onCheckedChange={(v) =>
+                  setForm({ ...form, platformLink: v })
+                }
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleAdd}>确认添加</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

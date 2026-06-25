@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Save, Send, BookOpen, MonitorPlay, Users, FileText, Layers, Plus, Trash2, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, Info, Sun, School, Moon, Award } from "lucide-react"
+import { ArrowLeft, Save, Send, BookOpen, MonitorPlay, Users, FileText, Layers, Plus, Trash2, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, Info, Sun, School, Moon } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 import { INDUSTRIES, MAJORS } from "@/lib/types"
@@ -22,7 +22,6 @@ import { WEB_FRONTEND_SEMESTER_NODES } from "./_mock/semester-nodes"
 import { PreClassTab } from "./_components/pre-class-tab"
 import { InClassTab } from "./_components/in-class-tab"
 import { PostClassTab } from "./_components/post-class-tab"
-import { FinalAssessmentTab } from "./_components/final-assessment-tab"
 
 const FIRST_NODE_ID = "hybrid-node-1"
 
@@ -258,10 +257,9 @@ function HybridCourseAddForm() {
                       <TabsTrigger value="basic"><BookOpen className="h-4 w-4 mr-1" /> 基本信息</TabsTrigger>
                       <TabsTrigger value="outline"><Layers className="h-4 w-4 mr-1" /> 课程大纲</TabsTrigger>
                       <TabsTrigger value="resources"><FileText className="h-4 w-4 mr-1" /> 资源组课</TabsTrigger>
-                      <TabsTrigger value="pre-class"><Sun className="h-4 w-4 mr-1" /> 课前：线上自主学习</TabsTrigger>
-                      <TabsTrigger value="in-class"><School className="h-4 w-4 mr-1" /> 课中：线下课堂 + 平台联动</TabsTrigger>
-                      <TabsTrigger value="post-class"><Moon className="h-4 w-4 mr-1" /> 课后：线上作业、测验、答疑</TabsTrigger>
-                      <TabsTrigger value="final-assessment"><Award className="h-4 w-4 mr-1" /> 期末：过程性考核归档</TabsTrigger>
+                      <TabsTrigger value="pre-class"><Sun className="h-4 w-4 mr-1" /> 课前准备</TabsTrigger>
+                      <TabsTrigger value="in-class"><School className="h-4 w-4 mr-1" /> 教学实施</TabsTrigger>
+                      <TabsTrigger value="post-class"><Moon className="h-4 w-4 mr-1" /> 课后测验</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="basic" className="space-y-4">
@@ -510,10 +508,6 @@ function HybridCourseAddForm() {
 
                     <TabsContent value="post-class" className="space-y-4">
                       <PostClassTab />
-                    </TabsContent>
-
-                    <TabsContent value="final-assessment" className="space-y-4">
-                      <FinalAssessmentTab />
                     </TabsContent>
                   </Tabs>
                 </div>
