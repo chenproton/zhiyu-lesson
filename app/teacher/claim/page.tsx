@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { BookOpen, Users, Calendar, CheckCircle2, Search, MapPin } from "lucide-react"
+import { BookOpen, Users, Calendar, CheckCircle2, Search, MapPin, Link2 } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 
@@ -191,29 +191,46 @@ export default function ClassClaimPage() {
 
                   {classSessions.length > 0 ? (
                     <div className="space-y-2 pl-4 border-l-2 border-muted">
-                      {classSessions.map((session) => (
-                        <div
-                          key={session.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-muted/40 rounded-md"
-                        >
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5" />
-                              <span>{session.venue}</span>
-                            </div>
-                            <div>第 {session.week} 周</div>
-                            <div>{session.weekday}</div>
-                            <div>{session.period}</div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant={session.status === "associated" ? "outline" : "default"}
-                            onClick={() => openAssociateDialog(session.id)}
+                      {classSessions.map((session) => {
+                        const associatedHybrid = session.hybridCourseId
+                          ? hybridCourses.find((c) => c.id === session.hybridCourseId)
+                          : null
+
+                        return (
+                          <div
+                            key={session.id}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-muted/40 rounded-md"
                           >
-                            {session.status === "associated" ? "已关联混合课程" : "开课"}
-                          </Button>
-                        </div>
-                      ))}
+                            <div className="flex-1 min-w-0 space-y-2">
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <MapPin className="h-3.5 w-3.5" />
+                                  <span>{session.venue}</span>
+                                </div>
+                                <div>第 {session.week} 周</div>
+                                <div>{session.weekday}</div>
+                                <div>{session.period}</div>
+                              </div>
+                              {associatedHybrid && (
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <Link2 className="h-3.5 w-3.5 shrink-0" />
+                                  <span className="shrink-0">已关联混合课程：</span>
+                                  <Badge variant="secondary" className="text-xs truncate max-w-[240px]">
+                                    {associatedHybrid.name}
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant={session.status === "associated" ? "outline" : "default"}
+                              onClick={() => openAssociateDialog(session.id)}
+                            >
+                              {session.status === "associated" ? "已关联混合课程" : "开课"}
+                            </Button>
+                          </div>
+                        )
+                      })}
                     </div>
                   ) : (
                     <div className="pl-4 text-sm text-muted-foreground">暂无课程节次</div>
