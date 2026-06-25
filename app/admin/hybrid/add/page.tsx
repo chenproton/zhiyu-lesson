@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useCallback } from "react"
+import { Suspense, useState, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -12,12 +12,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Save, Send, BookOpen, MonitorPlay, Users, FileText, Layers, Plus, Trash2, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, Info } from "lucide-react"
+import { ArrowLeft, Save, Send, BookOpen, MonitorPlay, Users, FileText, Layers, Plus, Trash2, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, Info, Sun, School, Moon, Award } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 import { INDUSTRIES, MAJORS } from "@/lib/types"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
 import CourseNodeTree from "../../system/add/_components/CourseNodeTree"
+import { WEB_FRONTEND_SEMESTER_NODES } from "./_mock/semester-nodes"
+import { PreClassTab } from "./_components/pre-class-tab"
+import { InClassTab } from "./_components/in-class-tab"
+import { PostClassTab } from "./_components/post-class-tab"
+import { FinalAssessmentTab } from "./_components/final-assessment-tab"
 
 const FIRST_NODE_ID = "hybrid-node-1"
 
@@ -27,17 +32,24 @@ function HybridCourseAddForm() {
   const existing = editId ? hybridCourses.find((c) => c.id === editId) : null
 
   /* ========== course node tree ========== */
-  const [nodes, setNodes] = useState<SystemCourseNode[]>([
-    {
-      id: FIRST_NODE_ID,
-      courseId: editId || "hybrid-new",
-      parentId: null,
-      name: existing?.name || "混合课程",
-      order: 1,
-      type: "normal",
-      status: "draft",
-    },
-  ])
+  const initialNodes = useMemo<SystemCourseNode[]>(() => {
+    if (editId === "hybrid-1") {
+      return WEB_FRONTEND_SEMESTER_NODES
+    }
+    return [
+      {
+        id: FIRST_NODE_ID,
+        courseId: editId || "hybrid-new",
+        parentId: null,
+        name: existing?.name || "混合课程",
+        order: 1,
+        type: "normal",
+        status: "draft",
+      },
+    ]
+  }, [editId, existing?.name])
+
+  const [nodes, setNodes] = useState<SystemCourseNode[]>(initialNodes)
   const [selectedNodeId, setSelectedNodeId] = useState<string>(FIRST_NODE_ID)
 
   const handleAddNode = useCallback((parentId: string | null, name: string, order: number, type?: NodeRefType, sourceId?: string, sourceName?: string) => {
@@ -242,10 +254,14 @@ function HybridCourseAddForm() {
               {selectedNode && selectedNodeId === FIRST_NODE_ID && (
                 <div className="space-y-6">
                   <Tabs defaultValue="basic" className="space-y-4">
-                    <TabsList>
+                    <TabsList className="flex-wrap h-auto gap-y-2">
                       <TabsTrigger value="basic"><BookOpen className="h-4 w-4 mr-1" /> 基本信息</TabsTrigger>
                       <TabsTrigger value="outline"><Layers className="h-4 w-4 mr-1" /> 课程大纲</TabsTrigger>
                       <TabsTrigger value="resources"><FileText className="h-4 w-4 mr-1" /> 资源组课</TabsTrigger>
+                      <TabsTrigger value="pre-class"><Sun className="h-4 w-4 mr-1" /> 课前：线上自主学习</TabsTrigger>
+                      <TabsTrigger value="in-class"><School className="h-4 w-4 mr-1" /> 课中：线下课堂 + 平台联动</TabsTrigger>
+                      <TabsTrigger value="post-class"><Moon className="h-4 w-4 mr-1" /> 课后：线上作业、测验、答疑</TabsTrigger>
+                      <TabsTrigger value="final-assessment"><Award className="h-4 w-4 mr-1" /> 期末：过程性考核归档</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="basic" className="space-y-4">
@@ -482,6 +498,22 @@ function HybridCourseAddForm() {
                           </div>
                         </DialogContent>
                       </Dialog>
+                    </TabsContent>
+
+                    <TabsContent value="pre-class" className="space-y-4">
+                      <PreClassTab />
+                    </TabsContent>
+
+                    <TabsContent value="in-class" className="space-y-4">
+                      <InClassTab />
+                    </TabsContent>
+
+                    <TabsContent value="post-class" className="space-y-4">
+                      <PostClassTab />
+                    </TabsContent>
+
+                    <TabsContent value="final-assessment" className="space-y-4">
+                      <FinalAssessmentTab />
                     </TabsContent>
                   </Tabs>
                 </div>
