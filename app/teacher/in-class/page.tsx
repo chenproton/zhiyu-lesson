@@ -414,19 +414,8 @@ export default function SmartClassroomPage() {
     <div className="min-h-screen bg-[#f0f2f5]">
       {/* Page Header */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-[1440px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold flex items-center gap-2 text-gray-900">
-                <Layers className="w-5 h-5 text-[#1890ff]" />
-                智慧课堂管理
-              </h1>
-              <p className="text-xs text-gray-400 mt-0.5">教学日程与备课系统</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-            <div className="flex items-center gap-4">
+        <div className="max-w-[1440px] mx-auto px-6 py-3">
+          <div className="flex items-center gap-4">
               <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1">
                 <Button
                   size="sm"
@@ -471,7 +460,6 @@ export default function SmartClassroomPage() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Main Content */}
       <div className="px-6 py-5">
