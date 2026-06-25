@@ -224,25 +224,39 @@ export function PlatformTopNav({ config }: { config: PlatformNavigationConfig })
   )
 }
 
+function getVisibleSideNavItems(items: SideNavItem[]): SideNavItem[] {
+  return items
+    .map((item) => {
+      if (item.hidden) return null
+      const visibleChildren = item.children?.filter((child) => !child.hidden)
+      if (item.children && item.children.length > 0 && (!visibleChildren || visibleChildren.length === 0)) {
+        return null
+      }
+      return visibleChildren ? { ...item, children: visibleChildren } : item
+    })
+    .filter(Boolean) as SideNavItem[]
+}
+
 export function PlatformSideNav({ config }: { config: PlatformNavigationConfig }) {
   const pathname = usePathname()
+  const visibleSideNavItems = useMemo(() => getVisibleSideNavItems(config.sideNavItems), [config.sideNavItems])
   const defaultExpanded = useMemo(
     () =>
       config.defaultExpandedSideNavIds?.length
         ? config.defaultExpandedSideNavIds
-        : config.sideNavItems.filter((item) => item.children?.length).map((item) => item.id),
-    [config.defaultExpandedSideNavIds, config.sideNavItems]
+        : visibleSideNavItems.filter((item) => item.children?.length).map((item) => item.id),
+    [config.defaultExpandedSideNavIds, visibleSideNavItems]
   )
   const [expandedItems, setExpandedItems] = useState<string[]>(defaultExpanded)
   const PlatformIcon = resolvePlatformIcon(config.platformIcon || "settings")
 
   useEffect(() => {
-    const activeParents = config.sideNavItems
+    const activeParents = visibleSideNavItems
       .filter((item) => item.children?.some((child) => matchesPath(pathname, child.href, child.matchers)))
       .map((item) => item.id)
 
     setExpandedItems((prev) => Array.from(new Set([...defaultExpanded, ...activeParents, ...prev])))
-  }, [config.sideNavItems, defaultExpanded, pathname])
+  }, [visibleSideNavItems, defaultExpanded, pathname])
 
   const toggleExpand = (itemId: string) => {
     setExpandedItems((prev) =>
@@ -268,7 +282,7 @@ export function PlatformSideNav({ config }: { config: PlatformNavigationConfig }
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3">
-        {config.sideNavItems.map((item) => {
+        {visibleSideNavItems.map((item) => {
           const Icon = resolvePlatformIcon(item.icon)
           const hasChildren = Boolean(item.children?.length)
           const active = isSideItemActive(pathname, item)

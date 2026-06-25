@@ -20,6 +20,7 @@ export interface SideNavChild {
   label: string
   href: string
   matchers?: string[]
+  hidden?: boolean
 }
 
 export interface SideNavItem {
@@ -29,6 +30,7 @@ export interface SideNavItem {
   href?: string
   matchers?: string[]
   children?: SideNavChild[]
+  hidden?: boolean
 }
 
 export interface UserMenuItem {
