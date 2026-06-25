@@ -493,7 +493,7 @@ export const ATOMIC_MODULES: AtomicModuleMeta[] = [
   { key: "courseBasicInfo", label: "课程基本信息", category: "basic", icon: BookOpen, component: CourseBasicInfoModule },
   { key: "onlineOfflineConfig", label: "线上线下配置", category: "basic", icon: MonitorPlay, component: OnlineOfflineConfigModule },
   { key: "teachingObjectives", label: "教学目标", category: "pre-class", icon: Sun, component: TeachingObjectivesModule },
-  { key: "teachingUnits", label: "教学单元", category: "pre-class", icon: Layers, component: TeachingUnitsModule },
+  { key: "teachingUnits", label: "教学大纲", category: "pre-class", icon: Layers, component: TeachingUnitsModule },
   { key: "resourceGroup-system", label: "体系课资源", category: "pre-class", icon: BookMarked, component: (props) => <ResourceGroupModule {...props} resourceKey="system" /> },
   { key: "resourceGroup-granular", label: "颗粒微课", category: "pre-class", icon: Microscope, component: (props) => <ResourceGroupModule {...props} resourceKey="granular" /> },
   { key: "resourceGroup-case", label: "产业案例/场景任务", category: "pre-class", icon: Briefcase, component: (props) => <ResourceGroupModule {...props} resourceKey="case" /> },

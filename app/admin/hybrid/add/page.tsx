@@ -12,8 +12,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { INDUSTRIES, MAJORS } from "@/lib/types"
-import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, MonitorPlay, Users, Sun, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight } from "lucide-react"
+import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
@@ -23,7 +24,6 @@ import {
   ATOMIC_MODULES,
   ATOMIC_MODULES_BY_KEY,
   DEFAULT_MODULES,
-  CATEGORY_LABELS,
   createDefaultNodeModuleData,
   type AtomicModuleKey,
   type NodeModuleData,
@@ -31,13 +31,6 @@ import {
 } from "./_components/atomic-modules"
 
 const FIRST_NODE_ID = "hybrid-node-1"
-
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  basic: BookOpen,
-  "pre-class": Sun,
-  "in-class": Users,
-  "post-class": MonitorPlay,
-}
 
 function HybridCourseAddForm() {
   const searchParams = useSearchParams()
@@ -293,14 +286,6 @@ function HybridCourseAddForm() {
   const availableModules = ATOMIC_MODULES.filter(
     (m) => !currentModules.includes(m.key) && m.category !== "basic"
   )
-  const groupedAvailable = useMemo(() => {
-    const groups: Record<string, typeof ATOMIC_MODULES> = {}
-    availableModules.forEach((m) => {
-      if (!groups[m.category]) groups[m.category] = []
-      groups[m.category].push(m)
-    })
-    return groups
-  }, [availableModules])
 
   return (
     <div className="min-h-screen bg-[#f5f7fa]">
@@ -561,22 +546,25 @@ function HybridCourseAddForm() {
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>添加原子模块</DialogTitle>
+            <DialogTitle>添加教学活动</DialogTitle>
           </DialogHeader>
-          <div className="space-y-5 py-2">
-            {availableModules.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">所有原子模块已挂载</p>
-            ) : (
-              Object.entries(groupedAvailable).map(([category, modules]) => {
-                const CatIcon = CATEGORY_ICONS[category] || Layers
-                return (
-                  <div key={category}>
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                      <CatIcon className="h-4 w-4 text-blue-500" />
-                      {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] || category}
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {modules.map((m) => {
+          {availableModules.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">所有教学活动已挂载</p>
+          ) : (
+            <Tabs defaultValue="pre-class" className="py-2">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="pre-class">课前准备</TabsTrigger>
+                <TabsTrigger value="in-class">教学实施</TabsTrigger>
+                <TabsTrigger value="post-class">课后测验</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pre-class" className="space-y-5 pt-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">课前预习</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableModules
+                      .filter((m) => m.key === "teachingObjectives" || m.key === "teachingUnits")
+                      .map((m) => {
                         const Icon = m.icon
                         return (
                           <button
@@ -589,12 +577,71 @@ function HybridCourseAddForm() {
                           </button>
                         )
                       })}
-                    </div>
                   </div>
-                )
-              })
-            )}
-          </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">关联资源</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {availableModules
+                      .filter((m) => m.category === "pre-class" && m.key !== "teachingObjectives" && m.key !== "teachingUnits")
+                      .map((m) => {
+                        const Icon = m.icon
+                        return (
+                          <button
+                            key={m.key}
+                            onClick={() => addModule(m.key)}
+                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                          >
+                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                            <span className="text-sm">{m.label}</span>
+                          </button>
+                        )
+                      })}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="in-class" className="pt-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {availableModules
+                    .filter((m) => m.category === "in-class")
+                    .map((m) => {
+                      const Icon = m.icon
+                      return (
+                        <button
+                          key={m.key}
+                          onClick={() => addModule(m.key)}
+                          className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                        >
+                          <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                          <span className="text-sm">{m.label}</span>
+                        </button>
+                      )
+                    })}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="post-class" className="pt-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {availableModules
+                    .filter((m) => m.category === "post-class")
+                    .map((m) => {
+                      const Icon = m.icon
+                      return (
+                        <button
+                          key={m.key}
+                          onClick={() => addModule(m.key)}
+                          className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                        >
+                          <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                          <span className="text-sm">{m.label}</span>
+                        </button>
+                      )
+                    })}
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
         </DialogContent>
       </Dialog>
     </div>
