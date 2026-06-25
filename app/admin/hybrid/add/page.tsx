@@ -271,7 +271,9 @@ function HybridCourseAddForm() {
     toast.success(`提交混合课程审批：${rootForm.name || ""}（演示）`)
   }
 
-  const availableModules = ATOMIC_MODULES.filter((m) => !currentModules.includes(m.key))
+  const availableModules = ATOMIC_MODULES.filter(
+    (m) => !currentModules.includes(m.key) && m.category !== "basic"
+  )
   const groupedAvailable = useMemo(() => {
     const groups: Record<string, typeof ATOMIC_MODULES> = {}
     availableModules.forEach((m) => {
