@@ -16,10 +16,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { courses } from "@/lib/mock-data"
+import { hybridCourses } from "@/lib/mock-data"
 import { COURSE_TYPE_LABELS, COURSE_TYPE_COLORS } from "@/lib/types"
-import type { Course } from "@/lib/types"
-import { BindCourseModal } from "./_components/bind-course-modal"
 
 type ScheduleType = "scene" | "course" | "hybrid"
 
@@ -66,7 +64,28 @@ const TYPE_MAP: Record<
   },
 }
 
-const WEEK_SCHEDULE: DaySchedule[] = [
+const hybridCourseIds = hybridCourses.map((c) => c.id)
+
+function hashId(id: string) {
+  let h = 0
+  for (let i = 0; i < id.length; i++) {
+    h = (h << 5) - h + id.charCodeAt(i)
+    h |= 0
+  }
+  return Math.abs(h)
+}
+
+function assignRandomHybridCourses(schedule: DaySchedule[]): DaySchedule[] {
+  return schedule.map((day) => ({
+    ...day,
+    courses: day.courses.map((course) => ({
+      ...course,
+      boundCourseId: hybridCourseIds[hashId(course.id) % hybridCourseIds.length],
+    })),
+  }))
+}
+
+const BASE_WEEK_SCHEDULE: DaySchedule[] = [
   {
     day: "周一",
     date: "10/16",
@@ -116,6 +135,8 @@ const WEEK_SCHEDULE: DaySchedule[] = [
   { day: "周日", date: "10/22", courses: [] },
 ]
 
+const WEEK_SCHEDULE = assignRandomHybridCourses(BASE_WEEK_SCHEDULE)
+
 const BASE_DATE = new Date(2023, 9, 16)
 const TODAY = new Date(2023, 9, 18)
 
@@ -157,19 +178,16 @@ function getDayLabel(date: Date) {
 
 function ScheduleCard({
   course,
-  onClick,
 }: {
   course: ScheduleItem
-  onClick: () => void
 }) {
   const boundCourse = course.boundCourseId
-    ? courses.find((c) => c.id === course.boundCourseId)
+    ? hybridCourses.find((c) => c.id === course.boundCourseId)
     : null
 
   return (
     <div
-      onClick={onClick}
-      className={`group relative rounded-xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-gray-200 overflow-hidden border-l-4 cursor-pointer ${
+      className={`group relative rounded-xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-gray-200 overflow-hidden border-l-4 ${
         course.type === "course"
           ? "border-l-blue-400 border-gray-100"
           : course.type === "hybrid"
@@ -236,11 +254,9 @@ function ScheduleCard({
 function WeekView({
   currentDate,
   scheduleData,
-  onSelectSchedule,
 }: {
   currentDate: Date
   scheduleData: DaySchedule[]
-  onSelectSchedule: (item: ScheduleItem) => void
 }) {
   const scheduleMap = useMemo(() => {
     const map = new Map<string, ScheduleItem[]>()
@@ -314,7 +330,6 @@ function WeekView({
                     <ScheduleCard
                       key={course.id}
                       course={course}
-                      onClick={() => onSelectSchedule(course)}
                     />
                   ))
                 )}
@@ -330,11 +345,9 @@ function WeekView({
 function MonthView({
   currentDate,
   scheduleData,
-  onSelectSchedule,
 }: {
   currentDate: Date
   scheduleData: DaySchedule[]
-  onSelectSchedule: (item: ScheduleItem) => void
 }) {
   const scheduleMap = useMemo(() => {
     const map = new Map<string, ScheduleItem[]>()
@@ -422,13 +435,12 @@ function MonthView({
             <div className="flex flex-col gap-1 overflow-hidden">
               {cell.courses.map((course) => {
                 const boundCourse = course.boundCourseId
-                  ? courses.find((c) => c.id === course.boundCourseId)
+                  ? hybridCourses.find((c) => c.id === course.boundCourseId)
                   : null
                 return (
                   <div
                     key={course.id}
-                    onClick={() => onSelectSchedule(course)}
-                    className={`text-[10px] px-1.5 py-1 rounded border ${TYPE_MAP[course.type].color} ${TYPE_MAP[course.type].bg} border-current truncate cursor-pointer hover:opacity-80`}
+                    className={`text-[10px] px-1.5 py-1 rounded border ${TYPE_MAP[course.type].color} ${TYPE_MAP[course.type].bg} border-current truncate hover:opacity-80`}
                     title={course.name}
                   >
                     <span className="font-medium">{course.name}</span>
@@ -451,9 +463,7 @@ function MonthView({
 export default function SmartClassroomPage() {
   const [currentDate, setCurrentDate] = useState<Date>(BASE_DATE)
   const [viewMode, setViewMode] = useState<"week" | "month">("week")
-  const [scheduleData, setScheduleData] = useState<DaySchedule[]>(WEEK_SCHEDULE)
-  const [bindModalOpen, setBindModalOpen] = useState(false)
-  const [bindingSchedule, setBindingSchedule] = useState<ScheduleItem | null>(null)
+  const [scheduleData] = useState<DaySchedule[]>(WEEK_SCHEDULE)
 
   const headerLabel = useMemo(() => {
     if (viewMode === "week") {
@@ -480,22 +490,6 @@ export default function SmartClassroomPage() {
     } else {
       setCurrentDate((d) => addMonths(d, 1))
     }
-  }
-
-  const handleSelectSchedule = (item: ScheduleItem) => {
-    setBindingSchedule(item)
-    setBindModalOpen(true)
-  }
-
-  const handleBind = (scheduleId: string, course: Course) => {
-    setScheduleData((prev) =>
-      prev.map((day) => ({
-        ...day,
-        courses: day.courses.map((c) =>
-          c.id === scheduleId ? { ...c, boundCourseId: course.id } : c
-        ),
-      }))
-    )
   }
 
   return (
@@ -556,24 +550,15 @@ export default function SmartClassroomPage() {
             <WeekView
               currentDate={currentDate}
               scheduleData={scheduleData}
-              onSelectSchedule={handleSelectSchedule}
             />
           ) : (
             <MonthView
               currentDate={currentDate}
               scheduleData={scheduleData}
-              onSelectSchedule={handleSelectSchedule}
             />
           )}
         </div>
       </div>
-
-      <BindCourseModal
-        open={bindModalOpen}
-        onOpenChange={setBindModalOpen}
-        schedule={bindingSchedule}
-        onBind={handleBind}
-      />
     </div>
   )
 }
