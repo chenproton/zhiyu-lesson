@@ -10,10 +10,16 @@ import {
   MonitorPlay,
   MapPin,
   Users,
+  Link2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { courses } from "@/lib/mock-data"
+import { COURSE_TYPE_LABELS, COURSE_TYPE_COLORS } from "@/lib/types"
+import type { Course } from "@/lib/types"
+import { BindCourseModal } from "./_components/bind-course-modal"
 
 type ScheduleType = "scene" | "course" | "hybrid"
 
@@ -26,6 +32,7 @@ interface ScheduleItem {
   grade?: string
   className?: string
   date: string
+  boundCourseId?: string
 }
 
 interface DaySchedule {
@@ -148,13 +155,21 @@ function getDayLabel(date: Date) {
   return labels[date.getDay()]
 }
 
-const scheduleMap = new Map<string, ScheduleItem[]>()
-WEEK_SCHEDULE.forEach((d) => scheduleMap.set(d.date, d.courses))
+function ScheduleCard({
+  course,
+  onClick,
+}: {
+  course: ScheduleItem
+  onClick: () => void
+}) {
+  const boundCourse = course.boundCourseId
+    ? courses.find((c) => c.id === course.boundCourseId)
+    : null
 
-function ScheduleCard({ course }: { course: ScheduleItem }) {
   return (
     <div
-      className={`group relative rounded-xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-gray-200 overflow-hidden border-l-4 ${
+      onClick={onClick}
+      className={`group relative rounded-xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-gray-200 overflow-hidden border-l-4 cursor-pointer ${
         course.type === "course"
           ? "border-l-blue-400 border-gray-100"
           : course.type === "hybrid"
@@ -194,12 +209,45 @@ function ScheduleCard({ course }: { course: ScheduleItem }) {
             </span>
           </div>
         </div>
+
+        {boundCourse && (
+          <div className="mt-3 pt-2.5 border-t border-dashed border-gray-100">
+            <div className="flex items-center gap-1.5">
+              <Link2 className="w-3 h-3 text-gray-400 shrink-0" />
+              <span
+                className={cn(
+                  "text-[10px] px-1.5 py-0.5 rounded shrink-0",
+                  COURSE_TYPE_COLORS[boundCourse.type]
+                )}
+              >
+                {COURSE_TYPE_LABELS[boundCourse.type]}
+              </span>
+              <span className="text-xs text-gray-600 truncate flex-1" title={boundCourse.name}>
+                {boundCourse.name}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-function WeekView({ currentDate }: { currentDate: Date }) {
+function WeekView({
+  currentDate,
+  scheduleData,
+  onSelectSchedule,
+}: {
+  currentDate: Date
+  scheduleData: DaySchedule[]
+  onSelectSchedule: (item: ScheduleItem) => void
+}) {
+  const scheduleMap = useMemo(() => {
+    const map = new Map<string, ScheduleItem[]>()
+    scheduleData.forEach((d) => map.set(d.date, d.courses))
+    return map
+  }, [scheduleData])
+
   const days = useMemo(() => {
     const monday = getMonday(currentDate)
     return Array.from({ length: 7 }).map((_, i) => {
@@ -213,7 +261,7 @@ function WeekView({ currentDate }: { currentDate: Date }) {
         isToday: isSameDay(date, TODAY),
       }
     })
-  }, [currentDate])
+  }, [currentDate, scheduleMap])
 
   return (
     <div className="relative">
@@ -263,7 +311,11 @@ function WeekView({ currentDate }: { currentDate: Date }) {
                   </div>
                 ) : (
                   day.courses.map((course) => (
-                    <ScheduleCard key={course.id} course={course} />
+                    <ScheduleCard
+                      key={course.id}
+                      course={course}
+                      onClick={() => onSelectSchedule(course)}
+                    />
                   ))
                 )}
               </div>
@@ -275,7 +327,21 @@ function WeekView({ currentDate }: { currentDate: Date }) {
   )
 }
 
-function MonthView({ currentDate }: { currentDate: Date }) {
+function MonthView({
+  currentDate,
+  scheduleData,
+  onSelectSchedule,
+}: {
+  currentDate: Date
+  scheduleData: DaySchedule[]
+  onSelectSchedule: (item: ScheduleItem) => void
+}) {
+  const scheduleMap = useMemo(() => {
+    const map = new Map<string, ScheduleItem[]>()
+    scheduleData.forEach((d) => map.set(d.date, d.courses))
+    return map
+  }, [scheduleData])
+
   const weeks = useMemo(() => {
     const firstDay = new Date(
       currentDate.getFullYear(),
@@ -316,7 +382,7 @@ function MonthView({ currentDate }: { currentDate: Date }) {
       rows.push(week)
     }
     return rows
-  }, [currentDate])
+  }, [currentDate, scheduleMap])
 
   const flatDays = weeks.flat()
 
@@ -354,15 +420,26 @@ function MonthView({ currentDate }: { currentDate: Date }) {
               {cell.date.getDate()}
             </div>
             <div className="flex flex-col gap-1 overflow-hidden">
-              {cell.courses.map((course) => (
-                <div
-                  key={course.id}
-                  className={`text-[10px] px-1.5 py-1 rounded border ${TYPE_MAP[course.type].color} ${TYPE_MAP[course.type].bg} border-current truncate`}
-                  title={course.name}
-                >
-                  {course.name}
-                </div>
-              ))}
+              {cell.courses.map((course) => {
+                const boundCourse = course.boundCourseId
+                  ? courses.find((c) => c.id === course.boundCourseId)
+                  : null
+                return (
+                  <div
+                    key={course.id}
+                    onClick={() => onSelectSchedule(course)}
+                    className={`text-[10px] px-1.5 py-1 rounded border ${TYPE_MAP[course.type].color} ${TYPE_MAP[course.type].bg} border-current truncate cursor-pointer hover:opacity-80`}
+                    title={course.name}
+                  >
+                    <span className="font-medium">{course.name}</span>
+                    {boundCourse && (
+                      <span className="ml-1 opacity-80">
+                        → {boundCourse.name}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}
@@ -374,6 +451,9 @@ function MonthView({ currentDate }: { currentDate: Date }) {
 export default function SmartClassroomPage() {
   const [currentDate, setCurrentDate] = useState<Date>(BASE_DATE)
   const [viewMode, setViewMode] = useState<"week" | "month">("week")
+  const [scheduleData, setScheduleData] = useState<DaySchedule[]>(WEEK_SCHEDULE)
+  const [bindModalOpen, setBindModalOpen] = useState(false)
+  const [bindingSchedule, setBindingSchedule] = useState<ScheduleItem | null>(null)
 
   const headerLabel = useMemo(() => {
     if (viewMode === "week") {
@@ -402,67 +482,98 @@ export default function SmartClassroomPage() {
     }
   }
 
+  const handleSelectSchedule = (item: ScheduleItem) => {
+    setBindingSchedule(item)
+    setBindModalOpen(true)
+  }
+
+  const handleBind = (scheduleId: string, course: Course) => {
+    setScheduleData((prev) =>
+      prev.map((day) => ({
+        ...day,
+        courses: day.courses.map((c) =>
+          c.id === scheduleId ? { ...c, boundCourseId: course.id } : c
+        ),
+      }))
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#f0f2f5]">
       {/* Page Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-[1440px] mx-auto px-6 py-3">
           <div className="flex items-center gap-4">
-              <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1">
-                <Button
-                  size="sm"
-                  className={`h-7 text-xs ${
-                    viewMode === "week"
-                      ? "bg-white text-[#1890ff] shadow-sm hover:bg-white hover:text-[#1890ff]"
-                      : "bg-transparent text-gray-500 hover:text-gray-700"
-                  }`}
-                  onClick={() => setViewMode("week")}
-                >
-                  周视图
-                </Button>
-                <Button
-                  size="sm"
-                  className={`h-7 text-xs ${
-                    viewMode === "month"
-                      ? "bg-white text-[#1890ff] shadow-sm hover:bg-white hover:text-[#1890ff]"
-                      : "bg-transparent text-gray-500 hover:text-gray-700"
-                  }`}
-                  onClick={() => setViewMode("month")}
-                >
-                  月视图
-                </Button>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={handlePrev}
-                  className="p-1 rounded hover:bg-gray-100 text-gray-500 transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-sm text-gray-700 font-medium min-w-[160px] text-center">
-                  {headerLabel}
-                </span>
-                <button
-                  onClick={handleNext}
-                  className="p-1 rounded hover:bg-gray-100 text-gray-500 transition-colors"
-                >
-                  <ChevronRightIcon className="w-4 h-4" />
-                </button>
-              </div>
+            <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1">
+              <Button
+                size="sm"
+                className={`h-7 text-xs ${
+                  viewMode === "week"
+                    ? "bg-white text-[#1890ff] shadow-sm hover:bg-white hover:text-[#1890ff]"
+                    : "bg-transparent text-gray-500 hover:text-gray-700"
+                }`}
+                onClick={() => setViewMode("week")}
+              >
+                周视图
+              </Button>
+              <Button
+                size="sm"
+                className={`h-7 text-xs ${
+                  viewMode === "month"
+                    ? "bg-white text-[#1890ff] shadow-sm hover:bg-white hover:text-[#1890ff]"
+                    : "bg-transparent text-gray-500 hover:text-gray-700"
+                }`}
+                onClick={() => setViewMode("month")}
+              >
+                月视图
+              </Button>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handlePrev}
+                className="p-1 rounded hover:bg-gray-100 text-gray-500 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-sm text-gray-700 font-medium min-w-[160px] text-center">
+                {headerLabel}
+              </span>
+              <button
+                onClick={handleNext}
+                className="p-1 rounded hover:bg-gray-100 text-gray-500 transition-colors"
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
       {/* Main Content */}
       <div className="px-6 py-5">
         <div className="max-w-[1440px] mx-auto">
           {viewMode === "week" ? (
-            <WeekView currentDate={currentDate} />
+            <WeekView
+              currentDate={currentDate}
+              scheduleData={scheduleData}
+              onSelectSchedule={handleSelectSchedule}
+            />
           ) : (
-            <MonthView currentDate={currentDate} />
+            <MonthView
+              currentDate={currentDate}
+              scheduleData={scheduleData}
+              onSelectSchedule={handleSelectSchedule}
+            />
           )}
         </div>
       </div>
+
+      <BindCourseModal
+        open={bindModalOpen}
+        onOpenChange={setBindModalOpen}
+        schedule={bindingSchedule}
+        onBind={handleBind}
+      />
     </div>
   )
 }
