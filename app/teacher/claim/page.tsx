@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, Users, Calendar, CheckCircle2, MapPin, Clock } from "lucide-react"
+import { BookOpen, Users, Calendar, CheckCircle2, MapPin, Clock, Rocket } from "lucide-react"
 
 const semesters = [
   "2025 年第一学期",
@@ -51,6 +52,18 @@ export default function ClassClaimPage() {
   const termClassIds = new Set(termClasses.map((c) => c.id))
   const termSessions = sessions.filter((s) => termClassIds.has(s.classId))
   const associatedCount = termSessions.filter((s) => s.status === "associated").length
+
+  const handleOpenHybridAdd = (courseName: string, classSessions: ClassSession[]) => {
+    const payload = classSessions.map((s) => ({
+      week: s.week,
+      weekday: s.weekday,
+      period: s.period,
+      venue: s.venue,
+    }))
+    const encoded = btoa(encodeURIComponent(JSON.stringify(payload)))
+    const url = `/admin/hybrid/add?claimCourse=${encodeURIComponent(courseName)}&claimSessions=${encodeURIComponent(encoded)}`
+    window.open(url, "_blank")
+  }
 
   return (
     <div className="space-y-6">
@@ -124,12 +137,23 @@ export default function ClassClaimPage() {
 
               return (
                 <div key={cls.id} className="p-4 border rounded-lg space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold">{cls.course}</h3>
-                      <Badge variant="outline">{cls.name}</Badge>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold">{cls.course}</h3>
+                        <Badge variant="outline">{cls.name}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{cls.students}人 · {cls.term}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{cls.students}人 · {cls.term}</p>
+                    <Button
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => handleOpenHybridAdd(cls.course, classSessions)}
+                      disabled={classSessions.length === 0}
+                    >
+                      <Rocket className="h-3.5 w-3.5 mr-1" />
+                      开课
+                    </Button>
                   </div>
 
                   {classSessions.length > 0 ? (

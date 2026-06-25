@@ -35,25 +35,54 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
 function HybridCourseAddForm() {
   const searchParams = useSearchParams()
   const editId = searchParams.get("id")
+  const claimCourse = searchParams.get("claimCourse")
+  const claimSessionsParam = searchParams.get("claimSessions")
   const existing = editId ? hybridCourses.find((c) => c.id === editId) : null
+
+  const claimSessionNames = useMemo<string[]>(() => {
+    if (!claimSessionsParam) return []
+    try {
+      const decoded = decodeURIComponent(atob(claimSessionsParam))
+      const sessions = JSON.parse(decoded) as Array<{ week: number; weekday: string; period: string; venue?: string }>
+      return sessions.map((s) => `第 ${s.week} 周 · ${s.weekday} · ${s.period}`)
+    } catch {
+      return []
+    }
+  }, [claimSessionsParam])
 
   /* ========== course node tree ========== */
   const initialNodes = useMemo<SystemCourseNode[]>(() => {
     if (editId === "hybrid-1") {
       return WEB_FRONTEND_SEMESTER_NODES
     }
-    return [
-      {
-        id: FIRST_NODE_ID,
-        courseId: editId || "hybrid-new",
-        parentId: null,
-        name: existing?.name || "混合课程",
-        order: 1,
-        type: "normal",
-        status: "draft",
-      },
-    ]
-  }, [editId, existing?.name])
+
+    const rootName = claimCourse || existing?.name || "混合课程"
+    const rootNode: SystemCourseNode = {
+      id: FIRST_NODE_ID,
+      courseId: editId || "hybrid-new",
+      parentId: null,
+      name: rootName,
+      order: 1,
+      type: "normal",
+      status: "draft",
+    }
+
+    if (claimSessionNames.length === 0) {
+      return [rootNode]
+    }
+
+    const childNodes: SystemCourseNode[] = claimSessionNames.map((name, idx) => ({
+      id: `hybrid-node-child-${idx + 1}`,
+      courseId: editId || "hybrid-new",
+      parentId: FIRST_NODE_ID,
+      name,
+      order: idx + 1,
+      type: "normal",
+      status: "draft",
+    }))
+
+    return [rootNode, ...childNodes]
+  }, [editId, existing?.name, claimCourse, claimSessionNames])
 
   const [nodes, setNodes] = useState<SystemCourseNode[]>(initialNodes)
   const [selectedNodeId, setSelectedNodeId] = useState<string>(FIRST_NODE_ID)
