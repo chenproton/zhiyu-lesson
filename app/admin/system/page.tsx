@@ -371,7 +371,9 @@ export default function SystemCoursePage() {
                         />
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{course.name}</div>
+                        <Link href="/admin/system/add?mode=edit" className="font-medium hover:text-primary hover:underline">
+                          {course.name}
+                        </Link>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{course.code}</TableCell>
                       <TableCell>{course.industry}</TableCell>

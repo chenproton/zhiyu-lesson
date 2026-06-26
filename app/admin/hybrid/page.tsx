@@ -351,7 +351,9 @@ export default function HybridCoursePage() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{course.name}</div>
+                        <Link href={`/admin/hybrid/add?id=${course.id}`} className="font-medium hover:text-primary hover:underline">
+                          {course.name}
+                        </Link>
                         <div className="text-xs text-muted-foreground">{course.code} · {course.major}</div>
                       </div>
                     </TableCell>
