@@ -81,8 +81,8 @@ export function RichTextEditor({ value, onChange, placeholder, minHeight = 300 }
     <div className="space-y-3">
       <Tabs value={mode} onValueChange={(v) => setMode(v as "rich_text" | "pdf")}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="rich_text">富文本编辑</TabsTrigger>
-          <TabsTrigger value="pdf">上传说明书</TabsTrigger>
+          <TabsTrigger value="rich_text">自定义编辑</TabsTrigger>
+          <TabsTrigger value="pdf">上传自定义文件</TabsTrigger>
         </TabsList>
       </Tabs>
 

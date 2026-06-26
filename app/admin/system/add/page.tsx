@@ -583,7 +583,7 @@ function AddSystemPageInner() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs">内容编码</Label>
+                        <Label className="text-xs">节点编码</Label>
                         <Input value={contentCode} disabled className="h-9 text-sm bg-gray-50 text-gray-500" />
                         <p className="text-[10px] text-gray-400">系统自动生成，不可修改</p>
                       </div>
