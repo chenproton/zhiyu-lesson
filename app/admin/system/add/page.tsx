@@ -269,7 +269,6 @@ function AddSystemPageInner() {
   const isGranularNode = selectedNode?.type === "original" || selectedNode?.type === "quote"
 
   /* module 1: basic info */
-  const [contentName, setContentName] = useState(selectedNode?.name || "")
   const [contentCode] = useState(isEdit ? "CNT-SQL001" : `CNT-${Date.now().toString(36).toUpperCase()}`)
   const [hours, setHours] = useState(String(selectedNode?.duration || ""))
   const [learningGoal, setLearningGoal] = useState(selectedNode?.teachingGoals || "")
@@ -350,14 +349,14 @@ function AddSystemPageInner() {
 
     return {
       ...node,
-      name: contentName || node.name,
+      name: node.name,
       teachingGoals: learningGoal || node.teachingGoals,
       duration: parseInt(hours) || node.duration || 0,
       knowledgePoints: kpForCheck.length > 0 ? kpForCheck : node.knowledgePoints,
       resources: resForCheck.length > 0 ? resForCheck : node.resources,
       quizzes: quizzesForCheck.length > 0 ? quizzesForCheck : node.quizzes,
     }
-  }, [selectedNodeId, nodes, contentName, learningGoal, hours, knowledgePoints, selectedResourceIds, resourcePool, selectedEvalMethods])
+  }, [selectedNodeId, nodes, learningGoal, hours, knowledgePoints, selectedResourceIds, resourcePool, selectedEvalMethods])
 
   return (
     <div className="min-h-screen bg-[#f5f7fa]">
@@ -572,7 +571,16 @@ function AddSystemPageInner() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <Label className="text-xs">内容名称</Label>
-                        <Input value={contentName} onChange={(e) => setContentName(e.target.value)} placeholder="请输入内容名称" className="h-9 text-sm" />
+                        <Input
+                          value={selectedNode?.name || ""}
+                          onChange={(e) => {
+                            if (selectedNodeId) {
+                              handleUpdateNode(selectedNodeId, { name: e.target.value })
+                            }
+                          }}
+                          placeholder="请输入内容名称"
+                          className="h-9 text-sm"
+                        />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs">内容编码</Label>
