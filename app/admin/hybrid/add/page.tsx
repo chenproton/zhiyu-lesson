@@ -281,6 +281,19 @@ function HybridCourseAddForm() {
   const currentModules = selectedNodeId ? (moduleAssignments[selectedNodeId] || []) : []
   const currentData = selectedNodeId ? ensureNodeData(selectedNodeId) : null
 
+  const relatedDesignNodeIds = useMemo(() => {
+    if (!selectedNodeId || !currentData) return []
+    const related = new Set<string>(currentData.teachingDesignSharedNodeIds || [])
+    nodes.forEach((n) => {
+      if (n.id === selectedNodeId) return
+      const other = nodeDataMap[n.id]
+      if (other?.teachingDesignSharedNodeIds?.includes(selectedNodeId)) {
+        related.add(n.id)
+      }
+    })
+    return Array.from(related)
+  }, [selectedNodeId, currentData, nodes, nodeDataMap])
+
   const addModule = (key: AtomicModuleKey) => {
     if (!selectedNodeId) return
     setModuleAssignments((prev) => {
@@ -315,11 +328,10 @@ function HybridCourseAddForm() {
 
   const updateTeachingDesignContent = (value: string) => {
     if (!selectedNodeId || !currentData) return
-    const sharedIds = currentData.teachingDesignSharedNodeIds || []
     setNodeDataMap((prev) => {
       const next = { ...prev }
       next[selectedNodeId] = { ...next[selectedNodeId], teachingDesignContent: value }
-      sharedIds.forEach((id) => {
+      relatedDesignNodeIds.forEach((id) => {
         if (next[id]) {
           next[id] = { ...next[id], teachingDesignContent: value }
         }
@@ -330,7 +342,7 @@ function HybridCourseAddForm() {
 
   const openShareDialog = () => {
     if (!currentData) return
-    setShareSelectedIds(currentData.teachingDesignSharedNodeIds || [])
+    setShareSelectedIds(relatedDesignNodeIds)
     setShareDialogOpen(true)
   }
 
@@ -342,15 +354,14 @@ function HybridCourseAddForm() {
 
   const confirmShareNodes = () => {
     if (!selectedNodeId || !currentData) return
-    const prevSharedIds = currentData.teachingDesignSharedNodeIds || []
     const nextSharedIds = shareSelectedIds.filter((id) => id !== selectedNodeId)
 
     setNodeDataMap((prev) => {
       const next = { ...prev }
       const currentContent = next[selectedNodeId]?.teachingDesignContent || ""
 
-      // 从旧关联中移除当前节点
-      prevSharedIds.forEach((id) => {
+      // 从所有已有相关节点中移除当前节点
+      relatedDesignNodeIds.forEach((id) => {
         if (next[id]) {
           next[id] = {
             ...next[id],
@@ -619,10 +630,10 @@ function HybridCourseAddForm() {
                             <BookOpen className="h-4 w-4 text-blue-500" />
                             教学设计
                           </CardTitle>
-                          {currentData.teachingDesignSharedNodeIds.length > 0 && (
+                          {relatedDesignNodeIds.length > 0 && (
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-xs text-gray-400">已关联节点：</span>
-                              {currentData.teachingDesignSharedNodeIds.map((id) => {
+                              {relatedDesignNodeIds.map((id) => {
                                 const node = nodes.find((n) => n.id === id)
                                 return (
                                   <Badge key={id} variant="secondary" className="text-xs font-normal">
