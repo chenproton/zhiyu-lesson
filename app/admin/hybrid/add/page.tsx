@@ -405,7 +405,7 @@ function HybridCourseAddForm() {
   }
 
   const availableModules = ATOMIC_MODULES.filter(
-    (m) => !currentModules.includes(m.key) && m.category !== "basic"
+    (m) => !currentModules.includes(m.key)
   )
 
   const renderModuleCard = (key: AtomicModuleKey, data: NodeModuleData) => {
