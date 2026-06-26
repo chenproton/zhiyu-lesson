@@ -310,7 +310,6 @@ function AddSystemPageInner() {
   )
 
   /* module 5: evaluation rules */
-  const [passScore, setPassScore] = useState("60")
 
   /* ---------- construct current node for publish check ---------- */
   const currentCheckNode: SystemCourseNode | undefined = useMemo(() => {
@@ -688,11 +687,6 @@ function AddSystemPageInner() {
                         参考实践场景学习平台中的测评方式配置功能即可
                       </div>
                     )}
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
-                      <Label className="text-xs text-gray-500 shrink-0">及格分数线</Label>
-                      <Input type="number" value={passScore} onChange={(e) => setPassScore(e.target.value)} className="w-20 h-8 text-sm" />
-                      <span className="text-xs text-gray-400">分</span>
-                    </div>
                   </CardContent>
                 </Card>
               </>
