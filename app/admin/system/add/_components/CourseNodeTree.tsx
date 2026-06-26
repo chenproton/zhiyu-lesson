@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -109,7 +109,7 @@ export default function CourseNodeTree({
   /* add dialog state */
   const [newNodeName, setNewNodeName] = useState("")
   const [newNodeParent, setNewNodeParent] = useState<string>("root")
-  const [newNodeOrder, setNewNodeOrder] = useState(1)
+  const nextOrderRef = useRef(1)
   const [addMode, setAddMode] = useState<NodeRefType>("normal")
   const [sourceSearch, setSourceSearch] = useState("")
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
@@ -135,7 +135,7 @@ export default function CourseNodeTree({
       const nextOrder = siblings.length > 0 ? Math.max(...siblings.map((n) => n.order)) + 1 : 1
       setNewNodeName("")
       setNewNodeParent(parentId ?? "root")
-      setNewNodeOrder(nextOrder)
+      nextOrderRef.current = nextOrder
       setAddMode("normal")
       setSourceSearch("")
       setSelectedSourceId(null)
@@ -160,9 +160,9 @@ export default function CourseNodeTree({
       if (!selectedSourceId) return
       const source = MOCK_GRAIN_COURSES.find((g) => g.id === selectedSourceId)
       if (!source) return
-      onAddNode(parentId, newNodeName.trim(), newNodeOrder, addMode, source.id, source.name)
+      onAddNode(parentId, newNodeName.trim(), nextOrderRef.current, addMode, source.id, source.name)
     } else {
-      onAddNode(parentId, newNodeName.trim(), newNodeOrder, "normal")
+      onAddNode(parentId, newNodeName.trim(), nextOrderRef.current, "normal")
     }
 
     setAddDialogOpen(false)
@@ -348,19 +348,6 @@ export default function CourseNodeTree({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label>显示顺序 <span className="text-red-500">*</span></Label>
-              <Input
-                type="number"
-                min={1}
-                value={newNodeOrder}
-                onChange={(e) => setNewNodeOrder(Number(e.target.value))}
-                className="mt-1"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                💡 已建议顺序号 <span className="text-blue-500 font-medium">{newNodeOrder}</span>
-              </p>
             </div>
           </div>
 
