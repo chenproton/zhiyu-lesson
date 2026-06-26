@@ -471,8 +471,12 @@ function HybridCourseAddForm() {
                     <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
                     <span>当前编辑节点：<span className="font-medium text-gray-700">{selectedNode.name}</span></span>
                     <span className="text-gray-300">|</span>
-                    <span>已挂载 {currentModules.length} 个原子模块</span>
+                    <span>已挂载 {currentModules.length} 个教学活动</span>
                   </div>
+                  <Button size="sm" onClick={() => setAddDialogOpen(true)} disabled={availableModules.length === 0}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    添加教学活动
+                  </Button>
                 </div>
               )}
 
@@ -485,22 +489,11 @@ function HybridCourseAddForm() {
 
               {selectedNode && currentData && (
                 <div className="space-y-6">
-                  {/* Add module bar */}
-                  <div className="flex items-center justify-between bg-white rounded-xl border border-gray-100 px-5 py-3">
-                    <div className="text-sm text-gray-600">
-                      当前节点可自由组合原子模块
-                    </div>
-                    <Button size="sm" onClick={() => setAddDialogOpen(true)} disabled={availableModules.length === 0}>
-                      <Plus className="h-4 w-4 mr-1" />
-                      添加模块
-                    </Button>
-                  </div>
-
                   {/* Atomic modules */}
                   {currentModules.length === 0 && (
                     <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
                       <Layers className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                      <p className="text-sm">当前节点尚未挂载任何模块，请点击上方“添加模块”</p>
+                      <p className="text-sm">当前节点尚未挂载任何教学活动，请点击上方“添加教学活动”</p>
                     </div>
                   )}
 
