@@ -693,6 +693,7 @@ export interface KnowledgePointItem {
   code?: string
   description?: string
   linked: boolean
+  granularLessons?: string[]
 }
 
 export interface EvalPoint {
