@@ -14,7 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MAJORS } from "@/lib/types"
-import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft } from "lucide-react"
+import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
@@ -162,6 +162,8 @@ function HybridCourseAddForm() {
 
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [addDialogCategory, setAddDialogCategory] = useState<AtomicModuleCategory | null>(null)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [shareSelectedIds, setShareSelectedIds] = useState<string[]>([])
   const [globalInfoOpen, setGlobalInfoOpen] = useState(true)
 
   const rootForm = nodeDataMap[FIRST_NODE_ID]?.form || createDefaultNodeModuleData().form
@@ -309,6 +311,78 @@ function HybridCourseAddForm() {
       ...prev,
       [selectedNodeId]: { ...prev[selectedNodeId], ...patch },
     }))
+  }
+
+  const updateTeachingDesignContent = (value: string) => {
+    if (!selectedNodeId || !currentData) return
+    const sharedIds = currentData.teachingDesignSharedNodeIds || []
+    setNodeDataMap((prev) => {
+      const next = { ...prev }
+      next[selectedNodeId] = { ...next[selectedNodeId], teachingDesignContent: value }
+      sharedIds.forEach((id) => {
+        if (next[id]) {
+          next[id] = { ...next[id], teachingDesignContent: value }
+        }
+      })
+      return next
+    })
+  }
+
+  const openShareDialog = () => {
+    if (!currentData) return
+    setShareSelectedIds(currentData.teachingDesignSharedNodeIds || [])
+    setShareDialogOpen(true)
+  }
+
+  const toggleShareNode = (nodeId: string) => {
+    setShareSelectedIds((prev) =>
+      prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId]
+    )
+  }
+
+  const confirmShareNodes = () => {
+    if (!selectedNodeId || !currentData) return
+    const prevSharedIds = currentData.teachingDesignSharedNodeIds || []
+    const nextSharedIds = shareSelectedIds.filter((id) => id !== selectedNodeId)
+
+    setNodeDataMap((prev) => {
+      const next = { ...prev }
+      const currentContent = next[selectedNodeId]?.teachingDesignContent || ""
+
+      // 从旧关联中移除当前节点
+      prevSharedIds.forEach((id) => {
+        if (next[id]) {
+          next[id] = {
+            ...next[id],
+            teachingDesignSharedNodeIds: (next[id].teachingDesignSharedNodeIds || []).filter(
+              (sid) => sid !== selectedNodeId
+            ),
+          }
+        }
+      })
+
+      // 添加到新关联中（双向），并将内容同步为当前节点内容
+      nextSharedIds.forEach((id) => {
+        if (next[id]) {
+          next[id] = {
+            ...next[id],
+            teachingDesignSharedNodeIds: Array.from(
+              new Set([...(next[id].teachingDesignSharedNodeIds || []), selectedNodeId])
+            ),
+            teachingDesignContent: currentContent,
+          }
+        }
+      })
+
+      next[selectedNodeId] = {
+        ...next[selectedNodeId],
+        teachingDesignSharedNodeIds: nextSharedIds,
+      }
+
+      return next
+    })
+
+    setShareDialogOpen(false)
   }
 
   const handleSave = () => {
@@ -539,16 +613,35 @@ function HybridCourseAddForm() {
 
                   <TabsContent value="design" className="space-y-4 pt-4">
                     <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-blue-500" />
-                          教学设计
-                        </CardTitle>
+                      <CardHeader className="pb-3 flex flex-row items-start justify-between gap-4">
+                        <div className="space-y-1">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-blue-500" />
+                            教学设计
+                          </CardTitle>
+                          {currentData.teachingDesignSharedNodeIds.length > 0 && (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-xs text-gray-400">已关联节点：</span>
+                              {currentData.teachingDesignSharedNodeIds.map((id) => {
+                                const node = nodes.find((n) => n.id === id)
+                                return (
+                                  <Badge key={id} variant="secondary" className="text-xs font-normal">
+                                    {node?.name || id}
+                                  </Badge>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                        <Button size="sm" variant="outline" onClick={openShareDialog}>
+                          <Layers className="h-4 w-4 mr-1" />
+                          复用节点
+                        </Button>
                       </CardHeader>
                       <CardContent>
                         <MockRichEditor
                           value={currentData.teachingDesignContent}
-                          onChange={(v) => updateNodeData({ teachingDesignContent: v })}
+                          onChange={updateTeachingDesignContent}
                           placeholder="请输入教学设计内容"
                         />
                       </CardContent>
@@ -640,6 +733,52 @@ function HybridCourseAddForm() {
               })}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Share design nodes dialog */}
+      <Dialog
+        open={shareDialogOpen}
+        onOpenChange={(open) => {
+          setShareDialogOpen(open)
+          if (!open) setShareSelectedIds([])
+        }}
+      >
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>复用节点（教学设计同步）</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 space-y-2">
+            <p className="text-xs text-gray-400">选择要与当前节点同步教学设计的节点</p>
+            {nodes
+              .filter((n) => n.id !== selectedNodeId)
+              .map((n) => {
+                const checked = shareSelectedIds.includes(n.id)
+                return (
+                  <label
+                    key={n.id}
+                    onClick={() => toggleShareNode(n.id)}
+                    className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${checked ? "bg-blue-50 border-blue-300" : "hover:bg-gray-50"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleShareNode(n.id)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm">{n.name}</span>
+                  </label>
+                )
+              })}
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setShareDialogOpen(false)}>
+              取消
+            </Button>
+            <Button size="sm" className="bg-[#1890ff] hover:bg-[#40a9ff]" onClick={confirmShareNodes}>
+              确认关联
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

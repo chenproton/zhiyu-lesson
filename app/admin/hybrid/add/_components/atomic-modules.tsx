@@ -123,6 +123,7 @@ export interface NodeModuleData {
   postClassConfig: TaskEvaluationConfig
   teachingDesignContent: string
   postLessonReviewContent: string
+  teachingDesignSharedNodeIds: string[]
 }
 
 export interface AtomicModuleMeta {
@@ -186,6 +187,7 @@ export function createDefaultNodeModuleData(existing?: { name?: string; code?: s
 ● 教学方法
 ● 考核方式`,
     postLessonReviewContent: "请输入课后总结内容",
+    teachingDesignSharedNodeIds: [],
   }
 }
 
