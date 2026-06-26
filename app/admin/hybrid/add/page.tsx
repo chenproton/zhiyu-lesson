@@ -402,6 +402,15 @@ function HybridCourseAddForm() {
                     />
                   </div>
                 </div>
+                <div className="mt-5 space-y-1.5">
+                  <Label className="text-xs">课程目标</Label>
+                  <Textarea
+                    value={rootForm.courseObjectives}
+                    onChange={(e) => updateRootForm({ courseObjectives: e.target.value })}
+                    placeholder="请输入课程目标，可填写多条，按回车分隔"
+                    className="text-sm min-h-[80px] resize-y"
+                  />
+                </div>
               </CardContent>
             </CollapsibleContent>
           </Card>

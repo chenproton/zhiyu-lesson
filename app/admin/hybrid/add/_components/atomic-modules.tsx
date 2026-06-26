@@ -96,6 +96,7 @@ export interface CourseBasicForm {
   major: string
   semester: string
   category: CourseCategory
+  courseObjectives: string
 }
 
 export interface OnlineOfflineConfig {
@@ -151,6 +152,7 @@ export function createDefaultNodeModuleData(existing?: { name?: string; code?: s
       major: existing?.major || MAJORS[1],
       semester: existing?.semester || "2026-2027-1",
       category,
+      courseObjectives: "",
     },
     onlineOffline: {
       onlineHours: 24,
