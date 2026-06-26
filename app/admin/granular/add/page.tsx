@@ -12,7 +12,6 @@ import {
   GraduationCap,
   ClipboardList,
   Award,
-  FileQuestion,
   Database,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -35,15 +34,12 @@ import type { SystemCourseNode, NodeResource } from "@/lib/types"
 import { KnowledgeSelector } from "../../_components/knowledge/knowledge-selector"
 import { ResourceSelector, type ResourceItem } from "../../_components/resources/resource-selector"
 import { EvaluationMethodSelector } from "../../_components/assessment/evaluation-method-selector"
-import { EvaluationRulesFullEditor } from "../../_components/assessment/evaluation-rules-full"
 import { RichTextEditor } from "../../_components/common/rich-text-editor"
 
 import PublishCheckPanel from "../../system/add/_components/PublishCheckPanel"
 
 import type {
   KnowledgePointItem,
-  EvalPoint,
-  GradeMapping,
 } from "@/lib/mock-data"
 
 /* ---------- mock data ---------- */
@@ -69,21 +65,6 @@ const MOCK_RESOURCE_POOL: ResourceItem[] = [
   { id: "res-5", name: "实验数据集.xlsx", type: "spreadsheet", url: "/resources/5.xlsx", uploadedBy: "刘老师", uploadedAt: "2024-04-01" },
   { id: "res-6", name: "教学图片素材", type: "image", url: "/resources/6.jpg", uploadedBy: "陈老师", uploadedAt: "2024-04-10" },
   { id: "res-7", name: "课程音频讲解", type: "audio", url: "/resources/7.mp3", uploadedBy: "周老师", uploadedAt: "2024-05-01" },
-]
-
-const DEFAULT_EVAL_POINTS: EvalPoint[] = [
-  { id: "ep-1", name: "知识掌握评价点", desc: "", subType: "knowledge_mastery", scoringMethod: "level", gradeMapping: [
-    { id: "gm-1", grade: "优秀", minScore: 90, maxScore: 100, color: "bg-green-500" },
-    { id: "gm-2", grade: "良好", minScore: 75, maxScore: 89, color: "bg-blue-500" },
-    { id: "gm-3", grade: "及格", minScore: 60, maxScore: 74, color: "bg-yellow-500" },
-    { id: "gm-4", grade: "不合格", minScore: 0, maxScore: 59, color: "bg-red-500" },
-  ], weight: 10, knowledgePointIds: ["kp-7", "kp-6"] },
-  { id: "ep-2", name: "任务完成评价点", desc: "", subType: "task_completion", scoringMethod: "level", gradeMapping: [
-    { id: "gm-5", grade: "优秀", minScore: 90, maxScore: 100, color: "bg-green-500" },
-    { id: "gm-6", grade: "良好", minScore: 75, maxScore: 89, color: "bg-blue-500" },
-    { id: "gm-7", grade: "及格", minScore: 60, maxScore: 74, color: "bg-yellow-500" },
-    { id: "gm-8", grade: "不合格", minScore: 0, maxScore: 59, color: "bg-red-500" },
-  ], weight: 10, knowledgePointIds: ["kp-7"] },
 ]
 
 /* ---------- main component ---------- */
@@ -122,27 +103,6 @@ function AddGranularPageInner() {
   )
 
   /* module 5: evaluation rules */
-  const [evalConfigs, setEvalConfigs] = useState<Record<string, any>>(
-    isEdit
-      ? {
-          exam: {
-            objectType: "individual",
-            subjects: [
-              { type: "teacher", label: "教师", enabled: true, weightPercent: 70, params: { scorerCount: 1, aggregationRule: "average" } },
-              { type: "self", label: "自评", enabled: true, weightPercent: 30 },
-            ],
-            evalPoints: DEFAULT_EVAL_POINTS,
-          },
-          paper: {
-            objectType: "individual",
-            subjects: [
-              { type: "teacher", label: "教师", enabled: true, weightPercent: 100, params: { scorerCount: 1, aggregationRule: "average" } },
-            ],
-            evalPoints: [],
-          },
-        }
-      : {}
-  )
   const [passScore, setPassScore] = useState("60")
 
   /* ---------- construct current node for publish check ---------- */
@@ -358,17 +318,17 @@ function AddGranularPageInner() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0 space-y-4">
-                <EvaluationRulesFullEditor
-                  methodKeys={selectedEvalMethods}
-                  methodOptions={[
-                    { key: "paper", label: "试卷", icon: <ClipboardList className="h-5 w-5" />, color: "bg-green-50 text-green-600 border-green-200", desc: "使用固定试卷进行考核" },
-                    { key: "question_bank", label: "题库", icon: <Database className="h-5 w-5" />, color: "bg-orange-50 text-orange-600 border-orange-200", desc: "从题库选题组成测评资源" },
-                    { key: "exam", label: "作业", icon: <BookOpen className="h-5 w-5" />, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "组织标准化作业进行考核" },
-                    { key: "quiz", label: "随堂测", icon: <FileQuestion className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", desc: "课堂即时测验" },
-                  ]}
-                  configs={evalConfigs}
-                  onChange={setEvalConfigs}
-                />
+                {selectedEvalMethods.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center text-gray-400 py-12">
+                    <Database className="h-12 w-12 mb-3 opacity-50" />
+                    <p className="text-sm">尚未配置评价方式</p>
+                    <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
+                    参考实践场景学习平台中的测评方式配置功能即可
+                  </div>
+                )}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
                   <Label className="text-xs text-gray-500 shrink-0">及格分数线</Label>
                   <Input
