@@ -210,9 +210,9 @@ export default function HybridCoursePage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
+      {/* Filter + List Card */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-5">
           <div className="flex flex-col md:flex-row gap-4 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -258,7 +258,7 @@ export default function HybridCoursePage() {
           </div>
 
           {/* Status Tabs */}
-          <div className="flex gap-2 mt-4 flex-wrap">
+          <div className="flex gap-2 flex-wrap">
             {statusTabs.map((t) => (
               <button
                 key={t.key}
@@ -273,139 +273,139 @@ export default function HybridCoursePage() {
               </button>
             ))}
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleSelectAll}
-            disabled={filtered.length === 0}
-          >
-            {selectedIds.size === filtered.length && filtered.length > 0 ? (
-              <CheckSquare className="h-4 w-4 mr-1" />
-            ) : (
-              <Square className="h-4 w-4 mr-1" />
-            )}
-            全选
-          </Button>
-          {selectedIds.size > 0 && (
-            <span className="text-sm text-muted-foreground">已选 {selectedIds.size} 项</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === "list" ? "secondary" : "outline"}
-            size="icon"
-            onClick={() => setViewMode("list")}
-          >
-            <LayoutList className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "grid" ? "secondary" : "outline"}
-            size="icon"
-            onClick={() => setViewMode("grid")}
-          >
-            <Grid3X3 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "group" ? "secondary" : "outline"}
-            size="icon"
-            onClick={() => setViewMode("group")}
-          >
-            <Layers className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* List View */}
-      {viewMode === "list" && (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10">
-                  <Checkbox
-                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                </TableHead>
-                <TableHead>课程信息</TableHead>
-                <TableHead>线上线下学时</TableHead>
-                <TableHead>成绩权重</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead>更新日期</TableHead>
-                <TableHead className="text-right">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((course) => (
-                <TableRow key={course.id} className="group">
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedIds.has(course.id)}
-                      onCheckedChange={() => toggleSelect(course.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{course.name}</div>
-                      <div className="text-xs text-muted-foreground">{course.code} · {course.major}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">线上 {course.onlineHours}h / 线下 {course.offlineHours}h</div>
-                    <div className="text-xs text-muted-foreground">{course.semester}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">线上 {course.onlineWeight}% / 线下 {course.offlineWeight}%</div>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${COURSE_STATUS_COLORS[course.status]}`}>
-                      {COURSE_STATUS_LABELS[course.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{course.updateDate}</TableCell>
-                  <TableCell className="text-right relative">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm z-10 px-2 py-1 rounded-lg shadow-sm border border-slate-100">
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                        <Link href={`/learn/courses/hybrid/${course.id}`} className="flex items-center">
-                          <Eye className="mr-1 h-3 w-3" />
-                          预览
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                        <Link href={`/admin/hybrid/add?id=${course.id}`} className="flex items-center">
-                          <Pencil className="mr-1 h-3 w-3" />
-                          编辑
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`复制课程：${course.name}（演示）`)}>
-                        <Copy className="mr-1 h-3 w-3" />
-                        复制
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-red-600 hover:text-red-600 hover:bg-red-50" onClick={() => alert(`删除课程：${course.name}（演示）`)}>
-                        <Trash2 className="mr-1 h-3 w-3" />
-                        删除
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                    暂无匹配的混合课程
-                  </TableCell>
-                </TableRow>
+          {/* Toolbar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSelectAll}
+                disabled={filtered.length === 0}
+              >
+                {selectedIds.size === filtered.length && filtered.length > 0 ? (
+                  <CheckSquare className="h-4 w-4 mr-1" />
+                ) : (
+                  <Square className="h-4 w-4 mr-1" />
+                )}
+                全选
+              </Button>
+              {selectedIds.size > 0 && (
+                <span className="text-sm text-muted-foreground">已选 {selectedIds.size} 项</span>
               )}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === "list" ? "secondary" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("list")}
+              >
+                <LayoutList className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "grid" ? "secondary" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("grid")}
+              >
+                <Grid3X3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "group" ? "secondary" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("group")}
+              >
+                <Layers className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+
+        {/* List View */}
+        {viewMode === "list" && (
+          <CardContent className="pt-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead>课程信息</TableHead>
+                  <TableHead>线上线下学时</TableHead>
+                  <TableHead>成绩权重</TableHead>
+                  <TableHead>状态</TableHead>
+                  <TableHead>更新日期</TableHead>
+                  <TableHead className="text-right">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((course) => (
+                  <TableRow key={course.id} className="group">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(course.id)}
+                        onCheckedChange={() => toggleSelect(course.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{course.name}</div>
+                        <div className="text-xs text-muted-foreground">{course.code} · {course.major}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">线上 {course.onlineHours}h / 线下 {course.offlineHours}h</div>
+                      <div className="text-xs text-muted-foreground">{course.semester}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">线上 {course.onlineWeight}% / 线下 {course.offlineWeight}%</div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${COURSE_STATUS_COLORS[course.status]}`}>
+                        {COURSE_STATUS_LABELS[course.status]}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{course.updateDate}</TableCell>
+                    <TableCell className="text-right relative">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm z-10 px-2 py-1 rounded-lg shadow-sm border border-slate-100">
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                          <Link href={`/learn/courses/hybrid/${course.id}`} className="flex items-center">
+                            <Eye className="mr-1 h-3 w-3" />
+                            预览
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                          <Link href={`/admin/hybrid/add?id=${course.id}`} className="flex items-center">
+                            <Pencil className="mr-1 h-3 w-3" />
+                            编辑
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`复制课程：${course.name}（演示）`)}>
+                          <Copy className="mr-1 h-3 w-3" />
+                          复制
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-red-600 hover:text-red-600 hover:bg-red-50" onClick={() => alert(`删除课程：${course.name}（演示）`)}>
+                          <Trash2 className="mr-1 h-3 w-3" />
+                          删除
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filtered.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                      暂无匹配的混合课程
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        )}
+      </Card>
 
       {/* Grid View */}
       {viewMode === "grid" && (

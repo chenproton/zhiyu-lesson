@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -205,9 +206,9 @@ export default function SystemCoursePage() {
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <Card>
-        <CardContent className="pt-6 space-y-4">
+      {/* Filter + List Card */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-5">
           {/* Status Tabs */}
           <div className="flex flex-wrap gap-2">
             {statusTabs.map((t) => (
@@ -294,140 +295,140 @@ export default function SystemCoursePage() {
               </button>
             </div>
           </div>
+
+          {/* Batch Actions */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <button
+                onClick={toggleSelectAll}
+                className="flex items-center gap-1 hover:text-primary transition-colors"
+              >
+                {selectedIds.size === filtered.length && filtered.length > 0 ? (
+                  <CheckSquare className="h-4 w-4" />
+                ) : (
+                  <Square className="h-4 w-4" />
+                )}
+                <span>
+                  已选 <span className="text-primary font-medium">{selectedIds.size}</span> / {filtered.length} 条
+                </span>
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                disabled={selectedIds.size === 0}
+                onClick={handleBatchExport}
+              >
+                <Download className="h-3.5 w-3.5 mr-1" />
+                导出
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs text-red-600 hover:text-red-700"
+                disabled={selectedIds.size === 0}
+                onClick={handleBatchDelete}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                批量删除
+              </Button>
+            </div>
+          </div>
         </CardContent>
-      </Card>
 
-      {/* Batch Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button
-            onClick={toggleSelectAll}
-            className="flex items-center gap-1 hover:text-primary transition-colors"
-          >
-            {selectedIds.size === filtered.length && filtered.length > 0 ? (
-              <CheckSquare className="h-4 w-4" />
-            ) : (
-              <Square className="h-4 w-4" />
-            )}
-            <span>
-              已选 <span className="text-primary font-medium">{selectedIds.size}</span> / {filtered.length} 条
-            </span>
-          </button>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs"
-            disabled={selectedIds.size === 0}
-            onClick={handleBatchExport}
-          >
-            <Download className="h-3.5 w-3.5 mr-1" />
-            导出
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs text-red-600 hover:text-red-700"
-            disabled={selectedIds.size === 0}
-            onClick={handleBatchDelete}
-          >
-            <Trash2 className="h-3.5 w-3.5 mr-1" />
-            批量删除
-          </Button>
-        </div>
-      </div>
-
-      {/* List View */}
-      {viewMode === "list" && (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40px]">
-                  <Checkbox
-                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                </TableHead>
-                <TableHead>课程名称</TableHead>
-                <TableHead>课程编号</TableHead>
-                <TableHead>行业</TableHead>
-                <TableHead>专业</TableHead>
-                <TableHead>课时</TableHead>
-                <TableHead>节点数</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead className="w-[80px]">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length > 0 ? (
-                filtered.map((course) => (
-                  <TableRow key={course.id} className="group">
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedIds.has(course.id)}
-                        onCheckedChange={() => toggleSelect(course.id)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{course.name}</div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{course.code}</TableCell>
-                    <TableCell>{course.industry}</TableCell>
-                    <TableCell>{course.major}</TableCell>
-                    <TableCell>{course.lessonCount}</TableCell>
-                    <TableCell>{course.nodeCount}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${COURSE_STATUS_COLORS[course.status]}`}>
-                        {COURSE_STATUS_LABELS[course.status]}
-                      </span>
-                    </TableCell>
-                    <TableCell className="relative">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm z-10 px-2 py-1 rounded-lg shadow-sm border border-slate-100">
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                          <Link href={`/learn/courses/system/${course.id}`} className="flex items-center">
-                            <Eye className="mr-1 h-3 w-3" />
-                            查看
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
-                          <Link href="/admin/system/add?mode=edit" className="flex items-center">
-                            <Pencil className="mr-1 h-3 w-3" />
-                            编辑
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`导出课程：${course.name}（演示）`)}>
-                          <Download className="mr-1 h-3 w-3" />
-                          导出
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`邀请共建：${course.name}（演示）`)}>
-                          <UserPlus className="mr-1 h-3 w-3" />
-                          邀请共建
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                          <Copy className="mr-1 h-3 w-3" />
-                          复制
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-red-600 hover:text-red-600 hover:bg-red-50">
-                          <Trash2 className="mr-1 h-3 w-3" />
-                          删除
-                        </Button>
-                      </div>
+        {/* List View */}
+        {viewMode === "list" && (
+          <CardContent className="pt-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead>课程名称</TableHead>
+                  <TableHead>课程编号</TableHead>
+                  <TableHead>行业</TableHead>
+                  <TableHead>专业</TableHead>
+                  <TableHead>课时</TableHead>
+                  <TableHead>节点数</TableHead>
+                  <TableHead>状态</TableHead>
+                  <TableHead className="w-[80px]">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.length > 0 ? (
+                  filtered.map((course) => (
+                    <TableRow key={course.id} className="group">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(course.id)}
+                          onCheckedChange={() => toggleSelect(course.id)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{course.name}</div>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{course.code}</TableCell>
+                      <TableCell>{course.industry}</TableCell>
+                      <TableCell>{course.major}</TableCell>
+                      <TableCell>{course.lessonCount}</TableCell>
+                      <TableCell>{course.nodeCount}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${COURSE_STATUS_COLORS[course.status]}`}>
+                          {COURSE_STATUS_LABELS[course.status]}
+                        </span>
+                      </TableCell>
+                      <TableCell className="relative">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm z-10 px-2 py-1 rounded-lg shadow-sm border border-slate-100">
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                            <Link href={`/learn/courses/system/${course.id}`} className="flex items-center">
+                              <Eye className="mr-1 h-3 w-3" />
+                              查看
+                            </Link>
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                            <Link href="/admin/system/add?mode=edit" className="flex items-center">
+                              <Pencil className="mr-1 h-3 w-3" />
+                              编辑
+                            </Link>
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`导出课程：${course.name}（演示）`)}>
+                            <Download className="mr-1 h-3 w-3" />
+                            导出
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`邀请共建：${course.name}（演示）`)}>
+                            <UserPlus className="mr-1 h-3 w-3" />
+                            邀请共建
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                            <Copy className="mr-1 h-3 w-3" />
+                            复制
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-red-600 hover:text-red-600 hover:bg-red-50">
+                            <Trash2 className="mr-1 h-3 w-3" />
+                            删除
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      暂无符合条件的体系课
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    暂无符合条件的体系课
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        )}
+      </Card>
 
       {/* Grid View */}
       {viewMode === "grid" && (
