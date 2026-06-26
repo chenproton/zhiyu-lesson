@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { INDUSTRIES, MAJORS } from "@/lib/types"
+import { MAJORS } from "@/lib/types"
 import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
@@ -23,6 +23,7 @@ import { WEB_FRONTEND_SEMESTER_NODES } from "./_mock/semester-nodes"
 import {
   ATOMIC_MODULES,
   ATOMIC_MODULES_BY_KEY,
+  COURSE_CATEGORIES,
   DEFAULT_MODULES,
   createDefaultNodeModuleData,
   type AtomicModuleKey,
@@ -117,11 +118,8 @@ function HybridCourseAddForm() {
       name: claimCourse || existing?.name,
       code: existing?.code,
       major: existing?.major,
-      industry: existing?.industry,
-      teacher: claimPayload?.teacher || existing?.teacher,
       semester: existing?.semester,
-      className: claimPayload?.className || existing?.className,
-      category: existing?.category,
+      category: existing?.category as CourseBasicForm["category"],
     }),
   }))
 
@@ -163,14 +161,11 @@ function HybridCourseAddForm() {
         name: claimCourse || existing?.name,
         code: existing?.code,
         major: existing?.major,
-        industry: existing?.industry,
-        teacher: claimPayload?.teacher || existing?.teacher,
         semester: existing?.semester,
-        className: claimPayload?.className || existing?.className,
-        category: existing?.category,
+        category: existing?.category as CourseBasicForm["category"],
       }),
     }))
-  }, [editId, existing, claimCourse, claimPayload?.teacher, claimPayload?.className])
+  }, [editId, existing, claimCourse])
 
   const handleUpdateNode = useCallback((nodeId: string, updates: Partial<SystemCourseNode>) => {
     setNodes((prev) => prev.map((n) => (n.id === nodeId ? { ...n, ...updates } : n)))
@@ -234,11 +229,8 @@ function HybridCourseAddForm() {
         name: claimCourse || existing?.name,
         code: existing?.code,
         major: existing?.major,
-        industry: existing?.industry,
-        teacher: claimPayload?.teacher || existing?.teacher,
         semester: existing?.semester,
-        className: claimPayload?.className || existing?.className,
-        category: existing?.category,
+        category: existing?.category as CourseBasicForm["category"],
       })
       setNodeDataMap((prev) => ({ ...prev, [nodeId]: next }))
       return next
@@ -333,11 +325,6 @@ function HybridCourseAddForm() {
                       <span className="text-xs font-normal text-gray-400">
                         {rootForm.name ? `《${rootForm.name}》` : "未填写课程名称"}
                       </span>
-                      {rootForm.industry && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                          {rootForm.industry}
-                        </span>
-                      )}
                       {rootForm.major && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
                           {rootForm.major}
@@ -393,35 +380,17 @@ function HybridCourseAddForm() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">所属行业</Label>
-                    <Select value={rootForm.industry} onValueChange={(v) => updateRootForm({ industry: v })}>
+                    <Label className="text-xs">课程分类</Label>
+                    <Select value={rootForm.category} onValueChange={(v) => updateRootForm({ category: v as CourseBasicForm["category"] })}>
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="请选择所属行业" />
+                        <SelectValue placeholder="请选择课程分类" />
                       </SelectTrigger>
                       <SelectContent>
-                        {INDUSTRIES.filter((i) => i !== "全部").map((i) => (
-                          <SelectItem key={i} value={i}>{i}</SelectItem>
+                        {COURSE_CATEGORIES.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">授课教师</Label>
-                    <Input
-                      value={rootForm.teacher}
-                      onChange={(e) => updateRootForm({ teacher: e.target.value })}
-                      placeholder="请输入授课教师"
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">课程分类</Label>
-                    <Input
-                      value={rootForm.category}
-                      onChange={(e) => updateRootForm({ category: e.target.value })}
-                      placeholder="如：专业核心课"
-                      className="h-9 text-sm"
-                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">学期</Label>
@@ -429,15 +398,6 @@ function HybridCourseAddForm() {
                       value={rootForm.semester}
                       onChange={(e) => updateRootForm({ semester: e.target.value })}
                       placeholder="如：2026-2027-1"
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">上课班级</Label>
-                    <Input
-                      value={rootForm.className}
-                      onChange={(e) => updateRootForm({ className: e.target.value })}
-                      placeholder="如：软件工程2026级1班"
                       className="h-9 text-sm"
                     />
                   </div>

@@ -79,15 +79,23 @@ export type AtomicModuleKey =
   | "finalExam"
   | "gradeStats"
 
+export const COURSE_CATEGORIES = [
+  "公共基础必修课程",
+  "公共基础限选课程",
+  "公共基础任选课程",
+  "专业基础课程",
+  "专业核心课程",
+  "专业拓展课程",
+] as const
+
+export type CourseCategory = (typeof COURSE_CATEGORIES)[number]
+
 export interface CourseBasicForm {
   name: string
   code: string
   major: string
-  industry: string
-  teacher: string
   semester: string
-  className: string
-  category: string
+  category: CourseCategory
 }
 
 export interface OnlineOfflineConfig {
@@ -130,17 +138,14 @@ export interface AtomicModuleProps {
 
 // ==================== Default data ====================
 
-export function createDefaultNodeModuleData(existing?: { name?: string; code?: string; major?: string; industry?: string; teacher?: string; semester?: string; className?: string; category?: string }): NodeModuleData {
+export function createDefaultNodeModuleData(existing?: { name?: string; code?: string; major?: string; semester?: string; category?: CourseCategory }): NodeModuleData {
   return {
     form: {
       name: existing?.name || "",
       code: existing?.code || `HYB-${Date.now().toString().slice(-6)}`,
       major: existing?.major || MAJORS[1],
-      industry: existing?.industry || INDUSTRIES[1],
-      teacher: existing?.teacher || "",
       semester: existing?.semester || "2026-2027-1",
-      className: existing?.className || "",
-      category: existing?.category || "专业核心课",
+      category: existing?.category || "专业核心课程",
     },
     onlineOffline: {
       onlineHours: 24,
@@ -205,31 +210,19 @@ function CourseBasicInfoModule({ data, onChange }: AtomicModuleProps) {
         </Select>
       </div>
       <div className="space-y-2">
-        <Label>所属行业</Label>
-        <Select value={form.industry} onValueChange={(v) => update("industry", v)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+        <Label>课程分类</Label>
+        <Select value={form.category} onValueChange={(v) => update("category", v as CourseCategory)}>
+          <SelectTrigger><SelectValue placeholder="请选择课程分类" /></SelectTrigger>
           <SelectContent>
-            {INDUSTRIES.filter((i) => i !== "全部").map((i) => (
-              <SelectItem key={i} value={i}>{i}</SelectItem>
+            {COURSE_CATEGORIES.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
       <div className="space-y-2">
-        <Label>授课教师</Label>
-        <Input value={form.teacher} onChange={(e) => update("teacher", e.target.value)} placeholder="请输入授课教师" />
-      </div>
-      <div className="space-y-2">
-        <Label>课程分类</Label>
-        <Input value={form.category} onChange={(e) => update("category", e.target.value)} placeholder="如：专业核心课" />
-      </div>
-      <div className="space-y-2">
         <Label>学期</Label>
         <Input value={form.semester} onChange={(e) => update("semester", e.target.value)} placeholder="如：2026-2027-1" />
-      </div>
-      <div className="space-y-2">
-        <Label>上课班级</Label>
-        <Input value={form.className} onChange={(e) => update("className", e.target.value)} placeholder="如：软件工程2026级1班" />
       </div>
     </CardContent>
   )
