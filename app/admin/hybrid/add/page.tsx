@@ -14,7 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MAJORS } from "@/lib/types"
-import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight } from "lucide-react"
+import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
@@ -32,6 +32,42 @@ import {
 } from "./_components/atomic-modules"
 
 const FIRST_NODE_ID = "hybrid-node-1"
+
+function MockRichEditor({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const toolbarBtn = (icon: React.ReactNode, title: string) => (
+    <button
+      type="button"
+      title={title}
+      onClick={() => toast(`点击了 ${title}（模拟功能）`)}
+      className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+    >
+      {icon}
+    </button>
+  )
+
+  return (
+    <div className="border rounded-md bg-white overflow-hidden">
+      <div className="flex items-center gap-1 px-2 py-1.5 border-b bg-gray-50/50">
+        {toolbarBtn(<Bold className="h-3.5 w-3.5" />, "加粗")}
+        {toolbarBtn(<Italic className="h-3.5 w-3.5" />, "斜体")}
+        {toolbarBtn(<Underline className="h-3.5 w-3.5" />, "下划线")}
+        <div className="w-px h-3.5 bg-gray-200 mx-1" />
+        {toolbarBtn(<AlignLeft className="h-3.5 w-3.5" />, "左对齐")}
+        {toolbarBtn(<List className="h-3.5 w-3.5" />, "无序列表")}
+        {toolbarBtn(<ListOrdered className="h-3.5 w-3.5" />, "有序列表")}
+        <div className="w-px h-3.5 bg-gray-200 mx-1" />
+        {toolbarBtn(<LinkIcon className="h-3.5 w-3.5" />, "插入链接")}
+        {toolbarBtn(<ImageIcon className="h-3.5 w-3.5" />, "插入图片")}
+      </div>
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="border-0 rounded-none shadow-none focus-visible:ring-0 text-sm min-h-[100px] resize-y"
+      />
+    </div>
+  )
+}
 
 function HybridCourseAddForm() {
   const searchParams = useSearchParams()
@@ -404,11 +440,10 @@ function HybridCourseAddForm() {
                 </div>
                 <div className="mt-5 space-y-1.5">
                   <Label className="text-xs">课程目标</Label>
-                  <Textarea
+                  <MockRichEditor
                     value={rootForm.courseObjectives}
-                    onChange={(e) => updateRootForm({ courseObjectives: e.target.value })}
+                    onChange={(v) => updateRootForm({ courseObjectives: v })}
                     placeholder="请输入课程目标，可填写多条，按回车分隔"
-                    className="text-sm min-h-[80px] resize-y"
                   />
                 </div>
               </CardContent>
