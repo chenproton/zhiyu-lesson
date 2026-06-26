@@ -459,6 +459,7 @@ function HybridCourseAddForm() {
             onUpdateNode={handleUpdateNode}
             onDeleteNode={handleDeleteNode}
             onReorderNodes={handleReorderNodes}
+            disableCloneQuote
           />
 
           {/* Center: Content modules */}

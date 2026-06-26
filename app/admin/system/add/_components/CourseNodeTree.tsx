@@ -49,6 +49,7 @@ interface CourseNodeTreeProps {
   onUpdateNode: (nodeId: string, updates: Partial<SystemCourseNode>) => void
   onDeleteNode: (nodeId: string) => void
   onReorderNodes: (nodeId: string, targetNodeId: string) => void
+  disableCloneQuote?: boolean
 }
 
 interface TreeItem {
@@ -101,6 +102,7 @@ export default function CourseNodeTree({
   onUpdateNode,
   onDeleteNode,
   onReorderNodes,
+  disableCloneQuote = false,
 }: CourseNodeTreeProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -139,6 +141,9 @@ export default function CourseNodeTree({
       setAddMode("normal")
       setSourceSearch("")
       setSelectedSourceId(null)
+      if (disableCloneQuote) {
+        setSelectedSourceId(null)
+      }
       setAddDialogOpen(true)
     },
     [nodes]
@@ -352,149 +357,157 @@ export default function CourseNodeTree({
           </div>
 
           {/* Tabs */}
-          <div className="border-t pt-4">
-            <Tabs
-              value={addMode}
-              onValueChange={(v) => {
-                setAddMode(v as NodeRefType)
-                setSelectedSourceId(null)
-                setSourceSearch("")
-              }}
-            >
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="normal">上传节点课程资源</TabsTrigger>
-                <TabsTrigger value="clone">克隆颗粒课</TabsTrigger>
-                <TabsTrigger value="quote">引用颗粒课</TabsTrigger>
-              </TabsList>
+          {!disableCloneQuote ? (
+            <div className="border-t pt-4">
+              <Tabs
+                value={addMode}
+                onValueChange={(v) => {
+                  setAddMode(v as NodeRefType)
+                  setSelectedSourceId(null)
+                  setSourceSearch("")
+                }}
+              >
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="normal">上传节点课程资源</TabsTrigger>
+                  <TabsTrigger value="clone">克隆颗粒课</TabsTrigger>
+                  <TabsTrigger value="quote">引用颗粒课</TabsTrigger>
+                </TabsList>
 
-              {/* Clone tab */}
-              {addMode === "clone" && (
-                <div className="mt-4 space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      value={sourceSearch}
-                      onChange={(e) => setSourceSearch(e.target.value)}
-                      placeholder="搜索颗粒课名称、来源..."
-                      className="pl-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2 max-h-[240px] overflow-y-auto">
-                    {filteredSources.length === 0 ? (
-                      <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
-                    ) : (
-                      filteredSources.map((g) => {
-                        const selected = selectedSourceId === g.id
-                        return (
-                          <button
-                            key={g.id}
-                            onClick={() => {
-                              setSelectedSourceId(g.id)
-                              setNewNodeName(g.name)
-                            }}
-                            className={cn(
-                              "w-full text-left p-3 rounded-lg border transition-all",
-                              selected
-                                ? "border-primary bg-primary/5 ring-1 ring-primary/10"
-                                : "border-gray-200 hover:border-gray-300 bg-white"
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div className={cn(
-                                  "w-5 h-5 rounded-full border flex items-center justify-center",
-                                  selected ? "bg-primary border-primary" : "border-gray-300"
-                                )}>
-                                  {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                {/* Clone tab */}
+                {addMode === "clone" && (
+                  <div className="mt-4 space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        value={sourceSearch}
+                        onChange={(e) => setSourceSearch(e.target.value)}
+                        placeholder="搜索颗粒课名称、来源..."
+                        className="pl-9 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2 max-h-[240px] overflow-y-auto">
+                      {filteredSources.length === 0 ? (
+                        <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
+                      ) : (
+                        filteredSources.map((g) => {
+                          const selected = selectedSourceId === g.id
+                          return (
+                            <button
+                              key={g.id}
+                              onClick={() => {
+                                setSelectedSourceId(g.id)
+                                setNewNodeName(g.name)
+                              }}
+                              className={cn(
+                                "w-full text-left p-3 rounded-lg border transition-all",
+                                selected
+                                  ? "border-primary bg-primary/5 ring-1 ring-primary/10"
+                                  : "border-gray-200 hover:border-gray-300 bg-white"
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className={cn(
+                                    "w-5 h-5 rounded-full border flex items-center justify-center",
+                                    selected ? "bg-primary border-primary" : "border-gray-300"
+                                  )}>
+                                    {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-800">{g.name}</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-800">{g.name}</span>
+                                <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
                               </div>
-                              <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
-                          </button>
-                        )
-                      })
+                              <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
+                            </button>
+                          )
+                        })
+                      )}
+                    </div>
+                    {selectedSource && (
+                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700 flex items-start gap-2">
+                        <Copy className="h-4 w-4 shrink-0 mt-0.5" />
+                        已选择「{selectedSource.name}」，克隆后该节点内容可独立编辑，与原颗粒课解除关联。
+                      </div>
                     )}
                   </div>
-                  {selectedSource && (
-                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700 flex items-start gap-2">
-                      <Copy className="h-4 w-4 shrink-0 mt-0.5" />
-                      已选择「{selectedSource.name}」，克隆后该节点内容可独立编辑，与原颗粒课解除关联。
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
 
-              {/* Quote tab */}
-              {addMode === "quote" && (
-                <div className="mt-4 space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      value={sourceSearch}
-                      onChange={(e) => setSourceSearch(e.target.value)}
-                      placeholder="搜索颗粒课名称、来源..."
-                      className="pl-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2 max-h-[240px] overflow-y-auto">
-                    {filteredSources.length === 0 ? (
-                      <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
-                    ) : (
-                      filteredSources.map((g) => {
-                        const selected = selectedSourceId === g.id
-                        return (
-                          <button
-                            key={g.id}
-                            onClick={() => {
-                              setSelectedSourceId(g.id)
-                              setNewNodeName(g.name)
-                            }}
-                            className={cn(
-                              "w-full text-left p-3 rounded-lg border transition-all",
-                              selected
-                                ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
-                                : "border-gray-200 hover:border-gray-300 bg-white"
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div className={cn(
-                                  "w-5 h-5 rounded-full border flex items-center justify-center",
-                                  selected ? "bg-blue-500 border-blue-500" : "border-gray-300"
-                                )}>
-                                  {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                {/* Quote tab */}
+                {addMode === "quote" && (
+                  <div className="mt-4 space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        value={sourceSearch}
+                        onChange={(e) => setSourceSearch(e.target.value)}
+                        placeholder="搜索颗粒课名称、来源..."
+                        className="pl-9 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2 max-h-[240px] overflow-y-auto">
+                      {filteredSources.length === 0 ? (
+                        <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
+                      ) : (
+                        filteredSources.map((g) => {
+                          const selected = selectedSourceId === g.id
+                          return (
+                            <button
+                              key={g.id}
+                              onClick={() => {
+                                setSelectedSourceId(g.id)
+                                setNewNodeName(g.name)
+                              }}
+                              className={cn(
+                                "w-full text-left p-3 rounded-lg border transition-all",
+                                selected
+                                  ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                                  : "border-gray-200 hover:border-gray-300 bg-white"
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className={cn(
+                                    "w-5 h-5 rounded-full border flex items-center justify-center",
+                                    selected ? "bg-blue-500 border-blue-500" : "border-gray-300"
+                                  )}>
+                                    {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-800">{g.name}</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-800">{g.name}</span>
+                                <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
                               </div>
-                              <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
-                          </button>
-                        )
-                      })
+                              <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
+                            </button>
+                          )
+                        })
+                      )}
+                    </div>
+                    {selectedSource && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-xs text-blue-700 flex items-start gap-2">
+                        <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+                        已选择「{selectedSource.name}」，引用后该节点内容不可编辑，将自动随原颗粒课更新。
+                      </div>
                     )}
                   </div>
-                  {selectedSource && (
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-xs text-blue-700 flex items-start gap-2">
-                      <Lock className="h-4 w-4 shrink-0 mt-0.5" />
-                      已选择「{selectedSource.name}」，引用后该节点内容不可编辑，将自动随原颗粒课更新。
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
 
-              {/* Normal tab */}
-              {addMode === "normal" && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-                  <p className="text-sm text-gray-600">创建一个新的普通课程节点，内容可自由编辑。</p>
-                </div>
-              )}
-            </Tabs>
-          </div>
+                {/* Normal tab */}
+                {addMode === "normal" && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                    <p className="text-sm text-gray-600">创建一个新的普通课程节点，内容可自由编辑。</p>
+                  </div>
+                )}
+              </Tabs>
+            </div>
+          ) : (
+            <div className="border-t pt-4">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                <p className="text-sm text-gray-600">创建一个新的课程节点，内容可自由编辑。</p>
+              </div>
+            </div>
+          )}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
