@@ -217,7 +217,7 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
             添加知识点
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[1075px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>添加知识点</DialogTitle>
             <DialogDescription>从知识库中选择或新建知识点</DialogDescription>
