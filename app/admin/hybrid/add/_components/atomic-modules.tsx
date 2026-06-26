@@ -121,6 +121,8 @@ export interface NodeModuleData {
   selectedResources: Record<string, string[]>
   prepStage: "pre" | "in" | "post"
   postClassConfig: TaskEvaluationConfig
+  teachingDesignContent: string
+  postLessonReviewContent: string
 }
 
 export interface AtomicModuleMeta {
@@ -176,6 +178,14 @@ export function createDefaultNodeModuleData(existing?: { name?: string; code?: s
     },
     prepStage: "pre",
     postClassConfig: INITIAL_CONFIG,
+    teachingDesignContent: `● 知识目标
+● 能力目标
+● 素质目标
+● 教学重点
+● 教学难点
+● 教学方法
+● 考核方式`,
+    postLessonReviewContent: "请输入课后总结内容",
   }
 }
 

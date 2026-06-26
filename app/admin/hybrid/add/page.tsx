@@ -14,7 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MAJORS } from "@/lib/types"
-import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft } from "lucide-react"
+import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
@@ -27,6 +27,7 @@ import {
   DEFAULT_MODULES,
   createDefaultNodeModuleData,
   type AtomicModuleKey,
+  type AtomicModuleCategory,
   type NodeModuleData,
   type CourseBasicForm,
 } from "./_components/atomic-modules"
@@ -160,6 +161,7 @@ function HybridCourseAddForm() {
   }))
 
   const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [addDialogCategory, setAddDialogCategory] = useState<AtomicModuleCategory | null>(null)
   const [globalInfoOpen, setGlobalInfoOpen] = useState(true)
 
   const rootForm = nodeDataMap[FIRST_NODE_ID]?.form || createDefaultNodeModuleData().form
@@ -285,6 +287,12 @@ function HybridCourseAddForm() {
       return { ...prev, [selectedNodeId]: [...list, key] }
     })
     setAddDialogOpen(false)
+    setAddDialogCategory(null)
+  }
+
+  const openAddDialog = (category: AtomicModuleCategory) => {
+    setAddDialogCategory(category)
+    setAddDialogOpen(true)
   }
 
   const removeModule = (key: AtomicModuleKey) => {
@@ -314,6 +322,41 @@ function HybridCourseAddForm() {
   const availableModules = ATOMIC_MODULES.filter(
     (m) => !currentModules.includes(m.key) && m.category !== "basic"
   )
+
+  const renderModuleCard = (key: AtomicModuleKey, data: NodeModuleData) => {
+    const meta = ATOMIC_MODULES_BY_KEY[key]
+    const Icon = meta.icon
+    const Component = meta.component
+    return (
+      <Card key={key} className="overflow-visible">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon className="h-4 w-4 text-blue-500" />
+            {meta.label}
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-gray-400 hover:text-red-500"
+            onClick={() => removeModule(key)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <Component nodeId={selectedNodeId} data={data} onChange={updateNodeData} />
+      </Card>
+    )
+  }
+
+  const processCategories: { key: AtomicModuleCategory; label: string }[] = [
+    { key: "pre-class", label: "课前" },
+    { key: "in-class", label: "课中" },
+    { key: "post-class", label: "课后" },
+  ]
+
+  const dialogModules = addDialogCategory
+    ? availableModules.filter((m) => m.category === addDialogCategory)
+    : []
 
   return (
     <div className="min-h-screen bg-[#f5f7fa]">
@@ -471,17 +514,11 @@ function HybridCourseAddForm() {
             <main className="space-y-5 min-w-0">
               {/* Node info bar */}
               {selectedNode && (
-                <div className="flex items-center justify-between bg-white rounded-xl border border-gray-100 px-5 py-3">
+                <div className="flex items-center bg-white rounded-xl border border-gray-100 px-5 py-3">
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
                     <span>当前编辑节点：<span className="font-medium text-gray-700">{selectedNode.name}</span></span>
-                    <span className="text-gray-300">|</span>
-                    <span>已挂载 {currentModules.length} 个教学活动</span>
                   </div>
-                  <Button size="sm" onClick={() => setAddDialogOpen(true)} disabled={availableModules.length === 0}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    添加教学活动
-                  </Button>
                 </div>
               )}
 
@@ -493,44 +530,74 @@ function HybridCourseAddForm() {
               )}
 
               {selectedNode && currentData && (
-                <div className="space-y-6">
-                  {/* Atomic modules */}
-                  {currentModules.length === 0 && (
-                    <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
-                      <Layers className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                      <p className="text-sm">当前节点尚未挂载任何教学活动，请点击上方“添加教学活动”</p>
-                    </div>
-                  )}
+                <Tabs defaultValue="design" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="design">教学设计</TabsTrigger>
+                    <TabsTrigger value="process">教学过程</TabsTrigger>
+                    <TabsTrigger value="review">课后复盘</TabsTrigger>
+                  </TabsList>
 
-                  {currentModules.map((key) => {
-                    const meta = ATOMIC_MODULES_BY_KEY[key]
-                    const Icon = meta.icon
-                    const Component = meta.component
-                    return (
-                      <Card key={key} className="overflow-visible">
-                        <CardHeader className="flex flex-row items-center justify-between pb-3">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Icon className="h-4 w-4 text-blue-500" />
-                            {meta.label}
-                          </CardTitle>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-gray-400 hover:text-red-500"
-                            onClick={() => removeModule(key)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </CardHeader>
-                        <Component
-                          nodeId={selectedNodeId}
-                          data={currentData}
-                          onChange={updateNodeData}
+                  <TabsContent value="design" className="space-y-4 pt-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-blue-500" />
+                          教学设计
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <MockRichEditor
+                          value={currentData.teachingDesignContent}
+                          onChange={(v) => updateNodeData({ teachingDesignContent: v })}
+                          placeholder="请输入教学设计内容"
                         />
-                      </Card>
-                    )
-                  })}
-                </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="process" className="space-y-6 pt-4">
+                    {processCategories.map(({ key: category, label }) => {
+                      const categoryModules = currentModules.filter((k) => ATOMIC_MODULES_BY_KEY[k]?.category === category)
+                      return (
+                        <div key={category} className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-gray-700">{label}</h3>
+                            <Button size="sm" variant="outline" onClick={() => openAddDialog(category)}>
+                              <Plus className="h-4 w-4 mr-1" />
+                              添加教学活动
+                            </Button>
+                          </div>
+                          <div className="space-y-4">
+                            {categoryModules.length === 0 && (
+                              <div className="bg-white rounded-xl border border-gray-100 p-6 text-center text-gray-400 text-sm">
+                                暂无{label}教学活动，点击上方按钮添加
+                              </div>
+                            )}
+                            {categoryModules.map((key) => renderModuleCard(key, currentData))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </TabsContent>
+
+                  <TabsContent value="review" className="space-y-4 pt-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <ClipboardList className="h-4 w-4 text-blue-500" />
+                          课后复盘
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <MockRichEditor
+                          value={currentData.postLessonReviewContent}
+                          onChange={(v) => updateNodeData({ postLessonReviewContent: v })}
+                          placeholder="请输入课后总结内容"
+                        />
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
               )}
 
               {/* Bottom spacer */}
@@ -541,170 +608,37 @@ function HybridCourseAddForm() {
       </div>
 
       {/* Add module dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+      <Dialog
+        open={addDialogOpen}
+        onOpenChange={(open) => {
+          setAddDialogOpen(open)
+          if (!open) setAddDialogCategory(null)
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>添加教学活动</DialogTitle>
+            <DialogTitle>
+              添加{addDialogCategory ? processCategories.find((c) => c.key === addDialogCategory)?.label : ""}教学活动
+            </DialogTitle>
           </DialogHeader>
-          {availableModules.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">所有教学活动已挂载</p>
+          {dialogModules.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">该分组下所有教学活动已挂载</p>
           ) : (
-            <Tabs defaultValue="pre-class" className="py-2">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="pre-class">课前准备</TabsTrigger>
-                <TabsTrigger value="in-class">教学实施</TabsTrigger>
-                <TabsTrigger value="post-class">课后测验</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="pre-class" className="space-y-5 pt-4">
-                <div>
-                  <div className="text-sm font-medium text-gray-700 mb-2">课前预习</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {availableModules
-                      .filter((m) => m.key === "teachingObjectives" || m.key === "teachingUnits")
-                      .map((m) => {
-                        const Icon = m.icon
-                        return (
-                          <button
-                            key={m.key}
-                            onClick={() => addModule(m.key)}
-                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                          >
-                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                            <span className="text-sm">{m.label}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-700 mb-2">关联资源</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {availableModules
-                      .filter((m) => m.category === "pre-class" && m.key !== "teachingObjectives" && m.key !== "teachingUnits")
-                      .map((m) => {
-                        const Icon = m.icon
-                        return (
-                          <button
-                            key={m.key}
-                            onClick={() => addModule(m.key)}
-                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                          >
-                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                            <span className="text-sm">{m.label}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="in-class" className="space-y-5 pt-4">
-                <div>
-                  <div className="text-sm font-medium text-gray-700 mb-2">课堂互动</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {availableModules
-                      .filter((m) => ["vote", "survey", "quickQuiz", "discussion"].includes(m.key))
-                      .map((m) => {
-                        const Icon = m.icon
-                        return (
-                          <button
-                            key={m.key}
-                            onClick={() => addModule(m.key)}
-                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                          >
-                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                            <span className="text-sm">{m.label}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-700 mb-2">课堂管理</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {availableModules
-                      .filter((m) => ["rollCall", "checkIn", "grouping", "todayAttendance"].includes(m.key))
-                      .map((m) => {
-                        const Icon = m.icon
-                        return (
-                          <button
-                            key={m.key}
-                            onClick={() => addModule(m.key)}
-                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                          >
-                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                            <span className="text-sm">{m.label}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-700 mb-2">随堂测评</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {availableModules
-                      .filter((m) => m.key === "quiz")
-                      .map((m) => {
-                        const Icon = m.icon
-                        return (
-                          <button
-                            key={m.key}
-                            onClick={() => addModule(m.key)}
-                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                          >
-                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                            <span className="text-sm">{m.label}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="post-class" className="space-y-5 pt-4">
-                <div>
-                  <div className="text-sm font-medium text-gray-700 mb-2">课后练习</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {availableModules
-                      .filter((m) => m.key === "postClassAssessment" || m.key === "homework")
-                      .map((m) => {
-                        const Icon = m.icon
-                        return (
-                          <button
-                            key={m.key}
-                            onClick={() => addModule(m.key)}
-                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                          >
-                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                            <span className="text-sm">{m.label}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-700 mb-2">考核评价</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {availableModules
-                      .filter((m) => m.key === "finalExam" || m.key === "gradeStats")
-                      .map((m) => {
-                        const Icon = m.icon
-                        return (
-                          <button
-                            key={m.key}
-                            onClick={() => addModule(m.key)}
-                            className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                          >
-                            <Icon className="h-4 w-4 text-blue-500 shrink-0" />
-                            <span className="text-sm">{m.label}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 py-4">
+              {dialogModules.map((m) => {
+                const Icon = m.icon
+                return (
+                  <button
+                    key={m.key}
+                    onClick={() => addModule(m.key)}
+                    className="flex items-center gap-2 p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                  >
+                    <Icon className="h-4 w-4 text-blue-500 shrink-0" />
+                    <span className="text-sm">{m.label}</span>
+                  </button>
+                )
+              })}
+            </div>
           )}
         </DialogContent>
       </Dialog>
