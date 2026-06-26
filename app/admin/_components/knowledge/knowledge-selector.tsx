@@ -15,6 +15,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { granularCourses } from "@/lib/mock-data"
@@ -27,9 +34,25 @@ interface KnowledgeSelectorProps {
   onAddCustom?: (name: string, description?: string) => void
 }
 
+const SCENES = [
+  { id: "all", name: "全部场景" },
+  { id: "web-security", name: "Web安全实战" },
+  { id: "data-analysis", name: "数据分析项目" },
+  { id: "network-attack", name: "网络攻防演练" },
+  { id: "dev-standard", name: "软件开发规范" },
+]
+
+const SCENE_KNOWLEDGE_MAP: Record<string, string[]> = {
+  "web-security": ["kp-1", "kp-2", "kp-3", "kp-4", "kp-5"],
+  "data-analysis": ["kp-6", "kp-7", "kp-8"],
+  "network-attack": ["kp-1", "kp-5", "kp-6", "kp-10"],
+  "dev-standard": ["kp-9", "kp-10"],
+}
+
 export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: KnowledgeSelectorProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [kpSearch, setKpSearch] = useState("")
+  const [sceneFilter, setSceneFilter] = useState("all")
   const [kpDetailOpen, setKpDetailOpen] = useState(false)
   const [selectedKpForDetail, setSelectedKpForDetail] = useState<string | null>(null)
 
@@ -45,12 +68,14 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
   const poolIds = useMemo(() => new Set(pool.map((kp) => kp.id)), [pool])
   const isReferenceKp = (kpId: string) => poolIds.has(kpId)
 
+  const sceneKpIds = sceneFilter === "all" ? null : SCENE_KNOWLEDGE_MAP[sceneFilter]
   const filtered = pool.filter(
     (kp) =>
-      !kpSearch ||
-      kp.name.includes(kpSearch) ||
-      (kp.description && kp.description.includes(kpSearch)) ||
-      (kp.code && kp.code.includes(kpSearch))
+      (!sceneKpIds || sceneKpIds.includes(kp.id)) &&
+      (!kpSearch ||
+        kp.name.includes(kpSearch) ||
+        (kp.description && kp.description.includes(kpSearch)) ||
+        (kp.code && kp.code.includes(kpSearch)))
   )
 
   const hasResults = kpSearch ? filtered.length > 0 : false
@@ -215,6 +240,21 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
                   <Plus className="h-4 w-4 mr-1" />
                   新增知识点
                 </Button>
+              </div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs text-gray-500 shrink-0">场景筛选</span>
+                <Select value={sceneFilter} onValueChange={setSceneFilter}>
+                  <SelectTrigger className="h-8 text-xs flex-1">
+                    <SelectValue placeholder="选择场景" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SCENES.map((scene) => (
+                      <SelectItem key={scene.id} value={scene.id} className="text-xs">
+                        {scene.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex-1 overflow-y-auto pr-1">
                 {!kpSearch && filtered.length === 0 && (
