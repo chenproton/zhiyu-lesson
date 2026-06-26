@@ -291,7 +291,7 @@ export default function CourseNodeTree({
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-800 flex items-center gap-1.5">
             <BookOpen className="w-4 h-4 text-blue-500" />
-            混合课目录
+            目录
           </h3>
         </div>
         <div className="space-y-0.5 text-sm">
