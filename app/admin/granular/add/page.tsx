@@ -10,9 +10,6 @@ import {
   Star,
   BookOpen,
   GraduationCap,
-  ClipboardList,
-  Award,
-  Database,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -33,7 +30,6 @@ import type { SystemCourseNode, NodeResource } from "@/lib/types"
 
 import { KnowledgeSelector } from "../../_components/knowledge/knowledge-selector"
 import { ResourceSelector, type ResourceItem } from "../../_components/resources/resource-selector"
-import { EvaluationMethodSelector } from "../../_components/assessment/evaluation-method-selector"
 import { RichTextEditor } from "../../_components/common/rich-text-editor"
 
 import PublishCheckPanel from "../../system/add/_components/PublishCheckPanel"
@@ -97,13 +93,6 @@ function AddGranularPageInner() {
     isEdit ? ["res-1", "res-2"] : []
   )
 
-  /* module 4: assessment */
-  const [selectedEvalMethods, setSelectedEvalMethods] = useState<string[]>(
-    isEdit ? ["exam", "paper"] : []
-  )
-
-  /* module 5: evaluation rules */
-
   /* ---------- construct current node for publish check ---------- */
   const currentCheckNode: SystemCourseNode | undefined = useMemo(() => {
     const kpForCheck = knowledgePoints.map((kp) => ({
@@ -125,15 +114,6 @@ function AddGranularPageInner() {
       })
       .filter(Boolean) as NodeResource[]
 
-    const quizzesForCheck = selectedEvalMethods.length > 0
-      ? selectedEvalMethods.map((method, i) => ({
-          id: `qz-${i}`,
-          title: method === "exam" ? "作业测评" : method === "question_bank" ? "题库测验" : method === "paper" ? "试卷测验" : "现场问答",
-          type: method === "question_bank" ? "question_bank" as const : "paper" as const,
-          questions: [] as any[],
-        }))
-      : []
-
     return {
       id: "granular-current",
       courseId: "granular-1",
@@ -146,10 +126,10 @@ function AddGranularPageInner() {
       duration: parseInt(hours) || 0,
       knowledgePoints: kpForCheck,
       resources: resForCheck,
-      quizzes: quizzesForCheck,
+      quizzes: [],
       homeworks: [],
     }
-  }, [courseName, hours, learningGoal, knowledgePoints, selectedResourceIds, resourcePool, selectedEvalMethods, courseType])
+  }, [courseName, hours, learningGoal, knowledgePoints, selectedResourceIds, resourcePool, courseType])
 
   return (
     <div className="min-h-screen bg-[#f5f7fa]">
@@ -288,46 +268,6 @@ function AddGranularPageInner() {
                   onChange={setSelectedResourceIds}
                   onUpload={(r) => setResourcePool((prev) => [...prev, r])}
                 />
-              </CardContent>
-            </Card>
-
-            {/* Module 4: Assessment */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <ClipboardList className="w-4 h-4 text-[#1890ff]" />
-                  配置课程测评方式
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <EvaluationMethodSelector
-                  selectedKeys={selectedEvalMethods}
-                  onChange={setSelectedEvalMethods}
-                  isGranular={true}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Module 5: Evaluation Rules */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#1890ff]" />
-                  配置课程评价规则
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-4">
-                {selectedEvalMethods.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center text-gray-400 py-12">
-                    <Database className="h-12 w-12 mb-3 opacity-50" />
-                    <p className="text-sm">尚未配置评价方式</p>
-                    <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
-                    参考实践场景学习平台中的测评方式配置功能即可
-                  </div>
-                )}
               </CardContent>
             </Card>
 

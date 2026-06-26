@@ -14,12 +14,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -29,7 +23,6 @@ import {
 import {
   Plus,
   Search,
-  MoreHorizontal,
   Eye,
   Pencil,
   Trash2,
@@ -365,7 +358,7 @@ export default function GranularCoursePage() {
             <TableBody>
               {filtered.length > 0 ? (
                 filtered.map((course) => (
-                  <TableRow key={course.id}>
+                  <TableRow key={course.id} className="group">
                     <TableCell>
                       <Checkbox
                         checked={selectedIds.has(course.id)}
@@ -384,44 +377,37 @@ export default function GranularCoursePage() {
                         {COURSE_STATUS_LABELS[course.status]}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/learn/courses/granular/${course.id}`} className="flex items-center cursor-pointer">
-                              <Eye className="h-4 w-4 mr-2" />
-                              查看
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin/granular/add?mode=edit" className="flex items-center cursor-pointer">
-                              <Pencil className="h-4 w-4 mr-2" />
-                              编辑
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => alert(`导出课程：${course.name}（演示）`)}>
-                            <Download className="h-4 w-4 mr-2" />
-                            导出
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => alert(`邀请共建：${course.name}（演示）`)}>
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            邀请共建
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Copy className="h-4 w-4 mr-2" />
-                            复制
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            删除
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <TableCell className="relative">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm z-10 px-2 py-1 rounded-lg shadow-sm border border-slate-100">
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                          <Link href={`/learn/courses/granular/${course.id}`} className="flex items-center">
+                            <Eye className="mr-1 h-3 w-3" />
+                            查看
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
+                          <Link href="/admin/granular/add?mode=edit" className="flex items-center">
+                            <Pencil className="mr-1 h-3 w-3" />
+                            编辑
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`导出课程：${course.name}（演示）`)}>
+                          <Download className="mr-1 h-3 w-3" />
+                          导出
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`邀请共建：${course.name}（演示）`)}>
+                          <UserPlus className="mr-1 h-3 w-3" />
+                          邀请共建
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                          <Copy className="mr-1 h-3 w-3" />
+                          复制
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-red-600 hover:text-red-600 hover:bg-red-50">
+                          <Trash2 className="mr-1 h-3 w-3" />
+                          删除
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
