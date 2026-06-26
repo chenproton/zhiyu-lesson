@@ -351,14 +351,9 @@ export default function HybridCoursePage() {
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${course.coverColor} flex items-center justify-center text-white font-bold text-sm`}>
-                        {course.name.slice(0, 1)}
-                      </div>
-                      <div>
-                        <div className="font-medium">{course.name}</div>
-                        <div className="text-xs text-muted-foreground">{course.code} · {course.major}</div>
-                      </div>
+                    <div>
+                      <div className="font-medium">{course.name}</div>
+                      <div className="text-xs text-muted-foreground">{course.code} · {course.major}</div>
                     </div>
                   </TableCell>
                   <TableCell>
