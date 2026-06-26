@@ -139,13 +139,18 @@ export interface AtomicModuleProps {
 // ==================== Default data ====================
 
 export function createDefaultNodeModuleData(existing?: { name?: string; code?: string; major?: string; semester?: string; category?: CourseCategory }): NodeModuleData {
+  const incomingCategory = existing?.category
+  const category: CourseCategory =
+    incomingCategory && COURSE_CATEGORIES.includes(incomingCategory)
+      ? incomingCategory
+      : "专业核心课程"
   return {
     form: {
       name: existing?.name || "",
       code: existing?.code || `HYB-${Date.now().toString().slice(-6)}`,
       major: existing?.major || MAJORS[1],
       semester: existing?.semester || "2026-2027-1",
-      category: existing?.category || "专业核心课程",
+      category,
     },
     onlineOffline: {
       onlineHours: 24,
