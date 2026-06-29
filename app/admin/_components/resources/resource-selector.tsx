@@ -54,7 +54,7 @@ interface ResourceSelectorProps {
   onUpload?: (resource: ResourceItem) => void
 }
 
-const ALL_TYPES = ["all", "document", "spreadsheet", "image", "link", "audio", "video", "archive", "venue", "facility", "software", "other"]
+const ALL_TYPES = ["all", "video", "document", "spreadsheet", "image", "audio"]
 
 const resourceTypeIcons: Record<string, React.ReactNode> = {
   document: <FileText className="h-4 w-4 text-blue-500" />,
