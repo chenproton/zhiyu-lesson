@@ -229,10 +229,12 @@ function CatalogNav({
   sessions,
   selectedId,
   onSelect,
+  courseId,
 }: {
   sessions: TeachingSession[]
   selectedId: string
   onSelect: (id: string) => void
+  courseId: string
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(sessions.map((s) => s.id)))
 
@@ -279,7 +281,7 @@ function CatalogNav({
                     return (
                       <Link
                         key={m.key}
-                        href={`/learn/courses/hybrid/${s.id.replace("s", "hybrid-") || "hybrid-1"}/learn?session=${s.id}&module=${m.key}`}
+                        href={`/learn/courses/hybrid/${course.id}/learn?session=${s.id}&module=${m.key}`}
                         className={`flex items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors ${
                           m.status === "done" ? "text-green-600" :
                           m.status === "in_progress" ? "text-blue-600" : "text-gray-400"
@@ -301,7 +303,7 @@ function CatalogNav({
   )
 }
 
-function TreeView({ sessions }: { sessions: TeachingSession[] }) {
+function TreeView({ sessions, courseId }: { sessions: TeachingSession[]; courseId: string }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(sessions.map((s) => s.id)))
 
   const toggle = (id: string) => {
@@ -332,7 +334,7 @@ function TreeView({ sessions }: { sessions: TeachingSession[] }) {
                 <Progress value={s.progress} className="h-1.5 w-[60px]" />
                 <span className="text-[10px] text-gray-400 w-8 text-right">{s.progress}%</span>
               </div>
-              <Link href={`/learn/courses/hybrid/hybrid-1/learn?session=${s.id}`}>
+              <Link href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}`}>
                 <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">
                   <PlayCircle className="w-3 h-3 mr-1" />开始学习
                 </Button>
@@ -345,7 +347,7 @@ function TreeView({ sessions }: { sessions: TeachingSession[] }) {
                   return (
                     <Link
                       key={m.key}
-                      href={`/learn/courses/hybrid/hybrid-1/learn?session=${s.id}&module=${m.key}`}
+                      href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}&module=${m.key}`}
                       className={`flex items-center gap-2 rounded-md px-2 py-1 text-xs transition-colors hover:bg-gray-50 ${
                         m.status === "done" ? "text-green-600" :
                         m.status === "in_progress" ? "text-blue-600" : "text-gray-400"
@@ -431,7 +433,7 @@ export default function HybridCourseDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <TreeView sessions={SESSIONS} />
+              <TreeView sessions={SESSIONS} courseId={course.id} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -497,7 +499,7 @@ export default function HybridCourseDetailPage() {
         {/* Resources - linked to catalog */}
         <TabsContent value="resources">
           <div className="flex gap-4">
-            <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} />
+            <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} courseId={course.id} />
             <div className="flex-1 min-w-0">
               <Card>
                 <CardHeader>
@@ -538,7 +540,7 @@ export default function HybridCourseDetailPage() {
         {/* Quiz - linked to catalog */}
         <TabsContent value="quiz">
           <div className="flex gap-4">
-            <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} />
+            <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} courseId={course.id} />
             <div className="flex-1 min-w-0">
               <Card>
                 <CardHeader>
@@ -568,7 +570,7 @@ export default function HybridCourseDetailPage() {
                               <Badge variant="outline" className="text-[10px]">{qz.count} 题</Badge>
                             </div>
                           </div>
-                          <Link href={`/learn/courses/hybrid/hybrid-1/learn?session=${selectedId}`}>
+                          <Link href={`/learn/courses/hybrid/${courseId}/learn?session=${selectedId}`}>
                             <Button size="sm" variant="outline" className="mt-1">
                               <PlayCircle className="w-3 h-3 mr-1" />进入测评
                             </Button>
