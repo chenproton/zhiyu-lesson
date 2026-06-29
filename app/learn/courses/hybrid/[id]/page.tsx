@@ -437,7 +437,7 @@ export default function HybridCourseDetailPage() {
         </TabsContent>
 
         {/* Course Info */}
-        <TabsContent value="intro">
+        <TabsContent value="info">
           <Card>
             <CardHeader><CardTitle>课程简介</CardTitle></CardHeader>
             <CardContent className="space-y-4">
