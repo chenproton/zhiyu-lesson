@@ -236,6 +236,7 @@ export default function CourseNodeTree({
     )
   }
 
+  const isRootAdd = newNodeParent === "root"
   const canConfirm = newNodeName.trim()
 
   return (
@@ -268,7 +269,7 @@ export default function CourseNodeTree({
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>添加节点</DialogTitle>
+            <DialogTitle>{isRootAdd ? "添加节点" : "添加子节点"}</DialogTitle>
           </DialogHeader>
 
           {/* Basic fields - always visible */}
@@ -286,22 +287,23 @@ export default function CourseNodeTree({
                 {newNodeName.length} / 50
               </p>
             </div>
-            <div>
-              <Label>上级节点</Label>
-              <Select value={newNodeParent} onValueChange={setNewNodeParent}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="选择上级节点" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="root">— 无（顶级节点）—</SelectItem>
-                  {nodes.map((n) => (
-                    <SelectItem key={n.id} value={n.id}>
-                      {n.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!isRootAdd && (
+              <div>
+                <Label>上级节点</Label>
+                <Select value={newNodeParent} onValueChange={setNewNodeParent}>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder="选择上级节点" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {nodes.map((n) => (
+                      <SelectItem key={n.id} value={n.id}>
+                        {n.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
