@@ -428,7 +428,7 @@ export default function CourseLearnPage() {
       </aside>
 
       {/* ---------- right main area ---------- */}
-      <main className="flex flex-1 flex-col overflow-hidden bg-gray-50/50">
+      <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50/50">
         {/* content area: video / reading / quiz */}
         {currentSection?.type === "quiz" ? (
           <QuizPanel
@@ -482,8 +482,8 @@ export default function CourseLearnPage() {
             }}
           />
         ) : (
-          <div className="relative flex-shrink-0 bg-slate-900">
-            <div className="flex aspect-video items-center justify-center">
+          <div className="relative bg-slate-900">
+            <div className="flex max-h-[45vh] aspect-video items-center justify-center">
               <div className="text-center">
                 <MonitorPlay className="mx-auto h-16 w-16 text-slate-600" />
                 <p className="mt-4 text-sm text-slate-400">
@@ -510,7 +510,7 @@ export default function CourseLearnPage() {
         )}
 
         {/* tabs content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="p-6">
           <Tabs defaultValue="intro" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="intro">
@@ -714,7 +714,7 @@ function QuizPanel({
   const allAnswered = questions.every((q) => answers[q.id]?.trim())
 
   return (
-    <div className="flex-shrink-0 bg-white border-b">
+    <div className="bg-white border-b">
       <div className="max-w-3xl mx-auto px-6 py-5">
         <div className="flex items-center justify-between mb-4">
           <div>
