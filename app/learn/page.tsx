@@ -40,7 +40,7 @@ const courseIcons: Record<string, string> = {
 function CourseCard({ course }: { course: Course }) {
   const cover = courseCovers[course.type] || "from-slate-600 to-slate-800"
   return (
-    <Link href={course.type === "hybrid" ? `/learn/courses/hybrid/${course.id}` : "/student.html"} className="block no-underline">
+    <Link href={`/learn/courses/${course.type}/${course.id}`} className="block no-underline">
       <div
         className="rounded-xl bg-white overflow-hidden cursor-pointer transition-all duration-300 border border-slate-100"
         style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
