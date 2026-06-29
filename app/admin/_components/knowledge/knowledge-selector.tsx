@@ -49,17 +49,50 @@ const SCENE_KNOWLEDGE_MAP: Record<string, string[]> = {
   "dev-standard": ["kp-9", "kp-10"],
 }
 
+const POSITIONS = [
+  { id: "all", name: "全部岗位" },
+  { id: "frontend", name: "前端开发工程师" },
+  { id: "backend", name: "后端开发工程师" },
+  { id: "security", name: "安全测试工程师" },
+  { id: "data", name: "数据分析师" },
+]
+
+const TASKS = [
+  { id: "all", name: "全部任务" },
+  { id: "task-sql-inject", name: "SQL注入漏洞挖掘" },
+  { id: "task-xss", name: "XSS攻击与防御" },
+  { id: "task-data-clean", name: "数据清洗与预处理" },
+  { id: "task-model-train", name: "回归模型训练" },
+  { id: "task-penetration", name: "渗透测试演练" },
+  { id: "task-code-review", name: "安全代码审查" },
+  { id: "task-visualize", name: "数据可视化报告" },
+  { id: "task-component", name: "业务组件封装" },
+]
+
+const TASK_SCENE_MAP: Record<string, string[]> = {
+  "task-sql-inject": ["web-security", "network-attack"],
+  "task-xss": ["web-security"],
+  "task-data-clean": ["data-analysis"],
+  "task-model-train": ["data-analysis"],
+  "task-penetration": ["network-attack", "web-security"],
+  "task-code-review": ["dev-standard", "web-security"],
+  "task-visualize": ["data-analysis"],
+  "task-component": ["dev-standard"],
+}
+
 export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: KnowledgeSelectorProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [kpSearch, setKpSearch] = useState("")
   const [sceneFilter, setSceneFilter] = useState("all")
+  const [positionFilter, setPositionFilter] = useState("all")
+  const [taskFilter, setTaskFilter] = useState("all")
   const [kpDetailOpen, setKpDetailOpen] = useState(false)
   const [selectedKpForDetail, setSelectedKpForDetail] = useState<string | null>(null)
 
   const [kpActionOpen, setKpActionOpen] = useState(false)
-  const [kpActionMode, setKpActionMode] = useState<"add" | "clone" | "edit" | null>(null)
+  const [kpActionMode, setKpActionMode] = useState<"add" | "edit" | null>(null)
   const [kpActionTarget, setKpActionTarget] = useState<KnowledgePointItem | null>(null)
-  const [newKpForm, setNewKpForm] = useState({ name: "", description: "", code: "", granularLessons: [] as string[] })
+  const [newKpForm, setNewKpForm] = useState({ name: "", description: "", code: "" })
 
   const [glSelectOpen, setGlSelectOpen] = useState(false)
   const [glSelectTargetKp, setGlSelectTargetKp] = useState<string | null>(null)
@@ -92,21 +125,9 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
   }
 
   const openAddKp = () => {
-    setNewKpForm({ name: kpSearch, description: "", code: generateKpCode(), granularLessons: [] })
+    setNewKpForm({ name: kpSearch, description: "", code: generateKpCode() })
     setKpActionMode("add")
     setKpActionTarget(null)
-    setKpActionOpen(true)
-  }
-
-  const openCloneKp = (kp: KnowledgePointItem) => {
-    setNewKpForm({
-      name: `${kp.name}（克隆）`,
-      description: kp.description || "",
-      code: generateKpCode(),
-      granularLessons: kp.granularLessons || [],
-    })
-    setKpActionMode("clone")
-    setKpActionTarget(kp)
     setKpActionOpen(true)
   }
 
@@ -115,7 +136,6 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
       name: kp.name,
       description: kp.description || "",
       code: kp.code || generateKpCode(),
-      granularLessons: kp.granularLessons || [],
     })
     setKpActionMode("edit")
     setKpActionTarget(kp)
@@ -132,7 +152,6 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
               name: newKpForm.name.trim(),
               description: newKpForm.description.trim(),
               code: newKpForm.code,
-              granularLessons: newKpForm.granularLessons,
             }
           : s
       )
@@ -147,7 +166,6 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
       description: newKpForm.description.trim(),
       code: newKpForm.code,
       linked: false,
-      granularLessons: newKpForm.granularLessons,
     }
     onAddCustom?.(newKp.name, newKp.description)
     onChange?.([...selected, newKp])
@@ -243,7 +261,12 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
               </div>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs text-gray-500 shrink-0">场景筛选</span>
-                <Select value={sceneFilter} onValueChange={setSceneFilter}>
+                <Select value={sceneFilter} onValueChange={(v) => {
+                  setSceneFilter(v)
+                  if (taskFilter !== "all" && v !== "all" && TASK_SCENE_MAP[taskFilter] && !TASK_SCENE_MAP[taskFilter].includes(v)) {
+                    setTaskFilter("all")
+                  }
+                }}>
                   <SelectTrigger className="h-8 text-xs flex-1">
                     <SelectValue placeholder="选择场景" />
                   </SelectTrigger>
@@ -251,6 +274,49 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
                     {SCENES.map((scene) => (
                       <SelectItem key={scene.id} value={scene.id} className="text-xs">
                         {scene.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs text-gray-500 shrink-0">岗位筛选</span>
+                <Select value={positionFilter} onValueChange={setPositionFilter}>
+                  <SelectTrigger className="h-8 text-xs flex-1">
+                    <SelectValue placeholder="选择岗位" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {POSITIONS.map((pos) => (
+                      <SelectItem key={pos.id} value={pos.id} className="text-xs">
+                        {pos.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs text-gray-500 shrink-0">任务筛选</span>
+                <Select
+                  value={taskFilter}
+                  onValueChange={(v) => {
+                    setTaskFilter(v)
+                    if (v !== "all" && TASK_SCENE_MAP[v] && !TASK_SCENE_MAP[v].includes(sceneFilter)) {
+                      setSceneFilter(TASK_SCENE_MAP[v][0] || "all")
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs flex-1">
+                    <SelectValue placeholder="选择任务" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TASKS.filter(
+                      (t) =>
+                        t.id === "all" ||
+                        sceneFilter === "all" ||
+                        (TASK_SCENE_MAP[t.id] && TASK_SCENE_MAP[t.id].includes(sceneFilter))
+                    ).map((task) => (
+                      <SelectItem key={task.id} value={task.id} className="text-xs">
+                        {task.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -341,23 +407,13 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
                                     取消
                                   </Button>
                                 ) : (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      className="h-6 text-[11px] px-2"
-                                      onClick={() => handleReferenceKp(kp)}
-                                    >
-                                      引用
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-6 text-[11px] px-2"
-                                      onClick={() => openCloneKp(kp)}
-                                    >
-                                      克隆
-                                    </Button>
-                                  </>
+                                  <Button
+                                    size="sm"
+                                    className="h-6 text-[11px] px-2"
+                                    onClick={() => handleReferenceKp(kp)}
+                                  >
+                                    引用
+                                  </Button>
                                 )}
                               </div>
                             </td>
@@ -464,23 +520,15 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
         </DialogContent>
       </Dialog>
 
-      {/* Add / Clone / Edit Knowledge Dialog */}
+      {/* Add / Edit Knowledge Dialog */}
       <Dialog open={kpActionOpen} onOpenChange={setKpActionOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {kpActionMode === "add"
-                ? "新增知识点"
-                : kpActionMode === "clone"
-                ? "克隆知识点"
-                : "编辑知识点"}
+              {kpActionMode === "add" ? "新增知识点" : "编辑知识点"}
             </DialogTitle>
             <DialogDescription>
-              {kpActionMode === "add"
-                ? "创建一个新的知识点"
-                : kpActionMode === "clone"
-                ? `基于「${kpActionTarget?.name}」创建副本`
-                : "修改知识点信息"}
+              {kpActionMode === "add" ? "创建一个新的知识点" : "修改知识点信息"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -515,58 +563,13 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
                 {kpActionMode === "edit" ? "可修改编码" : "系统自动生成，不可修改"}
               </p>
             </div>
-            <div>
-              <Label>关联颗粒课</Label>
-              <div className="mt-1.5">
-                {newKpForm.granularLessons.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {newKpForm.granularLessons.map((gid) => {
-                      const gl = granularCourses.find((g) => g.id === gid)
-                      return gl ? (
-                        <Badge key={gid} variant="secondary" className="text-xs gap-1">
-                          {gl.name}
-                          <X
-                            className="h-3 w-3 cursor-pointer"
-                            onClick={() =>
-                              setNewKpForm({
-                                ...newKpForm,
-                                granularLessons: newKpForm.granularLessons.filter((x) => x !== gid),
-                              })
-                            }
-                          />
-                        </Badge>
-                      ) : null
-                    })}
-                  </div>
-                ) : null}
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => {
-                      setGlSelectTargetKp("new-kp")
-                      setGlSearch("")
-                      setGlSelectOpen(true)
-                    }}
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    选择颗粒课
-                  </Button>
-                </div>
-              </div>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setKpActionOpen(false)}>
               取消
             </Button>
             <Button onClick={handleSaveKp} disabled={!newKpForm.name.trim()}>
-              {kpActionMode === "add"
-                ? "新增并选中"
-                : kpActionMode === "clone"
-                ? "克隆并选中"
-                : "保存修改"}
+              {kpActionMode === "add" ? "新增并选中" : "保存修改"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -714,40 +717,11 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
                 <p className="text-sm text-gray-700 mt-1">{detailKp.description}</p>
               </div>
               {detailKp.code && (
-                <div>
-                  <Label className="text-xs text-gray-500">编码</Label>
-                  <p className="text-sm text-gray-700 mt-1">{detailKp.code}</p>
-                </div>
-              )}
               <div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs text-gray-500">关联颗粒课</Label>
-                  {!isReferenceKp(detailKp.id) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 text-[11px] px-2 text-primary"
-                      onClick={() => {
-                        setKpDetailOpen(false)
-                        openGlSelect(detailKp.id)
-                      }}
-                    >
-                      选择颗粒课
-                    </Button>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {detailGranularLessons.length > 0 ? (
-                    detailGranularLessons.map((gl) => (
-                      <Badge key={gl!.id} variant="outline" className="text-xs">
-                        {gl!.name}
-                      </Badge>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-400">暂无关联颗粒课</p>
-                  )}
-                </div>
+                <Label className="text-xs text-gray-500">编码</Label>
+                <p className="text-sm text-gray-700 mt-1">{detailKp.code}</p>
               </div>
+            )}
             </div>
           )}
         </DialogContent>
