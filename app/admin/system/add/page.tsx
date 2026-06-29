@@ -570,10 +570,9 @@ function AddSystemPageInner() {
 
           {/* Center: Content modules */}
           <div className="relative min-w-0">
-            <main className="space-y-5 min-w-0">
             {/* Node info bar */}
             {selectedNode && (
-              <div className="flex items-center justify-between bg-white rounded-xl border border-gray-100 px-5 py-3">
+              <div className="flex items-center justify-between bg-white rounded-xl border border-gray-100 px-5 py-3 relative z-20">
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
                   <span>当前编辑节点：<span className="font-medium text-gray-700">{selectedNode.name}</span></span>
@@ -591,7 +590,7 @@ function AddSystemPageInner() {
 
             {/* Node type selector */}
             {selectedNode && (
-              <div className="bg-white rounded-xl border border-gray-100 px-5 py-3 space-y-3">
+              <div className="bg-white rounded-xl border border-gray-100 px-5 py-3 space-y-3 mt-5 relative z-20">
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-500 shrink-0">节点类型：</span>
                   <div className="flex gap-1">
@@ -702,6 +701,8 @@ function AddSystemPageInner() {
                 )}
               </div>
             )}
+
+            <main className="space-y-5 min-w-0">
 
             {!selectedNode && (
               <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
