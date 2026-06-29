@@ -260,20 +260,46 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
                 </Button>
               </div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs text-gray-500 shrink-0">场景筛选</span>
+                <span className="text-xs text-gray-500 shrink-0">场景/任务筛选</span>
                 <Select value={sceneFilter} onValueChange={(v) => {
                   setSceneFilter(v)
                   if (taskFilter !== "all" && v !== "all" && TASK_SCENE_MAP[taskFilter] && !TASK_SCENE_MAP[taskFilter].includes(v)) {
                     setTaskFilter("all")
                   }
                 }}>
-                  <SelectTrigger className="h-8 text-xs flex-1">
+                  <SelectTrigger className="h-8 text-xs w-[120px]">
                     <SelectValue placeholder="选择场景" />
                   </SelectTrigger>
                   <SelectContent>
                     {SCENES.map((scene) => (
                       <SelectItem key={scene.id} value={scene.id} className="text-xs">
                         {scene.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-[10px] text-gray-300 shrink-0">▸</span>
+                <Select
+                  value={taskFilter}
+                  onValueChange={(v) => {
+                    setTaskFilter(v)
+                    if (v !== "all" && TASK_SCENE_MAP[v] && !TASK_SCENE_MAP[v].includes(sceneFilter)) {
+                      setSceneFilter(TASK_SCENE_MAP[v][0] || "all")
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs w-[120px]">
+                    <SelectValue placeholder="选择任务" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TASKS.filter(
+                      (t) =>
+                        t.id === "all" ||
+                        sceneFilter === "all" ||
+                        (TASK_SCENE_MAP[t.id] && TASK_SCENE_MAP[t.id].includes(sceneFilter))
+                    ).map((task) => (
+                      <SelectItem key={task.id} value={task.id} className="text-xs">
+                        {task.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -289,34 +315,6 @@ export function KnowledgeSelector({ selected, pool, onChange, onAddCustom }: Kno
                     {POSITIONS.map((pos) => (
                       <SelectItem key={pos.id} value={pos.id} className="text-xs">
                         {pos.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs text-gray-500 shrink-0">任务筛选</span>
-                <Select
-                  value={taskFilter}
-                  onValueChange={(v) => {
-                    setTaskFilter(v)
-                    if (v !== "all" && TASK_SCENE_MAP[v] && !TASK_SCENE_MAP[v].includes(sceneFilter)) {
-                      setSceneFilter(TASK_SCENE_MAP[v][0] || "all")
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-8 text-xs flex-1">
-                    <SelectValue placeholder="选择任务" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TASKS.filter(
-                      (t) =>
-                        t.id === "all" ||
-                        sceneFilter === "all" ||
-                        (TASK_SCENE_MAP[t.id] && TASK_SCENE_MAP[t.id].includes(sceneFilter))
-                    ).map((task) => (
-                      <SelectItem key={task.id} value={task.id} className="text-xs">
-                        {task.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
