@@ -17,10 +17,14 @@ import {
   ChevronRight,
   Info,
   Lock,
+  Search,
+  CheckCircle2,
+  Copy,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -46,6 +50,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
+import { cn } from "@/lib/utils"
 import { INDUSTRIES, MAJORS } from "@/lib/types"
 import type { SystemCourseNode, NodeResource, NodeRefType } from "@/lib/types"
 
@@ -186,6 +191,18 @@ const INITIAL_NODES: SystemCourseNode[] = [
   },
 ]
 
+/* ---------- mock grain course pool ---------- */
+const MOCK_GRAIN_COURSES = [
+  { id: "grain-1", name: "P值与显著性", description: "统计推断基础概念", source: "统计学院", duration: 2 },
+  { id: "grain-2", name: "T检验实战", description: "小样本均值检验方法", source: "数据分析系", duration: 4 },
+  { id: "grain-3", name: "SQL注入防御", description: "Web安全防护技术", source: "网络安全系", duration: 3 },
+  { id: "grain-4", name: "XSS攻击原理", description: "跨站脚本攻击分析", source: "网络安全系", duration: 2 },
+  { id: "grain-5", name: "组件封装实践", description: "前端组件化开发规范", source: "前端工程系", duration: 3 },
+  { id: "grain-6", name: "状态管理进阶", description: "React/Vue 状态管理", source: "前端工程系", duration: 4 },
+  { id: "grain-7", name: "回归分析入门", description: "线性回归与非线性回归", source: "统计学院", duration: 5 },
+  { id: "grain-8", name: "数据可视化", description: "常用图表制作与美化", source: "数据分析系", duration: 3 },
+]
+
 /* ---------- main component ---------- */
 
 function AddSystemPageInner() {
@@ -267,6 +284,52 @@ function AddSystemPageInner() {
   const selectedNode = nodes.find((n) => n.id === selectedNodeId)
   const isQuoteNode = selectedNode?.type === "quote"
   const isGranularNode = selectedNode?.type === "original" || selectedNode?.type === "quote"
+
+  /* ========== node type selector ========== */
+  const [nodeTypeMode, setNodeTypeMode] = useState<NodeRefType>("normal")
+  const [sourceSearch, setSourceSearch] = useState("")
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
+
+  const filteredSources = MOCK_GRAIN_COURSES.filter((g) =>
+    !sourceSearch ||
+    g.name.includes(sourceSearch) ||
+    g.description.includes(sourceSearch) ||
+    g.source.includes(sourceSearch)
+  )
+
+  const selectedSource = MOCK_GRAIN_COURSES.find((g) => g.id === selectedSourceId)
+
+  useEffect(() => {
+    const node = nodes.find((n) => n.id === selectedNodeId)
+    if (node) {
+      setNodeTypeMode(node.type === "clone" || node.type === "quote" ? node.type : "normal")
+      setSelectedSourceId(node.sourceId || null)
+      setSourceSearch("")
+    }
+  }, [selectedNodeId, nodes])
+
+  const handleNodeTypeChange = (mode: NodeRefType) => {
+    setNodeTypeMode(mode)
+    if (mode === "normal") {
+      setSelectedSourceId(null)
+      setSourceSearch("")
+      if (selectedNodeId) {
+        handleUpdateNode(selectedNodeId, { type: "normal", sourceId: undefined, sourceName: undefined })
+      }
+    }
+  }
+
+  const handleGrainSelect = (grain: typeof MOCK_GRAIN_COURSES[number], mode: "clone" | "quote") => {
+    setSelectedSourceId(grain.id)
+    if (selectedNodeId) {
+      handleUpdateNode(selectedNodeId, {
+        type: mode,
+        sourceId: grain.id,
+        sourceName: grain.name,
+        name: grain.name,
+      })
+    }
+  }
 
   /* module 1: basic info */
   const [contentCode] = useState(isEdit ? "CNT-SQL001" : `CNT-${Date.now().toString(36).toUpperCase()}`)
@@ -523,6 +586,120 @@ function AddSystemPageInner() {
                     暂存草稿
                   </Button>
                 </div>
+              </div>
+            )}
+
+            {/* Node type selector */}
+            {selectedNode && (
+              <div className="bg-white rounded-xl border border-gray-100 px-5 py-3 space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500 shrink-0">节点类型：</span>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleNodeTypeChange("normal")}
+                      className={cn(
+                        "px-3 py-1.5 text-xs rounded-md transition-colors",
+                        nodeTypeMode === "normal"
+                          ? "bg-primary text-white"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      )}
+                    >
+                      上传节点课程资源
+                    </button>
+                    <button
+                      onClick={() => setNodeTypeMode("clone")}
+                      className={cn(
+                        "px-3 py-1.5 text-xs rounded-md transition-colors",
+                        nodeTypeMode === "clone"
+                          ? "bg-amber-500 text-white"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      )}
+                    >
+                      克隆颗粒课
+                    </button>
+                    <button
+                      onClick={() => setNodeTypeMode("quote")}
+                      className={cn(
+                        "px-3 py-1.5 text-xs rounded-md transition-colors",
+                        nodeTypeMode === "quote"
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      )}
+                    >
+                      引用颗粒课
+                    </button>
+                  </div>
+                </div>
+
+                {/* Grain course search & selection for clone/quote */}
+                {nodeTypeMode !== "normal" && (
+                  <div className="pt-3 border-t border-gray-100 space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        value={sourceSearch}
+                        onChange={(e) => setSourceSearch(e.target.value)}
+                        placeholder="搜索颗粒课名称、来源..."
+                        className="pl-9 text-sm h-9"
+                      />
+                    </div>
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                      {filteredSources.length === 0 ? (
+                        <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
+                      ) : (
+                        filteredSources.map((g) => {
+                          const selected = selectedSourceId === g.id
+                          const isCloneMode = nodeTypeMode === "clone"
+                          return (
+                            <button
+                              key={g.id}
+                              onClick={() => handleGrainSelect(g, nodeTypeMode as "clone" | "quote")}
+                              className={cn(
+                                "w-full text-left p-3 rounded-lg border transition-all",
+                                selected
+                                  ? isCloneMode
+                                    ? "border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/10"
+                                    : "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                                  : "border-gray-200 hover:border-gray-300 bg-white"
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className={cn(
+                                    "w-5 h-5 rounded-full border flex items-center justify-center",
+                                    selected
+                                      ? isCloneMode
+                                        ? "bg-amber-500 border-amber-500"
+                                        : "bg-blue-500 border-blue-500"
+                                      : "border-gray-300"
+                                  )}>
+                                    {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-800">{g.name}</span>
+                                </div>
+                                <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
+                            </button>
+                          )
+                        })
+                      )}
+                    </div>
+                    {selectedSource && nodeTypeMode === "clone" && (
+                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700 flex items-start gap-2">
+                        <Copy className="h-4 w-4 shrink-0 mt-0.5" />
+                        已选择「{selectedSource.name}」，克隆后该节点内容可独立编辑，与原颗粒课解除关联。
+                      </div>
+                    )}
+                    {selectedSource && nodeTypeMode === "quote" && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-xs text-blue-700 flex items-start gap-2">
+                        <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+                        已选择「{selectedSource.name}」，引用后该节点内容不可编辑，将自动随原颗粒课更新。
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
