@@ -483,9 +483,9 @@ export default function CourseLearnPage() {
       </aside>
 
       {/* ---------- right main area ---------- */}
-      <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50/50">
+      <main className="flex flex-1 flex-col overflow-hidden bg-gray-50/50">
         {/* content area: video / reading */}
-        <div className="relative mx-4 mt-4 rounded-lg bg-slate-900 overflow-hidden">
+        <div className="relative mx-4 mt-4 rounded-lg bg-slate-900 overflow-hidden flex-shrink-0">
           <div className="flex w-full max-h-[65vh] aspect-video items-center justify-center">
             <div className="text-center">
               <MonitorPlay className="mx-auto h-16 w-16 text-slate-600" />
@@ -508,7 +508,7 @@ export default function CourseLearnPage() {
         </div>
 
         {/* tabs content */}
-        <div className="p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           <Tabs defaultValue="intro" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="intro">
