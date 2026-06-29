@@ -1,10 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +21,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { BookOpen, Users, Calendar, CheckCircle2, MapPin, Clock, Rocket, Settings } from "lucide-react"
+import { hybridCourses } from "@/lib/mock-data"
+import { BookOpen, Users, Calendar, CheckCircle2, MapPin, Clock, Rocket, Settings, Search, Copy } from "lucide-react"
 
 const semesters = [
   "2025 年第一学期",
@@ -71,6 +78,18 @@ export default function ClassClaimPage() {
   const [selectedTerm, setSelectedTerm] = useState(semesters[0])
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [confirmClass, setConfirmClass] = useState<ClassItem | null>(null)
+  const [cloneOpen, setCloneOpen] = useState(false)
+  const [cloneSearch, setCloneSearch] = useState("")
+
+  const filteredHybrid = useMemo(() =>
+    hybridCourses.filter((c) =>
+      !cloneSearch ||
+      c.name.includes(cloneSearch) ||
+      (c.major && c.major.includes(cloneSearch)) ||
+      (c.teacher && c.teacher.includes(cloneSearch))
+    ),
+    [cloneSearch]
+  )
 
   const termClasses = classes.filter((c) => c.term === selectedTerm)
   const termClassIds = new Set(termClasses.map((c) => c.id))
@@ -194,14 +213,69 @@ export default function ClassClaimPage() {
                       <p className="text-sm text-muted-foreground">任课教师：{cls.teacher}</p>
                     </div>
                     {cls.status === "active" ? (
-                      <Button
-                        size="sm"
-                        className="shrink-0"
-                        onClick={() => handleOpenHybridAdd(cls.course, cls.name, classSessions)}
-                      >
-                        <Settings className="h-3.5 w-3.5 mr-1" />
-                        前往配置
-                      </Button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          size="sm"
+                          onClick={() => handleOpenHybridAdd(cls.course, cls.name, classSessions)}
+                        >
+                          <Settings className="h-3.5 w-3.5 mr-1" />
+                          新建混合课
+                        </Button>
+                        <Popover open={cloneOpen} onOpenChange={setCloneOpen}>
+                          <PopoverTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <Copy className="h-3.5 w-3.5 mr-1" />
+                              克隆现有混合课
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72 p-0" align="end">
+                            <div className="p-2 border-b">
+                              <div className="relative">
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                                <Input
+                                  value={cloneSearch}
+                                  onChange={(e) => setCloneSearch(e.target.value)}
+                                  placeholder="搜索混合课名称..."
+                                  className="pl-8 h-8 text-xs"
+                                />
+                              </div>
+                            </div>
+                            <div className="max-h-[240px] overflow-y-auto p-1">
+                              {filteredHybrid.length === 0 ? (
+                                <p className="text-xs text-gray-400 text-center py-4">未找到匹配的混合课</p>
+                              ) : (
+                                filteredHybrid.map((c) => (
+                                  <button
+                                    key={c.id}
+                                    className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                                    onClick={() => {
+                                      const payload = {
+                                        course: cls.course,
+                                        teacher: cls.teacher,
+                                        className: cls.name,
+                                        sessions: classSessions.map((s) => ({
+                                          week: s.week,
+                                          weekday: s.weekday,
+                                          period: s.period,
+                                          venue: s.venue,
+                                        })),
+                                      }
+                                      const encoded = btoa(encodeURIComponent(JSON.stringify(payload)))
+                                      const url = `/admin/hybrid/add?id=${c.id}&claimCourse=${encodeURIComponent(cls.course)}&claimSessions=${encodeURIComponent(encoded)}`
+                                      setCloneOpen(false)
+                                      setCloneSearch("")
+                                      window.open(url, "_blank")
+                                    }}
+                                  >
+                                    <p className="text-xs font-medium text-gray-800 truncate">{c.name}</p>
+                                    <p className="text-[10px] text-gray-400 truncate">{c.major} · {c.teacher}</p>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     ) : (
                       <Button
                         size="sm"

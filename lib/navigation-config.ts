@@ -54,7 +54,6 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
       icon: "layoutGrid",
       children: [
         { id: "claim", label: "开课计划管理", href: "/teacher/claim", matchers: ["/teacher/claim"] },
-        { id: "my-class-hours", label: "我的课程表", href: "/teacher/in-class", matchers: ["/teacher/in-class"] },
         { id: "behavior-collection", label: "课程学习跟踪", href: "/teacher/behavior-collection", matchers: ["/teacher/behavior-collection"] },
         { id: "progress-tracking", label: "课程测评跟踪", href: "/teacher/progress-tracking", matchers: ["/teacher/progress-tracking"] },
         { id: "final-assessment", label: "课程期末总评", href: "/teacher/final-assessment", matchers: ["/teacher/final-assessment"] },
