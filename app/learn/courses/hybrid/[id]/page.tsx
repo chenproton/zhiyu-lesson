@@ -281,7 +281,7 @@ function CatalogNav({
                     return (
                       <Link
                         key={m.key}
-                        href={`/learn/courses/hybrid/${course.id}/learn?session=${s.id}&module=${m.key}`}
+                        href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}&module=${m.key}`}
                         className={`flex items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors ${
                           m.status === "done" ? "text-green-600" :
                           m.status === "in_progress" ? "text-blue-600" : "text-gray-400"
@@ -570,7 +570,7 @@ export default function HybridCourseDetailPage() {
                               <Badge variant="outline" className="text-[10px]">{qz.count} 题</Badge>
                             </div>
                           </div>
-                          <Link href={`/learn/courses/hybrid/${courseId}/learn?session=${selectedId}`}>
+                          <Link href={`/learn/courses/hybrid/${course.id}/learn?session=${selectedId}`}>
                             <Button size="sm" variant="outline" className="mt-1">
                               <PlayCircle className="w-3 h-3 mr-1" />进入测评
                             </Button>
