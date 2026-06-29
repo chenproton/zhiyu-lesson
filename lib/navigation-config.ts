@@ -36,8 +36,8 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
       label: "在线课管理",
       icon: "folderKanban",
       children: [
-        { id: "system", label: "体系课管理", href: "/admin/system", matchers: ["/admin/system$", "/admin/system/add"] },
-        { id: "granular", label: "颗粒课管理", href: "/admin/granular", matchers: ["/admin/granular$", "/admin/granular/add"] },
+        { id: "system", label: "体系课资源", href: "/admin/system", matchers: ["/admin/system$", "/admin/system/add"] },
+        { id: "granular", label: "颗粒课资源", href: "/admin/granular", matchers: ["/admin/granular$", "/admin/granular/add"] },
       ],
     },
     {
@@ -120,8 +120,8 @@ export const adminNavigationConfig: PlatformNavigationConfig = {
       label: "在线课管理",
       icon: "folderKanban",
       children: [
-        { id: "system", label: "体系课管理", href: "/admin/system", matchers: ["/admin/system$", "/admin/system/add"] },
-        { id: "granular", label: "颗粒课管理", href: "/admin/granular", matchers: ["/admin/granular$", "/admin/granular/add"] },
+        { id: "system", label: "体系课资源", href: "/admin/system", matchers: ["/admin/system$", "/admin/system/add"] },
+        { id: "granular", label: "颗粒课资源", href: "/admin/granular", matchers: ["/admin/granular$", "/admin/granular/add"] },
       ],
     },
     {
