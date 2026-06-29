@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback } from "react"
 import { useParams } from "next/navigation"
 import { notFound } from "next/navigation"
-import Link from "next/link"
 
 import {
   BookOpen,
@@ -13,18 +12,18 @@ import {
   FileText,
   Circle,
   CheckCircle2,
-  ArrowLeft,
   Download,
   StickyNote,
   GraduationCap,
   Clock,
   MonitorPlay,
-  HelpCircle,
   Send,
   RotateCcw,
   Lightbulb,
   FolderOpen,
   ClipboardList,
+  Check,
+  X,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,18 +35,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 
 import { courses } from "@/lib/mock-data"
+import type { KnowledgeGraphNode, KnowledgeGraphEdge } from "@/lib/types"
+import KnowledgeGraph from "@/components/KnowledgeGraph"
 
 /* ---------- types ---------- */
 
-type SectionType = "video" | "reading" | "quiz"
+type SectionType = "video" | "reading"
 type SectionStatus = "done" | "current" | "not_started"
-type QuizType = "single" | "essay"
+type QuizType = "single" | "multiple" | "judge" | "essay"
 
-interface QuizQuestion {
+interface ChapterQuizQuestion {
   id: string
   type: QuizType
   question: string
-  options?: string[]
+  options?: { key: string; text: string }[]
   correctAnswer?: string
   correctText?: string
   score: number
@@ -59,7 +60,6 @@ interface Section {
   type: SectionType
   duration: string
   status: SectionStatus
-  questions?: QuizQuestion[]
 }
 
 interface Chapter {
@@ -112,63 +112,13 @@ function generateChapters(nodeCount: number, courseName: string, completedIds: S
     "测验与反馈",
   ]
 
-  const quizQuestionsPool: QuizQuestion[] = [
-    {
-      id: "q1",
-      type: "single",
-      question: "下列哪种方法可以有效防御SQL注入攻击？",
-      options: ["A. 使用明文存储密码", "B. 对用户输入进行参数化查询", "C. 关闭数据库日志", "D. 使用HTTP协议传输数据"],
-      correctAnswer: "B",
-      score: 10,
-    },
-    {
-      id: "q2",
-      type: "single",
-      question: "SQL注入攻击主要利用的是应用程序的哪个薄弱环节？",
-      options: ["A. 网络传输层", "B. 用户界面设计", "C. 输入验证不充分", "D. 服务器硬件配置"],
-      correctAnswer: "C",
-      score: 10,
-    },
-    {
-      id: "q3",
-      type: "essay",
-      question: "请简述SQL注入的基本原理及三种常见防御措施。",
-      correctText: "SQL注入是通过在用户输入中插入恶意SQL代码，利用应用程序未充分验证输入的漏洞，从而操纵数据库执行非预期操作。常见防御措施：1.参数化查询/预编译语句；2.输入验证与过滤；3.最小权限原则。",
-      score: 20,
-    },
-    {
-      id: "q4",
-      type: "single",
-      question: "在假设检验中，P值代表什么含义？",
-      options: ["A. 备择假设为真的概率", "B. 在原假设为真时观察到当前结果的概率", "C. 第一类错误的概率", "D. 检验统计量的标准差"],
-      correctAnswer: "B",
-      score: 10,
-    },
-    {
-      id: "q5",
-      type: "essay",
-      question: "请说明T检验和Z检验的适用场景及主要区别。",
-      correctText: "T检验适用于小样本(n<30)或总体方差未知的情况，Z检验适用于大样本或总体方差已知的情况。主要区别在于：T检验使用t分布，Z检验使用正态分布；T检验对样本量更敏感。",
-      score: 20,
-    },
-    {
-      id: "q6",
-      type: "single",
-      question: "API未授权访问漏洞的核心风险是什么？",
-      options: ["A. 导致网页加载缓慢", "B. 未验证用户身份即暴露敏感接口", "C. 影响前端界面美观", "D. 增加服务器CPU负载"],
-      correctAnswer: "B",
-      score: 10,
-    },
-  ]
-
   const chapters: Chapter[] = []
   for (let i = 1; i <= nodeCount; i++) {
     const sectionCount = i % 3 === 0 ? 3 : 2
     const sections: Section[] = []
     for (let j = 1; j <= sectionCount; j++) {
-      const isLast = j === sectionCount
-      const type: SectionType = isLast ? "quiz" : j % 2 === 1 ? "video" : "reading"
-      const duration = isLast ? "10分钟" : `${10 + ((i + j) % 5) * 5}分钟`
+      const type: SectionType = j % 2 === 1 ? "video" : "reading"
+      const duration = `${10 + ((i + j) % 5) * 5}分钟`
 
       let status: SectionStatus = "not_started"
       const sid = `${i}-${j}`
@@ -183,22 +133,13 @@ function generateChapters(nodeCount: number, courseName: string, completedIds: S
         status = "current"
       }
 
-      const section: Section = {
+      sections.push({
         id: `${i}-${j}`,
         title: `${i}.${j} ${sectionTitles[(i + j) % sectionTitles.length]}`,
         type,
         duration,
         status,
-      }
-      if (type === "quiz") {
-        const qIdx = (i + j) % quizQuestionsPool.length
-        section.questions = [
-          quizQuestionsPool[qIdx],
-          quizQuestionsPool[(qIdx + 1) % quizQuestionsPool.length],
-          quizQuestionsPool[(qIdx + 2) % quizQuestionsPool.length],
-        ]
-      }
-      sections.push(section)
+      })
     }
 
     chapters.push({
@@ -210,14 +151,128 @@ function generateChapters(nodeCount: number, courseName: string, completedIds: S
   return chapters
 }
 
+/* ---------- chapter assessment mock data ---------- */
+
+const CHAPTER_QUIZZES: Record<number, ChapterQuizQuestion[]> = {}
+for (let c = 1; c <= 15; c++) {
+  const idx = c - 1
+  CHAPTER_QUIZZES[c] = [
+    {
+      id: `cq${c}-1`,
+      type: "single",
+      question: "SQL注入攻击主要利用的是应用程序的哪个薄弱环节？",
+      options: [
+        { key: "A", text: "网络传输层" },
+        { key: "B", text: "用户界面设计" },
+        { key: "C", text: "输入验证不充分" },
+        { key: "D", text: "服务器硬件配置" },
+      ],
+      correctAnswer: "C",
+      score: 10,
+    },
+    {
+      id: `cq${c}-2`,
+      type: "multiple",
+      question: "以下哪些属于常见的安全测试工具？",
+      options: [
+        { key: "A", text: "Burp Suite" },
+        { key: "B", text: "SQLMap" },
+        { key: "C", text: "Nmap" },
+        { key: "D", text: "Microsoft Word" },
+      ],
+      correctAnswer: "A,B,C",
+      score: 15,
+    },
+    {
+      id: `cq${c}-3`,
+      type: "judge",
+      question: "使用参数化查询可以完全防止所有类型的SQL注入攻击。",
+      correctAnswer: "false",
+      score: 5,
+    },
+    {
+      id: `cq${c}-4`,
+      type: "essay",
+      question: "请简述SQL注入的基本原理及三种常见防御措施。",
+      correctText: "SQL注入是通过在用户输入中插入恶意SQL代码，利用应用程序未充分验证输入的漏洞，从而操纵数据库执行非预期操作。常见防御措施：1.参数化查询/预编译语句；2.输入验证与过滤；3.最小权限原则。",
+      score: 20,
+    },
+  ]
+}
+
+/* ---------- knowledge graph mock data ---------- */
+
+const CHAPTER_KG: Record<number, { nodes: KnowledgeGraphNode[]; edges: KnowledgeGraphEdge[] }> = {
+  1: {
+    nodes: [
+      { id: "kg1-1", label: "数据分析", x: 400, y: 200, type: "core", description: "从数据中提取有用信息的过程" },
+      { id: "kg1-2", label: "数据清洗", x: 280, y: 320, type: "related", description: "处理缺失值、异常值和重复数据" },
+      { id: "kg1-3", label: "描述性统计", x: 520, y: 320, type: "related", description: "用图表和数值概括数据特征" },
+      { id: "kg1-4", label: "数据预处理", x: 400, y: 400, type: "extended", description: "为分析做数据准备工作" },
+    ],
+    edges: [
+      { from: "kg1-1", to: "kg1-2", label: "包含" },
+      { from: "kg1-1", to: "kg1-3", label: "应用" },
+      { from: "kg1-2", to: "kg1-4", label: "前置" },
+    ],
+  },
+  2: {
+    nodes: [
+      { id: "kg2-1", label: "假设检验", x: 400, y: 200, type: "core", description: "统计推断的核心方法之一" },
+      { id: "kg2-2", label: "P值", x: 280, y: 320, type: "related", description: "衡量统计显著性的关键指标" },
+      { id: "kg2-3", label: "T检验", x: 520, y: 320, type: "related", description: "用于小样本均值比较的检验方法" },
+      { id: "kg2-4", label: "卡方检验", x: 400, y: 400, type: "extended", description: "用于分类变量独立性检验" },
+    ],
+    edges: [
+      { from: "kg2-1", to: "kg2-2", label: "依赖" },
+      { from: "kg2-1", to: "kg2-3", label: "应用" },
+      { from: "kg2-1", to: "kg2-4", label: "应用" },
+    ],
+  },
+  3: {
+    nodes: [
+      { id: "kg3-1", label: "回归分析", x: 400, y: 200, type: "core", description: "探索变量间关系的方法" },
+      { id: "kg3-2", label: "线性回归", x: 280, y: 320, type: "related", description: "拟合线性关系预测连续值" },
+      { id: "kg3-3", label: "相关系数", x: 520, y: 320, type: "related", description: "衡量变量间线性相关程度" },
+    ],
+    edges: [
+      { from: "kg3-1", to: "kg3-2", label: "包含" },
+      { from: "kg3-1", to: "kg3-3", label: "关联" },
+    ],
+  },
+  4: {
+    nodes: [
+      { id: "kg4-1", label: "数据可视化", x: 400, y: 200, type: "core", description: "将数据转化为图表的过程" },
+      { id: "kg4-2", label: "图表设计", x: 280, y: 320, type: "related", description: "选择合适的图表类型呈现数据" },
+      { id: "kg4-3", label: "色彩理论", x: 520, y: 320, type: "related", description: "运用色彩提升信息传达效率" },
+      { id: "kg4-4", label: "信息可视化", x: 400, y: 400, type: "extended", description: "将复杂数据转化为直观图形" },
+    ],
+    edges: [
+      { from: "kg4-1", to: "kg4-2", label: "包含" },
+      { from: "kg4-1", to: "kg4-3", label: "应用" },
+      { from: "kg4-2", to: "kg4-4", label: "扩展" },
+    ],
+  },
+}
+// fallback for chapters 5-15: use chapter 1-4 kg data cycled
+for (let c = 5; c <= 15; c++) {
+  const ref = ((c - 1) % 4) + 1
+  CHAPTER_KG[c] = {
+    nodes: CHAPTER_KG[ref].nodes.map((n) => ({ ...n, id: n.id.replace(/^kg\d/, `kg${c}`) })),
+    edges: CHAPTER_KG[ref].edges.map((e) => ({
+      ...e,
+      from: e.from.replace(/^kg\d/, `kg${c}`),
+      to: e.to.replace(/^kg\d/, `kg${c}`),
+    })),
+  }
+}
+
 function getSectionIcon(type: SectionType) {
   switch (type) {
     case "video":
       return <PlayCircle className="h-3.5 w-3.5 text-blue-400" />
     case "reading":
       return <FileText className="h-3.5 w-3.5 text-orange-400" />
-    case "quiz":
-      return <HelpCircle className="h-3.5 w-3.5 text-purple-400" />
   }
 }
 
@@ -259,7 +314,7 @@ export default function CourseLearnPage() {
     () => new Set(chapters.map((c) => c.id))
   )
   // quiz state: sectionId -> { answers: questionId -> answer, submitted: boolean, score: number }
-  const [quizState, setQuizState] = useState<Record<string, {
+  const [quizState, setQuizState] = useState<Record<number, {
     answers: Record<string, string>
     submitted: boolean
     score: number
@@ -429,85 +484,28 @@ export default function CourseLearnPage() {
 
       {/* ---------- right main area ---------- */}
       <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50/50">
-        {/* content area: video / reading / quiz */}
-        {currentSection?.type === "quiz" ? (
-          <QuizPanel
-            section={currentSection}
-            quizData={quizState[currentSection.id]}
-            onAnswer={(qId, answer) => {
-              setQuizState((prev) => ({
-                ...prev,
-                [currentSection.id]: {
-                  ...(prev[currentSection.id] ?? { answers: {}, submitted: false, score: 0 }),
-                  answers: {
-                    ...(prev[currentSection.id]?.answers ?? {}),
-                    [qId]: answer,
-                  },
-                },
-              }))
-            }}
-            onSubmit={() => {
-              const qs = currentSection.questions ?? []
-              const answers = quizState[currentSection.id]?.answers ?? {}
-              let score = 0
-              qs.forEach((q) => {
-                const ans = answers[q.id]
-                if (!ans) return
-                if (q.type === "single" && ans === q.correctAnswer) {
-                  score += q.score
-                } else if (q.type === "essay" && ans.trim().length > 5) {
-                  score += Math.floor(q.score * 0.6)
-                }
-              })
-              setQuizState((prev) => ({
-                ...prev,
-                [currentSection.id]: {
-                  ...(prev[currentSection.id] ?? { answers: {}, submitted: false, score: 0 }),
-                  submitted: true,
-                  score,
-                },
-              }))
-              // mark section as completed
-              setCompletedSectionIds((prev) => {
-                const next = new Set(prev)
-                next.add(currentSection.id)
-                return next
-              })
-            }}
-            onRetake={() => {
-              setQuizState((prev) => ({
-                ...prev,
-                [currentSection.id]: { answers: {}, submitted: false, score: 0 },
-              }))
-            }}
-          />
-        ) : (
-          <div className="relative bg-slate-900">
-            <div className="flex max-h-[45vh] aspect-video items-center justify-center">
-              <div className="text-center">
-                <MonitorPlay className="mx-auto h-16 w-16 text-slate-600" />
-                <p className="mt-4 text-sm text-slate-400">
-                  {currentSection?.type === "reading" ? "阅读内容区域" : "视频播放区域"}
-                </p>
-                <p className="mt-1 text-xs text-slate-600">
-                  {currentSection?.title ?? "请选择章节开始学习"}
-                </p>
-              </div>
+        {/* content area: video / reading */}
+        <div className="relative bg-slate-900">
+          <div className="flex max-h-[45vh] aspect-video items-center justify-center">
+            <div className="text-center">
+              <MonitorPlay className="mx-auto h-16 w-16 text-slate-600" />
+              <p className="mt-4 text-sm text-slate-400">
+                {currentSection?.type === "reading" ? "阅读内容区域" : "视频播放区域"}
+              </p>
+              <p className="mt-1 text-xs text-slate-600">
+                {currentSection?.title ?? "请选择章节开始学习"}
+              </p>
             </div>
-            {currentSection && (
-              <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                <Badge variant="outline" className="border-slate-600 bg-slate-800/80 text-slate-300">
-                  {currentSection.type === "video"
-                    ? "视频"
-                    : currentSection.type === "reading"
-                      ? "阅读"
-                      : "测验"}
-                </Badge>
-                <span className="text-xs text-slate-400">{currentSection.duration}</span>
-              </div>
-            )}
           </div>
-        )}
+          {currentSection && (
+            <div className="absolute bottom-4 left-4 flex items-center gap-2">
+              <Badge variant="outline" className="border-slate-600 bg-slate-800/80 text-slate-300">
+                {currentSection.type === "video" ? "视频" : "阅读"}
+              </Badge>
+              <span className="text-xs text-slate-400">{currentSection.duration}</span>
+            </div>
+          )}
+        </div>
 
         {/* tabs content */}
         <div className="p-6">
@@ -524,6 +522,10 @@ export default function CourseLearnPage() {
               <TabsTrigger value="knowledge">
                 <Lightbulb className="mr-1.5 h-4 w-4" />
                 知识点
+              </TabsTrigger>
+              <TabsTrigger value="assessment">
+                <ClipboardList className="mr-1.5 h-4 w-4" />
+                测评
               </TabsTrigger>
               <TabsTrigger value="notes">
                 <StickyNote className="mr-1.5 h-4 w-4" />
@@ -608,25 +610,109 @@ export default function CourseLearnPage() {
               </Card>
             </TabsContent>
 
-            {/* 知识点 */}
+            {/* 知识点 - 含知识图谱 */}
             <TabsContent value="knowledge" className="mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">本节知识点</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "假设检验", "P值与显著性", "T检验", "卡方检验", "方差分析",
-                      "A/B测试", "置信区间", "回归分析", "正态分布", "中心极限定理",
-                    ].slice(0, 5).map((kp) => (
-                      <span key={kp} className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer">
-                        {kp}
-                      </span>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">本节知识点</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {(CHAPTER_KG[currentChapterId]?.nodes ?? []).map((node) => (
+                        <span
+                          key={node.id}
+                          className={`px-3 py-1.5 text-sm rounded-full border cursor-pointer transition-colors ${
+                            node.type === "core"
+                              ? "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100"
+                              : node.type === "related"
+                                ? "bg-green-50 text-green-600 border-green-100 hover:bg-green-100"
+                                : "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100"
+                          }`}
+                        >
+                          {node.label}
+                        </span>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">知识图谱</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-center overflow-x-auto">
+                      <KnowledgeGraph
+                        nodes={CHAPTER_KG[currentChapterId]?.nodes ?? []}
+                        edges={CHAPTER_KG[currentChapterId]?.edges ?? []}
+                        width={700}
+                        height={450}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* 测评 */}
+            <TabsContent value="assessment" className="mt-0">
+              <ChapterQuizPanel
+                chapterId={currentChapterId}
+                questions={CHAPTER_QUIZZES[currentChapterId] ?? []}
+                quizData={quizState[currentChapterId]}
+                onAnswer={(qId, answer) => {
+                  setQuizState((prev) => ({
+                    ...prev,
+                    [currentChapterId]: {
+                      ...(prev[currentChapterId] ?? { answers: {}, submitted: false, score: 0 }),
+                      answers: {
+                        ...(prev[currentChapterId]?.answers ?? {}),
+                        [qId]: answer,
+                      },
+                    },
+                  }))
+                }}
+                onSubmit={() => {
+                  const qs = CHAPTER_QUIZZES[currentChapterId] ?? []
+                  const answers = quizState[currentChapterId]?.answers ?? {}
+                  let score = 0
+                  qs.forEach((q) => {
+                    const ans = answers[q.id]
+                    if (!ans) return
+                    if (q.type === "single" && ans === q.correctAnswer) {
+                      score += q.score
+                    } else if (q.type === "multiple") {
+                      const userSet = new Set(ans.split(",").filter(Boolean))
+                      const correctSet = new Set((q.correctAnswer ?? "").split(",").filter(Boolean))
+                      const intersection = [...userSet].filter((k) => correctSet.has(k))
+                      if (intersection.length === correctSet.size && userSet.size === correctSet.size) {
+                        score += q.score
+                      } else if (intersection.length > 0) {
+                        score += Math.floor(q.score * 0.5)
+                      }
+                    } else if (q.type === "judge" && ans === q.correctAnswer) {
+                      score += q.score
+                    } else if (q.type === "essay" && ans.trim().length > 5) {
+                      score += Math.floor(q.score * 0.6)
+                    }
+                  })
+                  setQuizState((prev) => ({
+                    ...prev,
+                    [currentChapterId]: {
+                      ...(prev[currentChapterId] ?? { answers: {}, submitted: false, score: 0 }),
+                      submitted: true,
+                      score,
+                    },
+                  }))
+                }}
+                onRetake={() => {
+                  setQuizState((prev) => ({
+                    ...prev,
+                    [currentChapterId]: { answers: {}, submitted: false, score: 0 },
+                  }))
+                }}
+              />
             </TabsContent>
 
             {/* 笔记 */}
@@ -691,35 +777,52 @@ function StatItem({ icon, label, value }: { icon: React.ReactNode; label: string
 
 /* ---------- cn helper (local) ---------- */
 
-/* ---------- quiz panel ---------- */
+/* ---------- quiz panel (per chapter) ---------- */
 
-function QuizPanel({
-  section,
+function ChapterQuizPanel({
+  chapterId,
+  questions,
   quizData,
   onAnswer,
   onSubmit,
   onRetake,
 }: {
-  section: Section
+  chapterId: number
+  questions: ChapterQuizQuestion[]
   quizData?: { answers: Record<string, string>; submitted: boolean; score: number }
   onAnswer: (qId: string, answer: string) => void
   onSubmit: () => void
   onRetake: () => void
 }) {
-  const questions = section.questions ?? []
   const answers = quizData?.answers ?? {}
   const submitted = quizData?.submitted ?? false
   const score = quizData?.score ?? 0
   const totalScore = questions.reduce((s, q) => s + q.score, 0)
-  const allAnswered = questions.every((q) => answers[q.id]?.trim())
+  const allAnswered = questions.every((q) => {
+    const ans = answers[q.id]?.trim()
+    if (!ans) return false
+    if (q.type === "multiple") {
+      return ans.split(",").filter(Boolean).length > 0
+    }
+    return true
+  })
+
+  const typeLabel = (type: QuizType) => {
+    switch (type) {
+      case "single": return { text: "单选题", color: "bg-blue-50 text-blue-500" }
+      case "multiple": return { text: "多选题", color: "bg-purple-50 text-purple-500" }
+      case "judge": return { text: "判断题", color: "bg-orange-50 text-orange-500" }
+      case "essay": return { text: "简答题", color: "bg-green-50 text-green-600" }
+    }
+  }
 
   return (
-    <div className="bg-white border-b">
-      <div className="max-w-3xl mx-auto px-6 py-5">
-        <div className="flex items-center justify-between mb-4">
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-gray-800">{section.title}</h2>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <CardTitle className="text-base">第{chapterId}章 测评</CardTitle>
+            <p className="text-xs text-gray-400 mt-1">
               共 {questions.length} 题 · 满分 {totalScore} 分
             </p>
           </div>
@@ -730,9 +833,11 @@ function QuizPanel({
             </div>
           )}
         </div>
-
-        <div className="space-y-4">
-          {questions.map((q, idx) => (
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {questions.map((q, idx) => {
+          const tl = typeLabel(q.type)
+          return (
             <div key={q.id} className="p-4 rounded-lg border border-gray-100 bg-gray-50/50">
               <div className="flex items-start gap-2 mb-3">
                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[10px] font-bold flex items-center justify-center mt-0.5">
@@ -740,29 +845,27 @@ function QuizPanel({
                 </span>
                 <div className="flex-1">
                   <p className="text-sm text-gray-700 font-medium">{q.question}</p>
-                  <span className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] ${
-                    q.type === "single" ? "bg-blue-50 text-blue-500" : "bg-green-50 text-green-600"
-                  }`}>
-                    {q.type === "single" ? "单选题" : "简答题"}
+                  <span className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] ${tl.color}`}>
+                    {tl.text}
                   </span>
                 </div>
                 <span className="text-xs text-gray-400">{q.score}分</span>
               </div>
 
+              {/* single choice */}
               {q.type === "single" && q.options && (
                 <div className="space-y-2 ml-7">
                   {q.options.map((opt) => {
-                    const optLetter = opt.charAt(0)
-                    const isSelected = answers[q.id] === optLetter
-                    const isCorrect = optLetter === q.correctAnswer
+                    const isSelected = answers[q.id] === opt.key
+                    const isCorrect = opt.key === q.correctAnswer
                     const showCorrect = submitted && isCorrect
                     const showWrong = submitted && isSelected && !isCorrect
 
                     return (
                       <button
-                        key={opt}
+                        key={opt.key}
                         disabled={submitted}
-                        onClick={() => onAnswer(q.id, optLetter)}
+                        onClick={() => onAnswer(q.id, opt.key)}
                         className={`w-full flex items-center gap-2 p-2.5 rounded-md text-left text-sm transition-all ${
                           showCorrect
                             ? "bg-green-50 border border-green-200 text-green-700"
@@ -786,15 +889,118 @@ function QuizPanel({
                             <span className="w-1.5 h-1.5 rounded-full bg-white" />
                           )}
                         </span>
-                        <span className="flex-1">{opt}</span>
-                        {showCorrect && <span className="text-xs text-green-600">正确答案</span>}
-                        {showWrong && <span className="text-xs text-red-600">你的选择</span>}
+                        <span className="flex-1">{opt.key}. {opt.text}</span>
+                        {showCorrect && <Check className="h-3.5 w-3.5 text-green-600" />}
+                        {showWrong && <X className="h-3.5 w-3.5 text-red-600" />}
                       </button>
                     )
                   })}
                 </div>
               )}
 
+              {/* multiple choice */}
+              {q.type === "multiple" && q.options && (() => {
+                const selectedKeys = new Set((answers[q.id] ?? "").split(",").filter(Boolean))
+                const correctKeys = new Set((q.correctAnswer ?? "").split(",").filter(Boolean))
+                return (
+                  <div className="space-y-2 ml-7">
+                    {q.options.map((opt) => {
+                      const isSelected = selectedKeys.has(opt.key)
+                      const isCorrectOption = correctKeys.has(opt.key)
+                      const showCorrect = submitted && isCorrectOption
+                      const showWrong = submitted && isSelected && !isCorrectOption
+                      return (
+                        <button
+                          key={opt.key}
+                          disabled={submitted}
+                          onClick={() => {
+                            const next = new Set(selectedKeys)
+                            if (next.has(opt.key)) next.delete(opt.key)
+                            else next.add(opt.key)
+                            onAnswer(q.id, [...next].join(","))
+                          }}
+                          className={`w-full flex items-center gap-2 p-2.5 rounded-md text-left text-sm transition-all ${
+                            showCorrect
+                              ? "bg-green-50 border border-green-200 text-green-700"
+                              : showWrong
+                                ? "bg-red-50 border border-red-200 text-red-700"
+                                : isSelected
+                                  ? "bg-blue-50 border border-blue-200 text-blue-700"
+                                  : "bg-white border border-gray-100 text-gray-600 hover:border-blue-200 hover:bg-blue-50/30"
+                          }`}
+                        >
+                          <span className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
+                            isSelected || showCorrect
+                              ? showCorrect
+                                ? "border-green-500 bg-green-500"
+                                : showWrong
+                                  ? "border-red-500 bg-red-500"
+                                  : "border-blue-500 bg-blue-500"
+                              : "border-gray-300"
+                          }`}>
+                            {(isSelected || showCorrect) && (
+                              <Check className="h-3 w-3 text-white" />
+                            )}
+                          </span>
+                          <span className="flex-1">{opt.key}. {opt.text}</span>
+                          {showCorrect && <Check className="h-3.5 w-3.5 text-green-600" />}
+                          {showWrong && <X className="h-3.5 w-3.5 text-red-600" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+
+              {/* judge */}
+              {q.type === "judge" && (
+                <div className="space-y-2 ml-7">
+                  {[
+                    { key: "true", text: "正确" },
+                    { key: "false", text: "错误" },
+                  ].map((opt) => {
+                    const isSelected = answers[q.id] === opt.key
+                    const isCorrect = opt.key === q.correctAnswer
+                    const showCorrect = submitted && isCorrect
+                    const showWrong = submitted && isSelected && !isCorrect
+                    return (
+                      <button
+                        key={opt.key}
+                        disabled={submitted}
+                        onClick={() => onAnswer(q.id, opt.key)}
+                        className={`w-full flex items-center gap-2 p-2.5 rounded-md text-left text-sm transition-all ${
+                          showCorrect
+                            ? "bg-green-50 border border-green-200 text-green-700"
+                            : showWrong
+                              ? "bg-red-50 border border-red-200 text-red-700"
+                              : isSelected
+                                ? "bg-blue-50 border border-blue-200 text-blue-700"
+                                : "bg-white border border-gray-100 text-gray-600 hover:border-blue-200 hover:bg-blue-50/30"
+                        }`}
+                      >
+                        <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                          showCorrect
+                            ? "border-green-500 bg-green-500"
+                            : showWrong
+                              ? "border-red-500 bg-red-500"
+                              : isSelected
+                                ? "border-blue-500 bg-blue-500"
+                                : "border-gray-300"
+                        }`}>
+                          {(isSelected || showCorrect) && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                          )}
+                        </span>
+                        <span className="flex-1">{opt.text}</span>
+                        {showCorrect && <Check className="h-3.5 w-3.5 text-green-600" />}
+                        {showWrong && <X className="h-3.5 w-3.5 text-red-600" />}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* essay */}
               {q.type === "essay" && (
                 <div className="ml-7">
                   {!submitted ? (
@@ -809,9 +1015,7 @@ function QuizPanel({
                     <div className="space-y-2">
                       <div className="p-3 rounded-md bg-white border border-gray-200">
                         <p className="text-xs text-gray-400 mb-1">你的答案：</p>
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                          {answers[q.id] || "（未作答）"}
-                        </p>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{answers[q.id] || "（未作答）"}</p>
                       </div>
                       {q.correctText && (
                         <div className="p-3 rounded-md bg-green-50 border border-green-100">
@@ -824,16 +1028,12 @@ function QuizPanel({
                 </div>
               )}
             </div>
-          ))}
-        </div>
+          )
+        })}
 
         <div className="mt-5 flex items-center justify-between">
           {!submitted ? (
-            <Button
-              onClick={onSubmit}
-              disabled={!allAnswered}
-              className="gap-1.5"
-            >
+            <Button onClick={onSubmit} disabled={!allAnswered} className="gap-1.5">
               <Send className="h-4 w-4" />
               提交答案
             </Button>
@@ -849,8 +1049,8 @@ function QuizPanel({
             </p>
           )}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
