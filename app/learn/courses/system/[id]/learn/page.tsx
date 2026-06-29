@@ -485,7 +485,7 @@ export default function CourseLearnPage() {
       {/* ---------- right main area ---------- */}
       <main className="flex flex-1 flex-col overflow-y-auto bg-gray-50/50">
         {/* content area: video / reading */}
-        <div className="relative mx-4 mt-4 rounded-lg bg-slate-900 overflow-hidden">
+        <div className="relative mx-4 mt-4 rounded-lg bg-slate-900 overflow-hidden flex-shrink-0">
           <div className="flex w-full max-h-[65vh] aspect-video items-center justify-center">
             <div className="text-center">
               <MonitorPlay className="mx-auto h-16 w-16 text-slate-600" />
