@@ -30,29 +30,26 @@ const MOCK_RESOURCES = [
   { id: "r5", name: "漏洞扫描工具使用指南.docx", type: "文档", size: "1.5MB", teacher: "马老师" },
 ]
 
-const MOCK_LEARNING_GOAL = {
-  knowledge: [
-    "理解API未授权访问漏洞的产生原理与常见类型",
-    "掌握水平越权和垂直越权的区别与检测方法",
-    "了解RESTful API的安全设计规范",
-  ],
-  ability: [
-    "能够使用Burp Suite等工具进行API安全测试",
-    "具备编写API安全测试报告的能力",
-    "能够设计安全的API访问控制策略",
-  ],
-  quality: [
-    "培养安全第一的开发意识",
-    "建立严谨的测试思维与流程规范",
-  ],
-}
+const MOCK_LEARNING_GOAL = `## 💡 知识目标
 
-const MOCK_QUIZ = [
-  { type: "单选", stem: "API未授权访问漏洞属于OWASP Top 10中的哪一类？", options: ["A. 注入", "B. 失效的访问控制", "C. 安全配置错误", "D. 跨站脚本"], answer: "B" },
-  { type: "单选", stem: "以下哪种方法无法有效防御API未授权访问？", options: ["A. JWT Token验证", "B. IP白名单", "C. 隐藏API端点", "D. RBAC权限控制"], answer: "C" },
-  { type: "单选", stem: "水平越权和垂直越权的根本区别是？", options: ["A. 攻击方向", "B. 权限层级", "C. 影响范围", "D. 利用难度"], answer: "B" },
-  { type: "简答", stem: "请简述检测API未授权访问漏洞的常用步骤。" },
-]
+1. 理解API未授权访问漏洞的产生原理，掌握水平越权（IDOR）与垂直越权两类核心攻击模式的区别与关联
+2. 熟悉RESTful API的安全设计规范，了解OWASP API Security Top 10中的关键风险项（BOLA、BFLA、过量数据暴露等）
+3. 掌握JWT Token、OAuth 2.0等现代API认证授权机制的工作原理与常见配置缺陷
+
+## 🔧 能力目标
+
+1. 能够使用 Burp Suite、Postman 等工具对目标 API 进行安全测试，识别未授权访问漏洞
+2. 具备编写清晰的 API 安全测试报告的能力，能够准确描述漏洞成因、风险等级与修复建议
+3. 能够根据业务场景设计合理的 API 访问控制策略（RBAC/ABAC），并进行安全加固
+
+## 🎯 素养目标
+
+1. 培养安全第一的开发意识，将安全设计融入 API 开发全生命周期
+2. 建立严谨的测试思维与规范化测试流程，养成"先验证权限，再处理请求"的编码习惯
+
+---
+
+> 📋 **教学提示**：本颗粒课聚焦 API 未授权访问这一具体安全场景，通过理论讲解 + 工具实操 + 靶场演练结合的方式，帮助学习者在 1-2 个课时内快速掌握核心技能。建议配合 /admin/granular/add 后台的「学习目标」富文本编辑器查看完整编辑态效果。`
 
 /* ==================== Sub Components ==================== */
 
@@ -190,7 +187,7 @@ export default function GranularCourseDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Learning Goal */}
+          {/* Learning Goal - single rich text card */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -199,46 +196,8 @@ export default function GranularCourseDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
-                  <p className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5" />知识目标
-                  </p>
-                  <ul className="space-y-1.5">
-                    {MOCK_LEARNING_GOAL.knowledge.map((g, i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-xs text-blue-800/80">
-                        <span className="text-blue-400 mt-0.5 shrink-0">•</span>
-                        {g}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="p-4 rounded-lg bg-green-50 border border-green-100">
-                  <p className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-1.5">
-                    <PenTool className="w-3.5 h-3.5" />能力目标
-                  </p>
-                  <ul className="space-y-1.5">
-                    {MOCK_LEARNING_GOAL.ability.map((g, i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-xs text-green-800/80">
-                        <span className="text-green-400 mt-0.5 shrink-0">•</span>
-                        {g}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="p-4 rounded-lg bg-purple-50 border border-purple-100">
-                  <p className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
-                    <Heart className="w-3.5 h-3.5" />素质目标
-                  </p>
-                  <ul className="space-y-1.5">
-                    {MOCK_LEARNING_GOAL.quality.map((g, i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-xs text-purple-800/80">
-                        <span className="text-purple-400 mt-0.5 shrink-0">•</span>
-                        {g}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line leading-relaxed">
+                {MOCK_LEARNING_GOAL}
               </div>
             </CardContent>
           </Card>
@@ -305,50 +264,6 @@ export default function GranularCourseDetailPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quiz / Homework */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#1890ff]" />
-                单元测验
-                <span className="text-xs font-normal text-gray-400">({MOCK_QUIZ.length} 题)</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {MOCK_QUIZ.map((q, i) => (
-                  <div key={i} className="p-3 rounded-lg border border-gray-100 hover:border-blue-100 transition-colors">
-                    <div className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
-                        {i + 1}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <Badge variant="secondary" className="text-[10px] px-1.5 h-4">{q.type}</Badge>
-                          <span className="text-sm text-gray-700">{q.stem}</span>
-                        </div>
-                        {q.options && (
-                          <div className="grid grid-cols-2 gap-1.5 ml-8 mt-2">
-                            {q.options.map((opt) => (
-                              <span key={opt} className="text-xs text-gray-500 px-2 py-0.5 rounded bg-gray-50 border border-gray-100">
-                                {opt}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 text-center">
-                <Button size="sm" variant="outline" className="gap-1">
-                  <PlayCircle className="h-4 w-4" />开始答题
-                </Button>
               </div>
             </CardContent>
           </Card>
