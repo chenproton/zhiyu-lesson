@@ -190,13 +190,38 @@ const SESSION_RESOURCES: Record<string, { id: string; name: string; type: string
   ],
 }
 
-const QUIZ_QUESTIONS = [
-  { id: "q1", type: "single", stem: "以下哪个是React中用于管理组件状态的Hook？", options: ["useEffect", "useState", "useContext", "useRef"], answer: "useState" },
-  { id: "q2", type: "single", stem: "CSS中Flexbox布局，设置justify-content: center的作用是？", options: ["主轴居中", "交叉轴居中", "垂直居中", "水平拉伸"], answer: "主轴居中" },
-  { id: "q3", type: "single", stem: "TypeScript中，以下哪个关键字用于定义接口？", options: ["type", "class", "interface", "enum"], answer: "interface" },
-  { id: "q4", type: "multiple", stem: "以下哪些是ES6的新特性？", options: ["箭头函数", "Promise", "模板字符串", "ActiveXObject"], answer: "箭头函数,Promise,模板字符串" },
-  { id: "q5", type: "multiple", stem: "React中以下哪些方式可以触发组件重渲染？", options: ["State更新", "Props变化", "Context值变化", "直接修改DOM"], answer: "State更新,Props变化,Context值变化" },
-]
+const SESSION_QUIZZES: Record<string, { title: string; count: number; type: string }[]> = {
+  "s1": [
+    { title: "前端技术栈基础认知测验", count: 5, type: "单选" },
+    { title: "开发环境搭建检查", count: 3, type: "实操" },
+  ],
+  "s2": [
+    { title: "HTML5语义化标签测验", count: 8, type: "单选" },
+    { title: "Flexbox与Grid布局测验", count: 10, type: "混合" },
+  ],
+  "s3": [
+    { title: "JavaScript基础测验", count: 10, type: "混合" },
+    { title: "DOM操作实践检测", count: 5, type: "编程" },
+  ],
+  "s4": [
+    { title: "ES6+新特性测验", count: 8, type: "单选" },
+    { title: "Promise编程挑战", count: 3, type: "编程" },
+  ],
+  "s5": [
+    { title: "React基础概念测验", count: 10, type: "混合" },
+  ],
+  "s6": [
+    { title: "React组件化测验", count: 6, type: "混合" },
+    { title: "组件设计实战考核", count: 2, type: "编程" },
+  ],
+  "s7": [
+    { title: "TypeScript类型系统测验", count: 8, type: "单选" },
+  ],
+  "s8": [
+    { title: "前端项目综合考核", count: 15, type: "混合" },
+    { title: "项目答辩评估", count: 1, type: "答辩" },
+  ],
+}
 
 /* ======================== Sub Components ======================== */
 
@@ -342,70 +367,6 @@ function TreeView({ sessions }: { sessions: TeachingSession[] }) {
   )
 }
 
-function QuizPanel() {
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [showResults, setShowResults] = useState(false)
-
-  const selectSingle = (qId: string, opt: string) => { if (showResults) return; setAnswers((prev) => ({ ...prev, [qId]: opt })) }
-  const toggleMultiple = (qId: string, opt: string) => {
-    if (showResults) return
-    setAnswers((prev) => { const c = (prev[qId] || "").split(",").filter(Boolean); const idx = c.indexOf(opt); if (idx >= 0) c.splice(idx, 1); else c.push(opt); return { ...prev, [qId]: c.sort().join(",") } })
-  }
-  const score = QUIZ_QUESTIONS.reduce((sum, q) => sum + ((answers[q.id] || "") === q.answer ? 1 : 0), 0)
-
-  return (
-    <div className="space-y-6">
-      {QUIZ_QUESTIONS.map((q, qi) => {
-        const result = showResults ? ((answers[q.id] || "") === q.answer ? "correct" : "wrong") : null
-        return (
-          <div key={q.id} className={`p-4 rounded-lg border ${result === "correct" ? "border-green-200 bg-green-50/30" : result === "wrong" ? "border-red-200 bg-red-50/30" : "border-gray-100"}`}>
-            <div className="flex items-start gap-2 mb-3">
-              <span className="px-1.5 py-0.5 rounded bg-[#1890ff] text-white text-xs font-semibold shrink-0 mt-0.5">{qi + 1}</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-800">{q.stem}</p>
-                <Badge variant="secondary" className="text-[10px] mt-1">{q.type === "single" ? "单选" : "多选"}</Badge>
-              </div>
-            </div>
-            <div className="space-y-2 ml-8">
-              {q.options.map((opt) => {
-                const isSel = q.type === "single" ? answers[q.id] === opt : (answers[q.id] || "").split(",").includes(opt)
-                const isCorrect = q.answer.split(",").includes(opt)
-                let cls = "border-gray-200 hover:border-gray-300"
-                if (isSel && !showResults) cls = "border-[#1890ff] bg-blue-50"
-                if (showResults && isCorrect) cls = "border-green-500 bg-green-50"
-                if (showResults && isSel && !isCorrect) cls = "border-red-500 bg-red-50"
-                return (
-                  <button key={opt} disabled={showResults}
-                    onClick={() => q.type === "single" ? selectSingle(q.id, opt) : toggleMultiple(q.id, opt)}
-                    className={`flex items-center gap-2 w-full p-2.5 rounded-lg border text-left text-sm transition-colors ${cls}`}>
-                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSel ? "border-[#1890ff] bg-[#1890ff]" : "border-gray-300"}`}>
-                      {isSel && <span className="text-white text-[10px]">✓</span>}
-                    </span>
-                    {opt}
-                    {showResults && isCorrect && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />}
-                    {showResults && isSel && !isCorrect && <span className="text-red-500 text-xs ml-auto">✗</span>}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )
-      })}
-      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-        {showResults ? (
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold">得分：{score}/{QUIZ_QUESTIONS.length}</span>
-            <Badge variant={score >= QUIZ_QUESTIONS.length * 0.6 ? "default" : "destructive"}>{score >= QUIZ_QUESTIONS.length * 0.6 ? "及格" : "不及格"}</Badge>
-          </div>
-        ) : <span className="text-xs text-gray-400">已答 {Object.keys(answers).length}/{QUIZ_QUESTIONS.length} 题</span>}
-        <Button size="sm" onClick={() => setShowResults(!showResults)} disabled={!showResults && Object.keys(answers).length === 0}>
-          {showResults ? "重新作答" : "提交答题"}
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 /* ======================== Main Page ======================== */
 
 export default function HybridCourseDetailPage() {
@@ -450,11 +411,11 @@ export default function HybridCourseDetailPage() {
       </div>
 
       {/* Main content with tabs */}
-      <Tabs defaultValue="catalog" className="w-full">
+      <Tabs defaultValue="info" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="catalog"><List className="h-4 w-4 mr-1" />课程目录</TabsTrigger>
-          <TabsTrigger value="intro"><Info className="h-4 w-4 mr-1" />课程信息</TabsTrigger>
+          <TabsTrigger value="info"><Info className="h-4 w-4 mr-1" />课程信息</TabsTrigger>
           <TabsTrigger value="goals"><Target className="h-4 w-4 mr-1" />课程目标</TabsTrigger>
+          <TabsTrigger value="catalog"><List className="h-4 w-4 mr-1" />课程目录</TabsTrigger>
           <TabsTrigger value="design"><PenTool className="h-4 w-4 mr-1" />教学设计</TabsTrigger>
           <TabsTrigger value="resources"><FolderOpen className="h-4 w-4 mr-1" />课程资源</TabsTrigger>
           <TabsTrigger value="quiz"><ClipboardList className="h-4 w-4 mr-1" />课程测评</TabsTrigger>
@@ -574,12 +535,52 @@ export default function HybridCourseDetailPage() {
           </div>
         </TabsContent>
 
-        {/* Quiz */}
+        {/* Quiz - linked to catalog */}
         <TabsContent value="quiz">
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><ClipboardList className="w-4 h-4 text-blue-500" />课程综合测评 <span className="text-xs font-normal text-gray-400">({QUIZ_QUESTIONS.length} 题)</span></CardTitle></CardHeader>
-            <CardContent><QuizPanel /></CardContent>
-          </Card>
+          <div className="flex gap-4">
+            <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} />
+            <div className="flex-1 min-w-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-blue-500" />
+                    课程测评
+                    <span className="text-xs font-normal text-gray-400">— {SESSIONS.find(s => s.id === selectedId)?.name || ""}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(SESSION_QUIZZES[selectedId] || []).length === 0 ? (
+                    <div className="text-center py-10 text-gray-400 text-sm">
+                      <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                      <p>请选择左侧目录查看对应课时测评</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {(SESSION_QUIZZES[selectedId] || []).map((qz, i) => (
+                        <div key={i} className="p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center">{i + 1}</span>
+                              <h4 className="text-sm font-semibold text-gray-800">{qz.title}</h4>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-[10px]">{qz.type}</Badge>
+                              <Badge variant="outline" className="text-[10px]">{qz.count} 题</Badge>
+                            </div>
+                          </div>
+                          <Link href={`/learn/courses/hybrid/hybrid-1/learn?session=${selectedId}`}>
+                            <Button size="sm" variant="outline" className="mt-1">
+                              <PlayCircle className="w-3 h-3 mr-1" />进入测评
+                            </Button>
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
