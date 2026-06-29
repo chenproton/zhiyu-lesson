@@ -287,14 +287,19 @@ function AddSystemPageInner() {
 
   /* ========== node type selector ========== */
   const [nodeTypeMode, setNodeTypeMode] = useState<NodeRefType>("normal")
-  const [sourceSearch, setSourceSearch] = useState("")
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
 
+  /* Grain selector dialog states */
+  const [showGrainSelector, setShowGrainSelector] = useState(false)
+  const [grainSelectorMode, setGrainSelectorMode] = useState<"clone" | "quote">("clone")
+  const [grainSearch, setGrainSearch] = useState("")
+  const [grainSelectedId, setGrainSelectedId] = useState<string | null>(null)
+
   const filteredSources = MOCK_GRAIN_COURSES.filter((g) =>
-    !sourceSearch ||
-    g.name.includes(sourceSearch) ||
-    g.description.includes(sourceSearch) ||
-    g.source.includes(sourceSearch)
+    !grainSearch ||
+    g.name.includes(grainSearch) ||
+    g.description.includes(grainSearch) ||
+    g.source.includes(grainSearch)
   )
 
   const selectedSource = MOCK_GRAIN_COURSES.find((g) => g.id === selectedSourceId)
@@ -304,31 +309,41 @@ function AddSystemPageInner() {
     if (node) {
       setNodeTypeMode(node.type === "clone" || node.type === "quote" ? node.type : "normal")
       setSelectedSourceId(node.sourceId || null)
-      setSourceSearch("")
     }
   }, [selectedNodeId, nodes])
 
   const handleNodeTypeChange = (mode: NodeRefType) => {
-    setNodeTypeMode(mode)
     if (mode === "normal") {
+      setNodeTypeMode("normal")
       setSelectedSourceId(null)
-      setSourceSearch("")
       if (selectedNodeId) {
         handleUpdateNode(selectedNodeId, { type: "normal", sourceId: undefined, sourceName: undefined })
       }
     }
   }
 
-  const handleGrainSelect = (grain: typeof MOCK_GRAIN_COURSES[number], mode: "clone" | "quote") => {
+  const openGrainSelector = (mode: "clone" | "quote") => {
+    setGrainSelectorMode(mode)
+    setGrainSearch("")
+    setGrainSelectedId(null)
+    setShowGrainSelector(true)
+  }
+
+  const handleGrainConfirm = () => {
+    if (!grainSelectedId) return
+    const grain = MOCK_GRAIN_COURSES.find((g) => g.id === grainSelectedId)
+    if (!grain) return
     setSelectedSourceId(grain.id)
     if (selectedNodeId) {
       handleUpdateNode(selectedNodeId, {
-        type: mode,
+        type: grainSelectorMode,
         sourceId: grain.id,
         sourceName: grain.name,
         name: grain.name,
       })
     }
+    setNodeTypeMode(grainSelectorMode)
+    setShowGrainSelector(false)
   }
 
   /* module 1: basic info */
@@ -606,7 +621,7 @@ function AddSystemPageInner() {
                       上传节点课程资源
                     </button>
                     <button
-                      onClick={() => setNodeTypeMode("clone")}
+                      onClick={() => openGrainSelector("clone")}
                       className={cn(
                         "px-3 py-1.5 text-xs rounded-md transition-colors",
                         nodeTypeMode === "clone"
@@ -617,7 +632,7 @@ function AddSystemPageInner() {
                       克隆颗粒课
                     </button>
                     <button
-                      onClick={() => setNodeTypeMode("quote")}
+                      onClick={() => openGrainSelector("quote")}
                       className={cn(
                         "px-3 py-1.5 text-xs rounded-md transition-colors",
                         nodeTypeMode === "quote"
@@ -630,73 +645,45 @@ function AddSystemPageInner() {
                   </div>
                 </div>
 
-                {/* Grain course search & selection for clone/quote */}
-                {nodeTypeMode !== "normal" && (
-                  <div className="pt-3 border-t border-gray-100 space-y-3">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        value={sourceSearch}
-                        onChange={(e) => setSourceSearch(e.target.value)}
-                        placeholder="搜索颗粒课名称、来源..."
-                        className="pl-9 text-sm h-9"
-                      />
-                    </div>
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                      {filteredSources.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
-                      ) : (
-                        filteredSources.map((g) => {
-                          const selected = selectedSourceId === g.id
-                          const isCloneMode = nodeTypeMode === "clone"
-                          return (
-                            <button
-                              key={g.id}
-                              onClick={() => handleGrainSelect(g, nodeTypeMode as "clone" | "quote")}
-                              className={cn(
-                                "w-full text-left p-3 rounded-lg border transition-all",
-                                selected
-                                  ? isCloneMode
-                                    ? "border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/10"
-                                    : "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
-                                  : "border-gray-200 hover:border-gray-300 bg-white"
-                              )}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <div className={cn(
-                                    "w-5 h-5 rounded-full border flex items-center justify-center",
-                                    selected
-                                      ? isCloneMode
-                                        ? "bg-amber-500 border-amber-500"
-                                        : "bg-blue-500 border-blue-500"
-                                      : "border-gray-300"
-                                  )}>
-                                    {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
-                                  </div>
-                                  <span className="text-sm font-medium text-gray-800">{g.name}</span>
-                                </div>
-                                <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
-                              <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
-                            </button>
-                          )
-                        })
-                      )}
-                    </div>
-                    {selectedSource && nodeTypeMode === "clone" && (
-                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700 flex items-start gap-2">
-                        <Copy className="h-4 w-4 shrink-0 mt-0.5" />
-                        已选择「{selectedSource.name}」，克隆后该节点内容可独立编辑，与原颗粒课解除关联。
+                {/* Read-only grain course summary when already selected */}
+                {nodeTypeMode !== "normal" && selectedSource && (
+                  <div className="pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">已选颗粒课：</span>
+                        <span className="text-sm font-medium text-gray-800">{selectedSource.name}</span>
+                        <Badge variant="outline" className="text-[10px]">{selectedSource.source}</Badge>
+                        <span className="text-[10px] text-gray-400">{selectedSource.duration} 课时</span>
                       </div>
+                      <button
+                        onClick={() => openGrainSelector(nodeTypeMode as "clone" | "quote")}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        更换
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{selectedSource.description}</p>
+                    {nodeTypeMode === "clone" && (
+                      <p className="text-[11px] text-amber-600 mt-1.5 flex items-center gap-1">
+                        <Copy className="h-3 w-3" />
+                        克隆后该节点内容可独立编辑，与原颗粒课解除关联
+                      </p>
                     )}
-                    {selectedSource && nodeTypeMode === "quote" && (
-                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-xs text-blue-700 flex items-start gap-2">
-                        <Lock className="h-4 w-4 shrink-0 mt-0.5" />
-                        已选择「{selectedSource.name}」，引用后该节点内容不可编辑，将自动随原颗粒课更新。
-                      </div>
+                    {nodeTypeMode === "quote" && (
+                      <p className="text-[11px] text-blue-600 mt-1.5 flex items-center gap-1">
+                        <Lock className="h-3 w-3" />
+                        引用后该节点内容不可编辑，将自动随原颗粒课更新
+                      </p>
                     )}
+                  </div>
+                )}
+
+                {/* No grain selected yet */}
+                {nodeTypeMode !== "normal" && !selectedSource && (
+                  <div className="pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500">
+                      尚未选择颗粒课，请点击上方「{nodeTypeMode === "clone" ? "克隆颗粒课" : "引用颗粒课"}」进行选择
+                    </p>
                   </div>
                 )}
               </div>
@@ -934,6 +921,91 @@ function AddSystemPageInner() {
               }}
             >
               确认切换
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Grain course selector dialog */}
+      <Dialog open={showGrainSelector} onOpenChange={setShowGrainSelector}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {grainSelectorMode === "clone" ? "选择要克隆的颗粒课" : "选择要引用的颗粒课"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                value={grainSearch}
+                onChange={(e) => setGrainSearch(e.target.value)}
+                placeholder="搜索颗粒课名称、来源..."
+                className="pl-9 text-sm h-9"
+              />
+            </div>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {filteredSources.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
+              ) : (
+                filteredSources.map((g) => {
+                  const selected = grainSelectedId === g.id
+                  const isClone = grainSelectorMode === "clone"
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => setGrainSelectedId(g.id)}
+                      className={cn(
+                        "w-full text-left p-3 rounded-lg border transition-all",
+                        selected
+                          ? isClone
+                            ? "border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/10"
+                            : "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                          : "border-gray-200 hover:border-gray-300 bg-white"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "w-5 h-5 rounded-full border flex items-center justify-center",
+                            selected
+                              ? isClone
+                                ? "bg-amber-500 border-amber-500"
+                                : "bg-blue-500 border-blue-500"
+                              : "border-gray-300"
+                          )}>
+                            {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                          </div>
+                          <span className="text-sm font-medium text-gray-800">{g.name}</span>
+                        </div>
+                        <Badge variant="outline" className="text-[10px]">{g.source}</Badge>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+            {grainSelectedId && grainSelectorMode === "clone" && (
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-700 flex items-start gap-2">
+                <Copy className="h-4 w-4 shrink-0 mt-0.5" />
+                克隆后该节点内容可独立编辑，与原颗粒课解除关联。
+              </div>
+            )}
+            {grainSelectedId && grainSelectorMode === "quote" && (
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-xs text-blue-700 flex items-start gap-2">
+                <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+                引用后该节点内容不可编辑，将自动随原颗粒课更新。
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGrainSelector(false)}>
+              取消
+            </Button>
+            <Button onClick={handleGrainConfirm} disabled={!grainSelectedId}>
+              确认选择
             </Button>
           </DialogFooter>
         </DialogContent>
