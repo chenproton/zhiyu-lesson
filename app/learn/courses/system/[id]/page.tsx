@@ -12,7 +12,7 @@ import {
   PlayCircle, Target, User, BrainCircuit, ClipboardList, Lightbulb,
   ChevronDown, ChevronRight,
 } from "lucide-react"
-import { courses, mockKnowledgeGraphNodes, mockKnowledgeGraphEdges } from "@/lib/mock-data"
+import { courses } from "@/lib/mock-data"
 import { type Course, COURSE_STATUS_LABELS, COURSE_STATUS_COLORS } from "@/lib/types"
 import KnowledgeGraph from "@/components/KnowledgeGraph"
 
@@ -123,6 +123,59 @@ const CHAPTER_RESOURCES: Record<string, { id: string; name: string; type: string
     { id: "cr4-2", name: "图表配色方案.pptx", type: "PPT", size: "3.8MB" },
     { id: "cr4-3", name: "信息可视化案例集", type: "链接", size: "在线" },
   ],
+}
+
+const CHAPTER_KG: Record<string, { nodes: import("@/lib/types").KnowledgeGraphNode[]; edges: import("@/lib/types").KnowledgeGraphEdge[] }> = {
+  ch1: {
+    nodes: [
+      { id: "kg1-1", label: "数据分析", x: 400, y: 200, type: "core", description: "从数据中提取有用信息的过程" },
+      { id: "kg1-2", label: "数据清洗", x: 280, y: 300, type: "related", description: "处理缺失值、异常值和重复数据" },
+      { id: "kg1-3", label: "描述性统计", x: 520, y: 300, type: "related", description: "用图表和数值概括数据特征" },
+      { id: "kg1-4", label: "数据预处理", x: 400, y: 380, type: "extended", description: "为分析做数据准备工作" },
+    ],
+    edges: [
+      { from: "kg1-1", to: "kg1-2", label: "包含" },
+      { from: "kg1-1", to: "kg1-3", label: "应用" },
+      { from: "kg1-2", to: "kg1-4", label: "前置" },
+    ],
+  },
+  ch2: {
+    nodes: [
+      { id: "kg2-1", label: "假设检验", x: 400, y: 200, type: "core", description: "统计推断的核心方法之一" },
+      { id: "kg2-2", label: "P值", x: 280, y: 300, type: "related", description: "衡量统计显著性的关键指标" },
+      { id: "kg2-3", label: "T检验", x: 520, y: 300, type: "related", description: "用于小样本均值比较的检验方法" },
+      { id: "kg2-4", label: "卡方检验", x: 400, y: 380, type: "extended", description: "用于分类变量独立性检验" },
+    ],
+    edges: [
+      { from: "kg2-1", to: "kg2-2", label: "依赖" },
+      { from: "kg2-1", to: "kg2-3", label: "应用" },
+      { from: "kg2-1", to: "kg2-4", label: "应用" },
+    ],
+  },
+  ch3: {
+    nodes: [
+      { id: "kg3-1", label: "回归分析", x: 400, y: 200, type: "core", description: "探索变量间关系的方法" },
+      { id: "kg3-2", label: "线性回归", x: 280, y: 300, type: "related", description: "拟合线性关系预测连续值" },
+      { id: "kg3-3", label: "相关系数", x: 520, y: 300, type: "related", description: "衡量变量间线性相关程度" },
+    ],
+    edges: [
+      { from: "kg3-1", to: "kg3-2", label: "包含" },
+      { from: "kg3-1", to: "kg3-3", label: "关联" },
+    ],
+  },
+  ch4: {
+    nodes: [
+      { id: "kg4-1", label: "数据可视化", x: 400, y: 200, type: "core", description: "将数据转化为图表的过程" },
+      { id: "kg4-2", label: "图表设计", x: 280, y: 300, type: "related", description: "选择合适的图表类型呈现数据" },
+      { id: "kg4-3", label: "色彩理论", x: 520, y: 300, type: "related", description: "运用色彩提升信息传达效率" },
+      { id: "kg4-4", label: "信息可视化", x: 400, y: 380, type: "extended", description: "将复杂数据转化为直观图形" },
+    ],
+    edges: [
+      { from: "kg4-1", to: "kg4-2", label: "包含" },
+      { from: "kg4-1", to: "kg4-3", label: "应用" },
+      { from: "kg4-2", to: "kg4-4", label: "扩展" },
+    ],
+  },
 }
 
 /* ---------- sub components ---------- */
@@ -250,7 +303,7 @@ export default function SystemCourseDetailPage() {
   const course = courses.find((c) => String(c.id) === String(id))
   if (!course) return notFound()
 
-  const [activeTab, setActiveTab] = useState("catalog")
+  const [activeTab, setActiveTab] = useState("info")
   const [selectedNodeId, setSelectedNodeId] = useState("ch1")
 
   const selectedChapter = COURSE_TREE.find((c) => c.id === selectedNodeId || c.children?.some((s) => s.id === selectedNodeId))
@@ -296,22 +349,13 @@ export default function SystemCourseDetailPage() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="catalog"><List className="h-4 w-4 mr-1" />课程目录</TabsTrigger>
           <TabsTrigger value="info"><Info className="h-4 w-4 mr-1" />课程信息</TabsTrigger>
           <TabsTrigger value="goal"><Target className="h-4 w-4 mr-1" />课程目标</TabsTrigger>
+          <TabsTrigger value="catalog"><List className="h-4 w-4 mr-1" />课程目录</TabsTrigger>
           <TabsTrigger value="resource"><FolderOpen className="h-4 w-4 mr-1" />课程资源</TabsTrigger>
-          <TabsTrigger value="knowledge"><BrainCircuit className="h-4 w-4 mr-1" />知识点</TabsTrigger>
-          <TabsTrigger value="graph"><Lightbulb className="h-4 w-4 mr-1" />知识图谱</TabsTrigger>
-          <TabsTrigger value="quiz"><ClipboardList className="h-4 w-4 mr-1" />作业测试</TabsTrigger>
+          <TabsTrigger value="knowledge"><BrainCircuit className="h-4 w-4 mr-1" />课程知识点</TabsTrigger>
+          <TabsTrigger value="quiz"><ClipboardList className="h-4 w-4 mr-1" />课程测评</TabsTrigger>
         </TabsList>
-
-        {/* Catalog */}
-        <TabsContent value="catalog">
-          <Card>
-            <CardHeader><CardTitle>课程目录</CardTitle></CardHeader>
-            <CardContent><TreeView nodes={COURSE_TREE} /></CardContent>
-          </Card>
-        </TabsContent>
 
         {/* Info */}
         <TabsContent value="info">
@@ -335,7 +379,7 @@ export default function SystemCourseDetailPage() {
           </Card>
         </TabsContent>
 
-        {/* Goals - single rich text */}
+        {/* Goals */}
         <TabsContent value="goal">
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><Target className="w-4 h-4 text-[#1890ff]" />课程目标</CardTitle></CardHeader>
@@ -347,7 +391,15 @@ export default function SystemCourseDetailPage() {
           </Card>
         </TabsContent>
 
-        {/* Resources - linked to catalog */}
+        {/* Catalog */}
+        <TabsContent value="catalog">
+          <Card>
+            <CardHeader><CardTitle>课程目录</CardTitle></CardHeader>
+            <CardContent><TreeView nodes={COURSE_TREE} /></CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Resources */}
         <TabsContent value="resource">
           <div className="flex gap-4">
             <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
@@ -388,11 +440,11 @@ export default function SystemCourseDetailPage() {
           </div>
         </TabsContent>
 
-        {/* Knowledge */}
+        {/* Knowledge Points + Graph */}
         <TabsContent value="knowledge">
           <div className="flex gap-4">
             <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 space-y-4">
               <Card>
                 <CardHeader><CardTitle>涉及知识点</CardTitle></CardHeader>
                 <CardContent>
@@ -403,18 +455,20 @@ export default function SystemCourseDetailPage() {
                   </div>
                 </CardContent>
               </Card>
+              {selectedChapter && CHAPTER_KG[selectedChapter.id] && (
+                <Card>
+                  <CardHeader><CardTitle className="flex items-center gap-2"><Lightbulb className="w-4 h-4 text-amber-500" />知识关联图谱</CardTitle></CardHeader>
+                  <CardContent>
+                    <KnowledgeGraph
+                      nodes={CHAPTER_KG[selectedChapter.id].nodes}
+                      edges={CHAPTER_KG[selectedChapter.id].edges}
+                      height={360}
+                    />
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
-        </TabsContent>
-
-        {/* Graph */}
-        <TabsContent value="graph">
-          <Card>
-            <CardHeader><CardTitle>知识图谱</CardTitle></CardHeader>
-            <CardContent>
-              <KnowledgeGraph nodes={mockKnowledgeGraphNodes} edges={mockKnowledgeGraphEdges} height={520} />
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Quiz */}
@@ -423,7 +477,7 @@ export default function SystemCourseDetailPage() {
             <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
             <div className="flex-1 min-w-0">
               <Card>
-                <CardHeader><CardTitle>作业与测试</CardTitle></CardHeader>
+                <CardHeader><CardTitle>课程测评</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   {selectedChapter && CHAPTER_QUIZZES[selectedChapter.id] ? (
                     <div className="p-4 rounded-lg border border-blue-100 bg-blue-50/50">
@@ -433,7 +487,7 @@ export default function SystemCourseDetailPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center text-gray-400 py-8">请选择左侧章节查看作业测试</div>
+                    <div className="text-center text-gray-400 py-8">请选择左侧章节查看测评</div>
                   )}
                   <div className="p-4 rounded-lg border border-gray-100">
                     <div className="flex items-center justify-between mb-3">
