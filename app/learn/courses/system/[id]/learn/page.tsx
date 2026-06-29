@@ -517,15 +517,15 @@ export default function CourseLearnPage() {
               </TabsTrigger>
               <TabsTrigger value="materials">
                 <Download className="mr-1.5 h-4 w-4" />
-                资料下载
+                课程资源
               </TabsTrigger>
               <TabsTrigger value="knowledge">
                 <Lightbulb className="mr-1.5 h-4 w-4" />
-                知识点
+                关联知识点
               </TabsTrigger>
               <TabsTrigger value="assessment">
                 <ClipboardList className="mr-1.5 h-4 w-4" />
-                测评
+                课程测评
               </TabsTrigger>
               <TabsTrigger value="notes">
                 <StickyNote className="mr-1.5 h-4 w-4" />
@@ -577,7 +577,7 @@ export default function CourseLearnPage() {
               </div>
             </TabsContent>
 
-            {/* 资料下载 */}
+            {/* 课程资源 */}
             <TabsContent value="materials" className="mt-0">
               <Card>
                 <CardHeader>
@@ -610,12 +610,12 @@ export default function CourseLearnPage() {
               </Card>
             </TabsContent>
 
-            {/* 知识点 - 含知识图谱 */}
+            {/* 关联知识点 - 含知识图谱 */}
             <TabsContent value="knowledge" className="mt-0">
               <div className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">本节知识点</CardTitle>
+                    <CardTitle className="text-base">关联知识点</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
@@ -655,7 +655,7 @@ export default function CourseLearnPage() {
               </div>
             </TabsContent>
 
-            {/* 测评 */}
+            {/* 课程测评 */}
             <TabsContent value="assessment" className="mt-0">
               <ChapterQuizPanel
                 chapterId={currentChapterId}
@@ -821,7 +821,7 @@ function ChapterQuizPanel({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">第{chapterId}章 测评</CardTitle>
+            <CardTitle className="text-base">第{chapterId}章 课程测评</CardTitle>
             <p className="text-xs text-gray-400 mt-1">
               共 {questions.length} 题 · 满分 {totalScore} 分
             </p>
