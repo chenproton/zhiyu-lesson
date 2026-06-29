@@ -148,7 +148,7 @@ export const learnNavigationConfig: PlatformNavigationConfig = {
   showUserMenu: true,
   userMenuItems: [
     { id: "profile", label: "个人中心", icon: "user" },
-    { id: "archive", label: "学习档案", icon: "fileText", href: "/learn/dashboard/archive" },
+    { id: "archive", label: "学习档案", icon: "fileText", href: externalWorkspaceUrl },
     { id: "logout", label: "退出登录", tone: "danger" },
   ],
   topNavItems: [
@@ -169,10 +169,8 @@ export const learnNavigationConfig: PlatformNavigationConfig = {
       label: "我的学习",
       icon: "briefcase",
       children: [
-        { id: "my-courses", label: "我的课程", href: "/learn/dashboard/courses", matchers: ["/learn/dashboard/courses"] },
         { id: "my-tasks", label: "学习任务", href: "/learn/dashboard/tasks", matchers: ["/learn/dashboard/tasks"] },
-        { id: "grades", label: "成绩查看", href: "/learn/dashboard/grades", matchers: ["/learn/dashboard/grades"] },
-        { id: "archive", label: "学习档案", href: "/learn/dashboard/archive", matchers: ["/learn/dashboard/archive"] },
+        { id: "workspace-learning", label: "我的课程·成绩·档案", href: externalWorkspaceUrl },
       ],
     },
   ],

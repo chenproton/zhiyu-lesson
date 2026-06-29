@@ -183,21 +183,6 @@ function SessionCatalog({
   selectedId: string
   onSelect: (id: string) => void
 }) {
-  const [expandedPhases, setExpandedPhases] = useState<Set<keyof typeof PHASE_META>>(
-    new Set(["pre-class", "in-class", "post-class"])
-  )
-
-  const togglePhase = (phase: keyof typeof PHASE_META) => {
-    setExpandedPhases((prev) => {
-      const next = new Set(prev)
-      if (next.has(phase)) next.delete(phase)
-      else next.add(phase)
-      return next
-    })
-  }
-
-  const phases = ["pre-class", "in-class", "post-class"] as (keyof typeof PHASE_META)[]
-
   return (
     <div className="w-[260px] shrink-0 bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-100">
@@ -208,43 +193,30 @@ function SessionCatalog({
         </h3>
       </div>
       <div className="py-2 max-h-[calc(100vh-300px)] overflow-y-auto">
-        {phases.map((phase) => {
-          const phaseSessions = sessions.filter((s) => s.phase === phase)
-          if (phaseSessions.length === 0) return null
-          const isExpanded = expandedPhases.has(phase)
-          const meta = PHASE_META[phase]
-          return (
-            <div key={phase}>
-              <button
-                onClick={() => togglePhase(phase)}
-                className="flex w-full items-center gap-2 px-4 py-2 text-left text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-              >
-                {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                <span className={`px-1.5 py-0.5 rounded text-[10px] border ${meta.color}`}>{meta.label}</span>
-                <span>{phaseSessions.length} 次课</span>
-              </button>
-              {isExpanded && (
-                <div className="space-y-0.5 px-2 pb-2">
-                  {phaseSessions.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => onSelect(s.id)}
-                      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors ${
-                        selectedId === s.id
-                          ? "bg-[#e6f7ff] text-[#1890ff] font-medium"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <span className="w-1 h-1 rounded-full bg-gray-300 shrink-0" />
-                      <span className="truncate flex-1">第{s.week}周：{s.name.split("：")[1] || s.name}</span>
-                      <span className="text-[10px] text-gray-400">{s.progress}%</span>
-                    </button>
-                  ))}
-                </div>
+        {sessions.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => onSelect(s.id)}
+            className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${
+              selectedId === s.id
+                ? "bg-[#e6f7ff] text-[#1890ff] font-medium"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <span className="w-6 h-6 rounded-md bg-[#1890ff]/10 text-[#1890ff] text-[10px] font-semibold flex items-center justify-center shrink-0">
+              {s.week}
+            </span>
+            <span className="truncate flex-1 text-xs">{s.name}</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {s.mode === "online" ? (
+                <MonitorPlay className="w-3 h-3 text-gray-400" />
+              ) : (
+                <Users className="w-3 h-3 text-gray-400" />
               )}
+              <span className="text-[10px] text-gray-400">{s.progress}%</span>
             </div>
-          )
-        })}
+          </button>
+        ))}
       </div>
     </div>
   )
@@ -631,73 +603,60 @@ export default function HybridCourseDetailPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {(["pre-class", "in-class", "post-class"] as (keyof typeof PHASE_META)[]).map((phase) => {
-                  const phaseSessions = SESSIONS.filter((s) => s.phase === phase)
-                  if (phaseSessions.length === 0) return null
-                  const meta = PHASE_META[phase]
-                  const phaseLabels = { "pre-class": "课前自主学习", "in-class": "课中线下教学", "post-class": "课后在线拓展" }
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {SESSIONS.map((s) => {
+                  const doneMods = s.modules.filter((m) => m.status === "done").length
                   return (
-                    <div key={phase}>
-                      <div className="flex items-center gap-3 mb-3">
-                        <h3 className={`text-sm font-semibold px-3 py-1 rounded-full border ${meta.color}`}>
-                          {phaseLabels[phase]}
-                        </h3>
-                        <span className="text-xs text-gray-400">{phaseSessions.length} 次课</span>
+                    <Link
+                      key={s.id}
+                      href={`/learn/courses/hybrid/${course.id}/learn?session=${s.id}`}
+                      className="border rounded-lg p-4 hover:border-[#1890ff] hover:shadow-sm transition-all group"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="w-6 h-6 rounded-md bg-[#1890ff]/10 text-[#1890ff] text-xs font-semibold flex items-center justify-center">
+                              {s.week}
+                            </span>
+                            <Badge variant={s.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0 h-4">
+                              {s.mode === "online" ? "线上" : "线下"}
+                            </Badge>
+                            <span className={`text-[10px] px-1.5 py-0 rounded border ${PHASE_META[s.phase].color}`}>
+                              {PHASE_META[s.phase].label}
+                            </span>
+                          </div>
+                          <h4 className="font-medium text-gray-800 group-hover:text-[#1890ff] transition-colors">
+                            {s.name}
+                          </h4>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="flex items-center gap-1.5">
+                            <Progress value={s.progress} className="h-1.5 w-[60px]" />
+                            <span className={`text-xs font-medium ${
+                              s.progress === 100 ? "text-green-600" : s.progress > 0 ? "text-blue-600" : "text-gray-400"
+                            }`}>{s.progress}%</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                        {phaseSessions.map((s) => {
-                          const doneMods = s.modules.filter((m) => m.status === "done").length
+                      <div className="flex flex-wrap gap-1.5">
+                        {s.modules.map((m) => {
+                          const Icon = m.icon
                           return (
-                            <div
-                              key={s.id}
-                              className="border rounded-lg p-4 hover:border-[#1890ff] hover:shadow-sm transition-all cursor-pointer group"
-                              onClick={() => document.dispatchEvent(new CustomEvent("selectSession", { detail: s.id }))}
+                            <span
+                              key={m.key}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] border ${
+                                m.status === "done" ? "border-green-200 bg-green-50 text-green-600" :
+                                m.status === "in_progress" ? "border-blue-200 bg-blue-50 text-blue-600" :
+                                "border-gray-200 bg-gray-50 text-gray-400"
+                              }`}
                             >
-                              <div className="flex items-start justify-between mb-3">
-                                <div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Badge variant={s.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0 h-4">
-                                      {s.mode === "online" ? "线上" : "线下"}
-                                    </Badge>
-                                    <span className="text-xs text-gray-400">第{s.week}周</span>
-                                  </div>
-                                  <h4 className="font-medium text-gray-800 group-hover:text-[#1890ff] transition-colors">
-                                    {s.name}
-                                  </h4>
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <Progress value={s.progress} className="h-1.5 w-[60px]" />
-                                    <span className={`text-xs font-medium ${
-                                      s.progress === 100 ? "text-green-600" : s.progress > 0 ? "text-blue-600" : "text-gray-400"
-                                    }`}>{s.progress}%</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-1.5">
-                                {s.modules.map((m) => {
-                                  const Icon = m.icon
-                                  return (
-                                    <span
-                                      key={m.key}
-                                      className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] border ${
-                                        m.status === "done" ? "border-green-200 bg-green-50 text-green-600" :
-                                        m.status === "in_progress" ? "border-blue-200 bg-blue-50 text-blue-600" :
-                                        "border-gray-200 bg-gray-50 text-gray-400"
-                                      }`}
-                                    >
-                                      <Icon className="w-3 h-3" />
-                                      {m.label}
-                                    </span>
-                                  )
-                                })}
-                              </div>
-                            </div>
+                              <Icon className="w-3 h-3" />
+                              {m.label}
+                            </span>
                           )
                         })}
                       </div>
-                    </div>
+                    </Link>
                   )
                 })}
               </div>

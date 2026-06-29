@@ -520,41 +520,32 @@ export default function HybridCourseLearnPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-0.5 max-h-[calc(100vh-300px)] overflow-y-auto">
-            {(["pre-class", "in-class", "post-class"] as const).map((phase) => {
-              const units = LEARNING_UNITS.filter((u) => u.phase === phase)
-              if (units.length === 0) return null
-              const labels = { "pre-class": "课前", "in-class": "课中", "post-class": "课后" }
-              return (
-                <div key={phase} className="mb-2">
-                  <div className="px-2 py-1">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${phaseMeta[phase].color}`}>
-                      {labels[phase]} · {units.length} 次课
+            {LEARNING_UNITS.map((unit) => (
+              <button
+                key={unit.id}
+                onClick={() => { setActiveUnit(unit); setActiveModule(null); }}
+                className={`w-full text-left p-2 rounded-md transition-colors ${
+                  activeUnit.id === unit.id
+                    ? `${currPhaseMeta.bg} ring-1 ring-[#1890ff]/20`
+                    : "hover:bg-muted"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-5 h-5 rounded bg-[#1890ff]/10 text-[#1890ff] text-[10px] font-semibold flex items-center justify-center shrink-0">
+                      {unit.week}
+                    </span>
+                    <span className="font-medium text-sm truncate mr-2">
+                      {unit.name}
                     </span>
                   </div>
-                  {units.map((unit) => (
-                    <button
-                      key={unit.id}
-                      onClick={() => { setActiveUnit(unit); setActiveModule(null); }}
-                      className={`w-full text-left p-2 rounded-md transition-colors ${
-                        activeUnit.id === unit.id
-                          ? `${currPhaseMeta.bg} ring-1 ring-[#1890ff]/20`
-                          : "hover:bg-muted"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-sm truncate mr-2">
-                          第{unit.week}周：{unit.name.split("：")[1] || unit.name}
-                        </span>
-                        <Badge variant={unit.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 h-4 shrink-0">
-                          {unit.mode === "online" ? "线上" : "线下"}
-                        </Badge>
-                      </div>
-                      <Progress value={unit.progress} className="h-1" />
-                    </button>
-                  ))}
+                  <Badge variant={unit.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 h-4 shrink-0">
+                    {unit.mode === "online" ? "线上" : "线下"}
+                  </Badge>
                 </div>
-              )
-            })}
+                <Progress value={unit.progress} className="h-1" />
+              </button>
+            ))}
           </CardContent>
         </Card>
 

@@ -7,14 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  BookOpen, Search, GraduationCap, BarChart3, Archive,
-  ChevronDown, Briefcase, Eye, Users, FileText, Clock,
+  BookOpen, Search, Eye, Users, FileText, Clock,
 } from "lucide-react"
 import { courses, courseStats } from "@/lib/mock-data"
 import { INDUSTRIES, MAJORS, COURSE_TYPE_LABELS } from "@/lib/types"
@@ -208,24 +201,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 rounded-full">
-                <Briefcase className="h-4 w-4" />我的学习台<ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem asChild>
-                <Link href="/learn/dashboard/courses" className="flex items-center gap-2 cursor-pointer"><GraduationCap className="h-4 w-4" />我的课程</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/learn/dashboard/grades" className="flex items-center gap-2 cursor-pointer"><BarChart3 className="h-4 w-4" />成绩查看</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/learn/dashboard/archive" className="flex items-center gap-2 cursor-pointer"><Archive className="h-4 w-4" />学习档案</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
         </div>
 
         {/* Filters */}
