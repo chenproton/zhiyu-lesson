@@ -142,7 +142,7 @@ export default function SystemCoursePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">体系课资源</h1>
+        <h1 className="text-2xl font-semibold">体系课管理</h1>
         <p className="text-muted-foreground mt-1">
           维护体系课课程及节点信息，包含课程创建、配置课程节点、提交审批、课程发布等功能
         </p>

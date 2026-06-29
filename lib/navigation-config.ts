@@ -33,19 +33,19 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
   sideNavItems: [
     {
       id: "resource-center",
-      label: "在线课管理",
+      label: "在线课资源库",
       icon: "folderKanban",
       children: [
-        { id: "system", label: "体系课资源", href: "/admin/system", matchers: ["/admin/system$", "/admin/system/add"] },
-        { id: "granular", label: "颗粒课资源", href: "/admin/granular", matchers: ["/admin/granular$", "/admin/granular/add"] },
+        { id: "system", label: "体系课管理", href: "/admin/system", matchers: ["/admin/system$", "/admin/system/add"] },
+        { id: "granular", label: "颗粒课管理", href: "/admin/granular", matchers: ["/admin/granular$", "/admin/granular/add"] },
       ],
     },
     {
       id: "hybrid-center",
-      label: "混合课管理",
+      label: "混合课资源库",
       icon: "layers3",
       children: [
-        { id: "hybrid", label: "混合课资源", href: "/admin/hybrid", matchers: ["/admin/hybrid$", "/admin/hybrid/add"] },
+        { id: "hybrid", label: "混合课管理", href: "/admin/hybrid", matchers: ["/admin/hybrid$", "/admin/hybrid/add"] },
       ],
     },
     {
@@ -116,19 +116,19 @@ export const adminNavigationConfig: PlatformNavigationConfig = {
   sideNavItems: [
     {
       id: "resource-center",
-      label: "在线课管理",
+      label: "在线课资源库",
       icon: "folderKanban",
       children: [
-        { id: "system", label: "体系课资源", href: "/admin/system", matchers: ["/admin/system$", "/admin/system/add"] },
-        { id: "granular", label: "颗粒课资源", href: "/admin/granular", matchers: ["/admin/granular$", "/admin/granular/add"] },
+        { id: "system", label: "体系课管理", href: "/admin/system", matchers: ["/admin/system$", "/admin/system/add"] },
+        { id: "granular", label: "颗粒课管理", href: "/admin/granular", matchers: ["/admin/granular$", "/admin/granular/add"] },
       ],
     },
     {
       id: "hybrid-center",
-      label: "混合课管理",
+      label: "混合课资源库",
       icon: "layers3",
       children: [
-        { id: "hybrid", label: "混合课资源", href: "/admin/hybrid", matchers: ["/admin/hybrid$", "/admin/hybrid/add"] },
+        { id: "hybrid", label: "混合课管理", href: "/admin/hybrid", matchers: ["/admin/hybrid$", "/admin/hybrid/add"] },
       ],
     },
     {

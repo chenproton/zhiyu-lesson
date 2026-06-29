@@ -140,7 +140,7 @@ export default function GranularCoursePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">颗粒课资源</h1>
+        <h1 className="text-2xl font-semibold">颗粒课管理</h1>
         <p className="text-muted-foreground mt-1">
           维护颗粒课信息，包含颗粒课创建、提交审批、颗粒课发布等功能
         </p>
