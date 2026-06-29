@@ -13,296 +13,276 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  BookOpen,
-  Link2,
-  Microscope,
-  Eye,
-  Search,
-  Grid3X3,
-  LayoutList,
-  Clock,
-  FileText,
-  Layers,
-  Briefcase,
-  ChevronDown,
-  GraduationCap,
-  BarChart3,
-  Archive,
+  BookOpen, Search, GraduationCap, BarChart3, Archive,
+  ChevronDown, Briefcase, Eye, Users, FileText, Clock,
 } from "lucide-react"
 import { courses, courseStats } from "@/lib/mock-data"
-import { COURSE_TYPE_OPTIONS, INDUSTRIES, MAJORS } from "@/lib/types"
+import { INDUSTRIES, MAJORS, COURSE_TYPE_LABELS } from "@/lib/types"
+import type { Course } from "@/lib/types"
+
+function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="flex items-baseline gap-3 mb-5">
+      <h2 className="text-lg font-bold text-slate-800 relative pl-3">
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-gradient-to-b from-blue-600 to-blue-400 rounded-full" />
+        {title}
+      </h2>
+      {subtitle && <span className="text-sm text-slate-400">{subtitle}</span>}
+    </div>
+  )
+}
+
+const courseCovers: Record<string, string> = {
+  system: "from-sky-500 to-indigo-600",
+  granular: "from-emerald-500 to-teal-600",
+  hybrid: "from-violet-500 to-fuchsia-600",
+}
+
+const courseIcons: Record<string, string> = {
+  system: "📚",
+  granular: "🔬",
+  hybrid: "🔄",
+}
+
+function CourseCard({ course }: { course: Course }) {
+  const cover = courseCovers[course.type] || "from-slate-600 to-slate-800"
+  return (
+    <Link href={course.type === "hybrid" ? `/learn/courses/hybrid/${course.id}` : "/student.html"} className="block no-underline">
+      <div
+        className="rounded-xl bg-white overflow-hidden cursor-pointer transition-all duration-300 border border-slate-100"
+        style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-4px)"
+          e.currentTarget.style.boxShadow = "0 12px 28px rgba(0,0,0,0.10)"
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)"
+          e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"
+        }}
+      >
+        <div className={`h-28 bg-gradient-to-br ${cover} relative p-4 flex flex-col justify-end`}>
+          <div className="flex items-center gap-2 absolute top-3 left-3">
+            <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs">{COURSE_TYPE_LABELS[course.type]}</Badge>
+            <Badge variant="secondary" className="bg-black/30 text-white border-0 text-xs">v{course.version}</Badge>
+          </div>
+          <span className="text-white/70 text-[40px] absolute top-3 right-4 leading-none">{courseIcons[course.type] || "📖"}</span>
+        </div>
+        <div className="p-4 space-y-3">
+          <div className="flex items-start gap-2">
+            <h3 className="font-semibold text-sm text-slate-800 line-clamp-2 leading-snug">{course.name}</h3>
+            <Badge variant="outline" className="text-[10px] shrink-0">{course.category}</Badge>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-slate-400 pt-1 border-t border-slate-50">
+            <span className="flex items-center gap-1"><FileText className="h-3 w-3" />{course.nodeCount} 节点</span>
+            <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{course.lessonCount} 课时</span>
+            <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{course.viewCount}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded">{course.industry}</span>
+            <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded">{course.major}</span>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-400 pt-1 border-t border-slate-50">
+            <span>{course.teacher}</span>
+            <span>{course.updateDate}</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
 
 export default function HomePage() {
   const [activeIndustry, setActiveIndustry] = useState("全部")
   const [activeMajor, setActiveMajor] = useState("全部")
-  const [activeSort, setActiveSort] = useState("all")
   const [search, setSearch] = useState("")
 
   const filteredCourses = useMemo(() => {
     let result = courses
-    if (activeIndustry !== "全部") {
-      result = result.filter((c) => c.industry === activeIndustry)
-    }
-    if (activeMajor !== "全部") {
-      result = result.filter((c) => c.major === activeMajor)
-    }
-    if (activeSort === "system") {
-      result = result.filter((c) => c.type === "system")
-    } else if (activeSort === "granular") {
-      result = result.filter((c) => c.type === "granular")
-    } else if (activeSort === "hybrid") {
-      result = result.filter((c) => c.type === "hybrid")
-    }
+    if (activeIndustry !== "全部") result = result.filter((c) => c.industry === activeIndustry)
+    if (activeMajor !== "全部") result = result.filter((c) => c.major === activeMajor)
     if (search.trim()) {
       const kw = search.trim().toLowerCase()
       result = result.filter((c) => c.name.toLowerCase().includes(kw))
     }
     return result
-  }, [activeIndustry, activeMajor, activeSort, search])
+  }, [activeIndustry, activeMajor, search])
 
-  const stats = [
-    { label: "收录课程总数", value: courseStats.totalCourses, icon: BookOpen, color: "text-blue-600 bg-blue-100" },
-    { label: "体系课总数", value: courseStats.systemCourses, icon: Link2, color: "text-indigo-600 bg-indigo-100" },
-    { label: "颗粒课总数", value: courseStats.granularCourses, icon: Microscope, color: "text-emerald-600 bg-emerald-100" },
-    { label: "混合课程总数", value: courseStats.hybridCourses, icon: Layers, color: "text-purple-600 bg-purple-100" },
-    { label: "知识点总数", value: courseStats.knowledgePoints, icon: Eye, color: "text-amber-600 bg-amber-100" },
-  ]
+  const systemCourses = filteredCourses.filter((c) => c.type === "system")
+  const granularCourses = filteredCourses.filter((c) => c.type === "granular")
+  const hybridCourses = filteredCourses.filter((c) => c.type === "hybrid")
 
-  const sortButtons = [
-    { key: "all", label: "默认排序" },
-    { key: "recent", label: "最近收录" },
-    { key: "hot", label: "最多点击" },
-    { key: "frontier", label: "前沿课程" },
-    { key: "system", label: "体系课" },
-    { key: "granular", label: "颗粒课" },
-    { key: "hybrid", label: "混合课程" },
-  ]
+  if (search.trim()) {
+    const allGrouped = [
+      ...(systemCourses.length > 0 ? [{ label: "体系课", courses: systemCourses }] : []),
+      ...(granularCourses.length > 0 ? [{ label: "颗粒课", courses: granularCourses }] : []),
+      ...(hybridCourses.length > 0 ? [{ label: "混合课程", courses: hybridCourses }] : []),
+    ]
 
-  const tagColorMap: Record<string, string> = {
-    "公共基础课": "bg-blue-100 text-blue-700",
-    "数智化通识课": "bg-green-100 text-green-700",
-    "专业基础课": "bg-orange-100 text-orange-700",
-    "专业核心课": "bg-purple-100 text-purple-700",
-    "专业拓展课": "bg-pink-100 text-pink-700",
+    return (
+      <div>
+        {/* Hero Banner */}
+        <div className="bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-700 text-white py-14 px-5 text-center relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/5 rounded-full" />
+          <div className="absolute -bottom-16 left-[5%] w-48 h-48 bg-white/5 rounded-full" />
+          <div className="max-w-xl mx-auto relative z-10">
+            <h1 className="text-3xl font-bold mb-2">数字课程服务平台</h1>
+            <p className="text-sm text-blue-200 mb-6">产教融合 · 课程资源 · 智慧课堂</p>
+            <div className="flex items-center bg-white rounded-full pl-5 pr-1.5 py-1.5 shadow-lg">
+              <Search className="h-4 w-4 text-slate-400 mr-2" />
+              <input
+                type="text" placeholder="搜索课程名称..."
+                value={search} onChange={(e) => setSearch(e.target.value)}
+                className="flex-1 border-none outline-none text-sm py-2.5 text-slate-700 bg-transparent"
+              />
+              <Button className="rounded-full px-6">{search ? "搜索" : "搜索"}</Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-5 py-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-slate-400">搜索结果：<span className="text-blue-600 font-medium">{filteredCourses.length}</span> 门课程</p>
+            <div className="flex gap-2">
+              {INDUSTRIES.slice(0, 5).map((ind) => (
+                <button
+                  key={ind}
+                  onClick={() => setActiveIndustry(ind === activeIndustry ? "全部" : ind)}
+                  className={`px-3 py-1 rounded-full text-xs transition-colors ${
+                    activeIndustry === ind ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >{ind}</button>
+              ))}
+            </div>
+          </div>
+          {allGrouped.map((group) => (
+            <div key={group.label}>
+              <SectionHeader title={group.label} subtitle={`${group.courses.length} 门`} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {group.courses.map((c) => <CourseCard key={c.id} course={c} />)}
+              </div>
+            </div>
+          ))}
+          {filteredCourses.length === 0 && (
+            <div className="text-center py-16 text-slate-400">未找到匹配的课程</div>
+          )}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Toolbar */}
-      <div className="flex items-center justify-between">
-        <div />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Briefcase className="h-4 w-4" />
-              我的学习台
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem asChild>
-              <Link href="/learn/dashboard/courses" className="flex items-center gap-2 cursor-pointer">
-                <GraduationCap className="h-4 w-4" />
-                我的课程
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/learn/dashboard/grades" className="flex items-center gap-2 cursor-pointer">
-                <BarChart3 className="h-4 w-4" />
-                成绩查看
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/learn/dashboard/archive" className="flex items-center gap-2 cursor-pointer">
-                <Archive className="h-4 w-4" />
-                学习档案
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="md:col-span-1 bg-gradient-to-br from-slate-50 to-slate-100 border-0">
-          <CardContent className="flex items-center justify-center h-48 text-muted-foreground">
-            <div className="text-center">
-              <Grid3X3 className="h-8 w-8 mx-auto mb-2 opacity-40" />
-              <span className="text-sm">暂无轮播名称</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="md:col-span-3 bg-gradient-to-br from-blue-50 to-indigo-50 border-0">
-          <CardContent className="flex items-center justify-center h-48">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-blue-800">数字课程服务平台</h2>
-              <p className="text-blue-600">产教融合 · 课程资源 · 智慧课堂</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <Card key={s.label}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{s.label}</p>
-                  <p className="text-2xl font-bold mt-1">{s.value}</p>
-                </div>
-                <div className={`p-3 rounded-lg ${s.color}`}>
-                  <s.icon className="h-6 w-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6 space-y-4">
-          <div className="flex items-start gap-3">
-            <span className="text-sm text-muted-foreground w-10 pt-1.5 shrink-0">行业</span>
-            <div className="flex flex-wrap gap-2">
-              {INDUSTRIES.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setActiveIndustry(item)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    activeIndustry === item
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted hover:bg-muted/80 text-muted-foreground"
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
+    <div>
+      {/* Hero Banner */}
+      <div className="bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-700 text-white pt-16 pb-12 px-5 text-center relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full" />
+        <div className="absolute -bottom-20 left-[8%] w-56 h-56 bg-white/5 rounded-full" />
+        <div className="max-w-2xl mx-auto relative z-10">
+          <h1 className="text-4xl font-bold mb-3 tracking-wide">数字课程服务平台</h1>
+          <p className="text-base text-blue-200 mb-8">产教融合 · 课程资源 · 智慧课堂 —— 一站式课程学习与成长平台</p>
+          <div className="flex items-center bg-white rounded-full pl-5 pr-1.5 py-1.5 shadow-xl max-w-lg mx-auto">
+            <Search className="h-5 w-5 text-slate-400 mr-2" />
+            <input
+              type="text" placeholder="搜索课程名称、行业、专业..."
+              value={search} onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 border-none outline-none text-base py-3 text-slate-700 bg-transparent"
+            />
+            <Button className="rounded-full px-7 py-5 text-base">搜索</Button>
           </div>
-          <div className="flex items-start gap-3">
-            <span className="text-sm text-muted-foreground w-10 pt-1.5 shrink-0">专业</span>
-            <div className="flex flex-wrap gap-2">
-              {MAJORS.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setActiveMajor(item)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    activeMajor === item
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted hover:bg-muted/80 text-muted-foreground"
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-2">
-          {sortButtons.map((btn) => (
-            <button
-              key={btn.key}
-              onClick={() => setActiveSort(btn.key)}
-              className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
-                activeSort === btn.key
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-white border hover:bg-muted/50 text-muted-foreground"
-              }`}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="请输入课程名称"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        当前共展示 <span className="text-primary font-medium">{filteredCourses.length}</span> 个课程学习入口
-      </p>
-
-      {/* Course Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {filteredCourses.map((course) => (
-          <Link
-            key={course.id}
-            href={course.type === "hybrid" ? `/learn/courses/hybrid/${course.id}` : "/student.html"}
-          >
-            <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer overflow-hidden group">
-              {/* Cover */}
-              <div className={`h-36 bg-gradient-to-br ${course.coverColor || "from-blue-800 to-blue-500"} relative p-4 flex flex-col justify-end`}>
-                <div className="absolute top-3 left-3 flex gap-2">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-0">
-                    {course.version}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-black/30 text-white border-0">
-                    {course.updateDate}
-                  </Badge>
-                </div>
-                <Badge className="absolute top-3 right-3 bg-purple-600/80 hover:bg-purple-600/80 text-white border-0">
-                  {course.courseTag}
-                </Badge>
-                <div className="absolute bottom-0 right-0 bg-black/40 text-white text-xs px-2 py-0.5 rounded-tl-md">
-                  课程编码：{course.code}
-                </div>
+      <div className="max-w-7xl mx-auto px-5 py-4">
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            {[
+              { label: "课程总数", value: courseStats.totalCourses },
+              { label: "体系课", value: courseStats.systemCourses },
+              { label: "颗粒课", value: courseStats.granularCourses },
+              { label: "混合课程", value: courseStats.hybridCourses },
+              { label: "知识点", value: courseStats.knowledgePoints },
+            ].map((s) => (
+              <div key={s.label} className="text-center px-5 py-2 border-r border-slate-100 last:border-0">
+                <div className="text-xl font-bold text-blue-600">{s.value}</div>
+                <div className="text-xs text-slate-400">{s.label}</div>
               </div>
+            ))}
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2 rounded-full">
+                <Briefcase className="h-4 w-4" />我的学习台<ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem asChild>
+                <Link href="/learn/dashboard/courses" className="flex items-center gap-2 cursor-pointer"><GraduationCap className="h-4 w-4" />我的课程</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/learn/dashboard/grades" className="flex items-center gap-2 cursor-pointer"><BarChart3 className="h-4 w-4" />成绩查看</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/learn/dashboard/archive" className="flex items-center gap-2 cursor-pointer"><Archive className="h-4 w-4" />学习档案</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-              <CardContent className="pt-4 space-y-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-sm line-clamp-1">{course.name}</h3>
-                  <span className={`text-xs px-2 py-0.5 rounded ${tagColorMap[course.category] || "bg-gray-100 text-gray-700"}`}>
-                    {course.category}
-                  </span>
-                </div>
+        {/* Filters */}
+        <div className="bg-white rounded-xl p-5 mb-8 space-y-3" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+          <div className="flex items-start gap-3">
+            <span className="text-sm text-slate-400 w-12 pt-1 shrink-0">行业</span>
+            <div className="flex flex-wrap gap-2">{INDUSTRIES.map((item) => (
+              <button key={item} onClick={() => setActiveIndustry(item)}
+                className={`px-3.5 py-1.5 rounded-full text-sm transition-colors ${
+                  activeIndustry === item ? "bg-blue-600 text-white" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                }`}>{item}</button>
+            ))}</div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-sm text-slate-400 w-12 pt-1 shrink-0">专业</span>
+            <div className="flex flex-wrap gap-2">{MAJORS.map((item) => (
+              <button key={item} onClick={() => setActiveMajor(item)}
+                className={`px-3.5 py-1.5 rounded-full text-sm transition-colors ${
+                  activeMajor === item ? "bg-blue-600 text-white" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                }`}>{item}</button>
+            ))}</div>
+          </div>
+        </div>
 
-                <div className="grid grid-cols-3 gap-2 py-2 border-y">
-                  <div className="text-center">
-                    <p className="text-lg font-bold">{course.nodeCount}</p>
-                    <p className="text-xs text-muted-foreground">涉及节点</p>
-                  </div>
-                  <div className="text-center border-l">
-                    <p className="text-lg font-bold">{course.lessonCount}</p>
-                    <p className="text-xs text-muted-foreground">预计课时</p>
-                  </div>
-                  <div className="text-center border-l">
-                    <p className="text-lg font-bold">{course.resourceCount}</p>
-                    <p className="text-xs text-muted-foreground">资源数</p>
-                  </div>
-                </div>
+        {/* 体系课 Section */}
+        {systemCourses.length > 0 && (
+          <section className="mb-10">
+            <SectionHeader title="体系课" subtitle={`${systemCourses.length} 门 · 体系化知识结构`} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {systemCourses.map((c) => <CourseCard key={c.id} course={c} />)}
+            </div>
+          </section>
+        )}
 
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-muted-foreground w-8">行业</span>
-                    <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded">{course.industry}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-muted-foreground w-8">专业</span>
-                    <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded">{course.major}</span>
-                  </div>
-                </div>
+        {/* 颗粒课 Section */}
+        {granularCourses.length > 0 && (
+          <section className="mb-10">
+            <SectionHeader title="颗粒课" subtitle={`${granularCourses.length} 门 · 碎片化微课学习`} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {granularCourses.map((c) => <CourseCard key={c.id} course={c} />)}
+            </div>
+          </section>
+        )}
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-                  <span>{course.teacher} · 浏览 {course.viewCount} · 学习 {course.studyCount}</span>
-                  <span>{course.updateDate}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+        {/* 混合课程 Section */}
+        {hybridCourses.length > 0 && (
+          <section className="mb-10">
+            <SectionHeader title="混合课程" subtitle={`${hybridCourses.length} 门 · 线上线下深度融合`} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {hybridCourses.map((c) => <CourseCard key={c.id} course={c} />)}
+            </div>
+          </section>
+        )}
+
+        <div className="text-center py-4 text-xs text-slate-300">
+          当前共收录 <span className="text-blue-400 font-medium">{filteredCourses.length}</span> 门课程
+        </div>
       </div>
     </div>
   )

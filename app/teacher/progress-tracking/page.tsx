@@ -1,8 +1,18 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import {
   BarChart,
   Bar,
@@ -14,18 +24,52 @@ import {
   LineChart,
   Line,
 } from "recharts"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Users, BookOpen, ClipboardCheck, UserCheck, Send } from "lucide-react"
-import { ClassSchedulePicker } from "../_components/class-schedule-picker"
+import { FileText, BookOpen, Users, CheckCircle2, HelpCircle, Award, FolderOpen } from "lucide-react"
+import { CourseClassSelector } from "../_components/course-class-selector"
 
-const scoreDist = [
+const homeworkStats = {
+  totalAssigned: 6,
+  avgSubmitRate: 88,
+  avgScore: 82,
+  unsubmitted: 5,
+}
+
+const homeworkList = [
+  { id: "hw-1", name: "第1次作业：HTML结构设计", submitRate: 95, avgScore: 88, deadline: "2026-03-15" },
+  { id: "hw-2", name: "第2次作业：CSS布局练习", submitRate: 92, avgScore: 85, deadline: "2026-03-22" },
+  { id: "hw-3", name: "第3次作业：JS DOM操作", submitRate: 88, avgScore: 80, deadline: "2026-04-05" },
+  { id: "hw-4", name: "第4次作业：接口调用实战", submitRate: 85, avgScore: 78, deadline: "2026-04-15" },
+  { id: "hw-5", name: "第5次作业：综合项目实践", submitRate: 82, avgScore: 82, deadline: "2026-05-01" },
+  { id: "hw-6", name: "第6次作业：优化重构", submitRate: 86, avgScore: 79, deadline: "2026-05-15" },
+]
+
+const homeworkSubmitTrend = [
+  { name: "第1次", rate: 95 },
+  { name: "第2次", rate: 92 },
+  { name: "第3次", rate: 88 },
+  { name: "第4次", rate: 85 },
+  { name: "第5次", rate: 82 },
+  { name: "第6次", rate: 86 },
+]
+
+const quizResults = [
+  { id: "pq-1", name: "单元测验1：HTML/CSS", avgScore: 85, passRate: 92, dist: [{ range: "90-100", count: 12 }, { range: "80-89", count: 15 }, { range: "70-79", count: 8 }, { range: "60-69", count: 3 }, { range: "<60", count: 2 }] },
+  { id: "pq-2", name: "单元测验2：JavaScript", avgScore: 78, passRate: 85, dist: [{ range: "90-100", count: 8 }, { range: "80-89", count: 14 }, { range: "70-79", count: 10 }, { range: "60-69", count: 5 }, { range: "<60", count: 3 }] },
+  { id: "pq-3", name: "单元测验3：综合实战", avgScore: 72, passRate: 78, dist: [{ range: "90-100", count: 5 }, { range: "80-89", count: 12 }, { range: "70-79", count: 13 }, { range: "60-69", count: 6 }, { range: "<60", count: 4 }] },
+]
+
+const peerReview = {
+  totalGroups: 8,
+  avgReviewScore: 84,
+  completionRate: 90,
+  steps: [
+    { name: "学生自评", avgScore: 88, weight: 20 },
+    { name: "小组互评", avgScore: 82, weight: 30 },
+    { name: "教师评价", avgScore: 85, weight: 50 },
+  ],
+}
+
+const scoreDistByLevel = [
   { range: "90-100", count: 8 },
   { range: "80-89", count: 15 },
   { range: "70-79", count: 12 },
@@ -33,70 +77,37 @@ const scoreDist = [
   { range: "<60", count: 3 },
 ]
 
-const attendanceTrend = [
-  { week: "第1周", rate: 95 },
-  { week: "第2周", rate: 93 },
-  { week: "第3周", rate: 90 },
-  { week: "第4周", rate: 92 },
-  { week: "第5周", rate: 88 },
-  { week: "第6周", rate: 91 },
-  { week: "第7周", rate: 94 },
-  { week: "第8周", rate: 89 },
+const reportStats = [
+  { name: "实训报告1：前端开发实训", submitted: 38, total: 40, avgScore: 86 },
+  { name: "实训报告2：接口联调实训", submitted: 36, total: 40, avgScore: 82 },
+  { name: "实训报告3：项目部署实训", submitted: 34, total: 40, avgScore: 80 },
 ]
 
-const homeworkTrend = [
-  { week: "第1周", rate: 92 },
-  { week: "第2周", rate: 88 },
-  { week: "第3周", rate: 85 },
-  { week: "第4周", rate: 90 },
-  { week: "第5周", rate: 87 },
-  { week: "第6周", rate: 91 },
-  { week: "第7周", rate: 89 },
-  { week: "第8周", rate: 93 },
-]
+export default function ProgressTrackingPage() {
+  const [activeQuiz, setActiveQuiz] = useState<string>(quizResults[0].id)
 
-const students = [
-  { name: "李明", id: "202301001", hours: 45, hwAvg: 88, quizAvg: 85, attendance: 95, total: 86 },
-  { name: "王芳", id: "202301002", hours: 52, hwAvg: 92, quizAvg: 90, attendance: 98, total: 91 },
-  { name: "张伟", id: "202301003", hours: 38, hwAvg: 78, quizAvg: 72, attendance: 85, total: 76 },
-  { name: "刘洋", id: "202301004", hours: 42, hwAvg: 85, quizAvg: 88, attendance: 92, total: 84 },
-  { name: "陈静", id: "202301005", hours: 48, hwAvg: 90, quizAvg: 86, attendance: 96, total: 88 },
-]
+  const currentQuiz = quizResults.find((q) => q.id === activeQuiz) || quizResults[0]
 
-export default function ClassAnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">班级学情</h1>
-        <p className="text-muted-foreground mt-1">查看班级整体学习数据与趋势分析</p>
+        <h1 className="text-2xl font-semibold">课程测评跟踪</h1>
+        <p className="text-muted-foreground mt-1">跟踪课后测评数据，包括作业、测验、互评、实训报告等课后学习评价</p>
       </div>
 
-      <ClassSchedulePicker />
+      <CourseClassSelector onSelect={() => {}} />
 
-      {/* 核心指标 */}
+      {/* 课后测评概览 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-green-100 text-green-600">
-                <UserCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">平均出勤率</p>
-                <p className="text-2xl font-bold">91%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-lg bg-blue-100 text-blue-600">
-                <ClipboardCheck className="h-5 w-5" />
+                <FileText className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">作业提交率</p>
-                <p className="text-2xl font-bold">89%</p>
+                <p className="text-2xl font-bold">{homeworkStats.avgSubmitRate}%</p>
               </div>
             </div>
           </CardContent>
@@ -105,11 +116,11 @@ export default function ClassAnalyticsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-lg bg-purple-100 text-purple-600">
-                <BookOpen className="h-5 w-5" />
+                <HelpCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">平均测验得分</p>
-                <p className="text-2xl font-bold">83.5</p>
+                <p className="text-xs text-muted-foreground">课后测验均分</p>
+                <p className="text-2xl font-bold">{Math.round(quizResults.reduce((s, q) => s + q.avgScore, 0) / quizResults.length)}</p>
               </div>
             </div>
           </CardContent>
@@ -117,127 +128,238 @@ export default function ClassAnalyticsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-orange-100 text-orange-600">
+              <div className="p-2.5 rounded-lg bg-green-100 text-green-600">
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">平均学习进度</p>
-                <p className="text-2xl font-bold">72%</p>
+                <p className="text-xs text-muted-foreground">互评完成率</p>
+                <p className="text-2xl font-bold">{peerReview.completionRate}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-amber-100 text-amber-600">
+                <Award className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">综合评测均分</p>
+                <p className="text-2xl font-bold">{homeworkStats.avgScore}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* 图表区 */}
+      {/* 课后作业统计 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">成绩分布</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-500" />
+              课后作业提交情况
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {homeworkList.map((hw) => (
+              <div key={hw.id} className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">{hw.name}</span>
+                  <span className="text-xs text-muted-foreground">截止 {hw.deadline}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Progress value={hw.submitRate} className="h-2 flex-1" />
+                  <div className="flex items-center gap-2 text-xs shrink-0">
+                    <span className="text-blue-600 font-medium">{hw.submitRate}%</span>
+                    <span className="text-muted-foreground">均分 {hw.avgScore}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">作业提交率趋势</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={scoreDist}>
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={homeworkSubmitTrend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis domain={[75, 100]} tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="rate" stroke="#3b82f6" strokeWidth={2} name="提交率%" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 课后测验结果 - 带Tab切换 */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <HelpCircle className="h-4 w-4 text-purple-500" />
+              课后测验分析
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeQuiz} onValueChange={setActiveQuiz}>
+            <TabsList className="mb-4">
+              {quizResults.map((q) => (
+                <TabsTrigger key={q.id} value={q.id} className="text-xs">{q.name}</TabsTrigger>
+              ))}
+            </TabsList>
+            {quizResults.map((q) => (
+              <TabsContent key={q.id} value={q.id}>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-xs text-muted-foreground">平均分</p>
+                      <p className="text-2xl font-bold text-blue-700">{q.avgScore}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-green-50 border-green-200">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-xs text-muted-foreground">通过率</p>
+                      <p className="text-2xl font-bold text-green-700">{q.passRate}%</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-purple-50 border-purple-200">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-xs text-muted-foreground">参与人数</p>
+                      <p className="text-2xl font-bold text-purple-700">40</p>
+                    </CardContent>
+                  </Card>
+                </div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={q.dist}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="range" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="人数" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* 互评数据 + 成绩分布 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="h-4 w-4 text-green-500" />
+              互评互判统计
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <Card className="bg-gray-50">
+                <CardContent className="p-3 text-center">
+                  <p className="text-lg font-bold">{peerReview.totalGroups}</p>
+                  <p className="text-xs text-muted-foreground">互评小组</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gray-50">
+                <CardContent className="p-3 text-center">
+                  <p className="text-lg font-bold">{peerReview.avgReviewScore}</p>
+                  <p className="text-xs text-muted-foreground">互评均分</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-gray-50">
+                <CardContent className="p-3 text-center">
+                  <p className="text-lg font-bold">{peerReview.completionRate}%</p>
+                  <p className="text-xs text-muted-foreground">完成率</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="space-y-3">
+              {peerReview.steps.map((step) => (
+                <div key={step.name} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>{step.name}</span>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Badge variant="secondary" className="text-[10px]">权重 {step.weight}%</Badge>
+                      <span className="font-medium">{step.avgScore} 分</span>
+                    </div>
+                  </div>
+                  <Progress value={step.avgScore} className="h-2" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">综合成绩分布</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={scoreDistByLevel}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="range" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} name="人数" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">出勤率趋势</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={attendanceTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-                <YAxis domain={[80, 100]} tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">作业提交趋势</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={homeworkTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-                <YAxis domain={[80, 100]} tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="rate" stroke="#8b5cf6" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">知识点掌握热力图（示意）</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-5 gap-1">
-              {Array.from({ length: 25 }).map((_, i) => {
-                const intensity = Math.random()
-                const bg = intensity > 0.7 ? "bg-green-500" : intensity > 0.4 ? "bg-green-300" : "bg-green-100"
-                return <div key={i} className={`h-8 rounded ${bg}`} title={`学生${(i % 5) + 1} · 知识点${Math.floor(i / 5) + 1}`} />
-              })}
-            </div>
-            <div className="flex items-center justify-end gap-2 mt-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 rounded" />薄弱</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-300 rounded" />一般</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-500 rounded" />掌握</span>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* 学生排名 */}
+      {/* 实训报告 */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm">学生排名</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <FolderOpen className="h-4 w-4 text-orange-500" />
+            实训报告完成情况
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="text-xs">姓名</TableHead>
-                  <TableHead className="text-xs">学号</TableHead>
-                  <TableHead className="text-xs">学习时长</TableHead>
-                  <TableHead className="text-xs">作业均分</TableHead>
-                  <TableHead className="text-xs">测验均分</TableHead>
-                  <TableHead className="text-xs">出勤率</TableHead>
-                  <TableHead className="text-xs">总评</TableHead>
-                  <TableHead className="text-xs">操作</TableHead>
+                  <TableHead className="text-xs">报告名称</TableHead>
+                  <TableHead className="text-xs">提交/总数</TableHead>
+                  <TableHead className="text-xs">提交率</TableHead>
+                  <TableHead className="text-xs">平均分</TableHead>
+                  <TableHead className="text-xs">评级</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="text-sm font-medium">{s.name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{s.id}</TableCell>
-                    <TableCell className="text-sm">{s.hours}h</TableCell>
-                    <TableCell className="text-sm">{s.hwAvg}</TableCell>
-                    <TableCell className="text-sm">{s.quizAvg}</TableCell>
-                    <TableCell className="text-sm">{s.attendance}%</TableCell>
-                    <TableCell className="text-sm font-semibold">{s.total}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" className="gap-1">
-                        <Send className="h-3.5 w-3.5" />
-                        提醒
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {reportStats.map((r) => {
+                  const rate = Math.round((r.submitted / r.total) * 100)
+                  return (
+                    <TableRow key={r.name}>
+                      <TableCell className="text-sm">{r.name}</TableCell>
+                      <TableCell className="text-sm">{r.submitted}/{r.total}</TableCell>
+                      <TableCell className="text-sm">
+                        <div className="flex items-center gap-2">
+                          <Progress value={rate} className="h-1.5 w-20" />
+                          <span>{rate}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">{r.avgScore}</TableCell>
+                      <TableCell>
+                        <Badge variant={r.avgScore >= 85 ? "default" : r.avgScore >= 75 ? "secondary" : "outline"} className="text-[10px]">
+                          {r.avgScore >= 85 ? "优秀" : r.avgScore >= 75 ? "良好" : "待提升"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           </div>

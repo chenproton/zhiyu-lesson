@@ -34,7 +34,7 @@ export default function PortraitDetailPage() {
         <Link href="/teacher/learning-portrait">
           <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-1" /> 返回</Button>
         </Link>
-        <h1 className="text-2xl font-semibold">学习画像详情</h1>
+        <h1 className="text-2xl font-semibold">学生画像详情</h1>
       </div>
 
       <Card>

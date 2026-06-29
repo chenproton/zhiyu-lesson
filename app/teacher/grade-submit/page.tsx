@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { CheckCircle2, Send, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
-import { ClassSchedulePicker } from "../_components/class-schedule-picker"
+import { CourseClassSelector } from "../_components/course-class-selector"
 
 const initialItems = [
   { id: "g1", name: "Web前端开发混合课程", className: "软件工程2026级1班", status: "pending", count: 42 },
@@ -30,7 +30,7 @@ export default function GradeSubmitPage() {
         <p className="text-muted-foreground mt-1">教师确认线上成绩后，提交至教务平台</p>
       </div>
 
-      <ClassSchedulePicker />
+      <CourseClassSelector onSelect={() => {}} showSession={false} />
 
       <Card className="border-amber-200 bg-amber-50">
         <CardContent className="pt-6 flex items-start gap-3">

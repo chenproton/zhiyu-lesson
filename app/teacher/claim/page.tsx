@@ -5,7 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, Users, Calendar, CheckCircle2, MapPin, Clock, Rocket } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { BookOpen, Users, Calendar, CheckCircle2, MapPin, Clock, Rocket, Settings } from "lucide-react"
 
 const semesters = [
   "2025 年第一学期",
@@ -24,13 +34,25 @@ interface ClassSession {
   hybridCourseId?: string
 }
 
-const initialClasses = [
-  { id: "cls-1", name: "软件工程2026级1班", course: "Web前端开发混合课程", term: "2025 年第一学期", students: 42, status: "pending" },
-  { id: "cls-2", name: "软件工程2026级2班", course: "软件测试技术混合课程", term: "2025 年第一学期", students: 40, status: "claimed" },
-  { id: "cls-3", name: "人工智能2026级1班", course: "机器学习混合课程", term: "2025 年第一学期", students: 38, status: "pending" },
-  { id: "cls-4", name: "大数据技术2026级1班", course: "数据分析与可视化混合课程", term: "2025 年第二学期", students: 36, status: "pending" },
-  { id: "cls-5", name: "云计算2026级1班", course: "云原生应用开发混合课程", term: "2025 年第二学期", students: 35, status: "claimed" },
-  { id: "cls-6", name: "物联网2026级1班", course: "嵌入式系统开发混合课程", term: "2026 年第一学期", students: 33, status: "pending" },
+interface ClassItem {
+  id: string
+  name: string
+  course: string
+  term: string
+  students: number
+  teacher: string
+  status: "pending" | "active"
+}
+
+const MOCK_TEACHERS = ["张教授", "李讲师", "王老师", "赵副教授", "陈老师", "刘老师", "周老师"]
+
+const initialClasses: ClassItem[] = [
+  { id: "cls-1", name: "软件工程2026级1班", course: "Web前端开发混合课程", term: "2025 年第一学期", students: 42, teacher: "张教授", status: "pending" },
+  { id: "cls-2", name: "软件工程2026级2班", course: "软件测试技术混合课程", term: "2025 年第一学期", students: 40, teacher: "李讲师", status: "active" },
+  { id: "cls-3", name: "人工智能2026级1班", course: "机器学习混合课程", term: "2025 年第一学期", students: 38, teacher: "王老师", status: "pending" },
+  { id: "cls-4", name: "大数据技术2026级1班", course: "数据分析与可视化混合课程", term: "2025 年第二学期", students: 36, teacher: "赵副教授", status: "pending" },
+  { id: "cls-5", name: "云计算2026级1班", course: "云原生应用开发混合课程", term: "2025 年第二学期", students: 35, teacher: "陈老师", status: "active" },
+  { id: "cls-6", name: "物联网2026级1班", course: "嵌入式系统开发混合课程", term: "2026 年第一学期", students: 33, teacher: "刘老师", status: "pending" },
 ]
 
 const initialSessions: ClassSession[] = [
@@ -44,16 +66,16 @@ const initialSessions: ClassSession[] = [
 const weekdayOrder = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
 
 export default function ClassClaimPage() {
-  const [classes] = useState(initialClasses)
+  const [classes, setClasses] = useState<ClassItem[]>(initialClasses)
   const [sessions] = useState<ClassSession[]>(initialSessions)
   const [selectedTerm, setSelectedTerm] = useState(semesters[0])
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmClass, setConfirmClass] = useState<ClassItem | null>(null)
 
   const termClasses = classes.filter((c) => c.term === selectedTerm)
   const termClassIds = new Set(termClasses.map((c) => c.id))
   const termSessions = sessions.filter((s) => termClassIds.has(s.classId))
   const associatedCount = termSessions.filter((s) => s.status === "associated").length
-
-  const MOCK_TEACHERS = ["张教授", "李讲师", "王老师", "赵副教授", "陈老师"]
 
   const handleOpenHybridAdd = (courseName: string, className: string, classSessions: ClassSession[]) => {
     const teacher = MOCK_TEACHERS[className.length % MOCK_TEACHERS.length]
@@ -73,10 +95,24 @@ export default function ClassClaimPage() {
     window.open(url, "_blank")
   }
 
+  const handleOpenConfirm = (cls: ClassItem) => {
+    setConfirmClass(cls)
+    setConfirmOpen(true)
+  }
+
+  const handleConfirmStart = () => {
+    if (!confirmClass) return
+    setClasses((prev) =>
+      prev.map((c) => (c.id === confirmClass.id ? { ...c, status: "active" as const } : c))
+    )
+    setConfirmOpen(false)
+    setConfirmClass(null)
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">课程节次开课管理</h1>
+        <h1 className="text-2xl font-semibold">开课计划管理</h1>
         <p className="text-muted-foreground mt-1">管理课程节次并关联混合课程资源</p>
       </div>
 
@@ -146,22 +182,37 @@ export default function ClassClaimPage() {
               return (
                 <div key={cls.id} className="p-4 border rounded-lg space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-semibold">{cls.course}</h3>
                         <Badge variant="outline">{cls.name}</Badge>
+                        <Badge variant={cls.status === "active" ? "default" : "secondary"}>
+                          {cls.status === "active" ? "已开课" : "待开课"}
+                        </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">{cls.students}人 · {cls.term}</p>
+                      <p className="text-sm text-muted-foreground">任课教师：{cls.teacher}</p>
                     </div>
-                    <Button
-                      size="sm"
-                      className="shrink-0"
-                      onClick={() => handleOpenHybridAdd(cls.course, cls.name, classSessions)}
-                      disabled={classSessions.length === 0}
-                    >
-                      <Rocket className="h-3.5 w-3.5 mr-1" />
-                      开课
-                    </Button>
+                    {cls.status === "active" ? (
+                      <Button
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => handleOpenHybridAdd(cls.course, cls.name, classSessions)}
+                      >
+                        <Settings className="h-3.5 w-3.5 mr-1" />
+                        前往配置
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => handleOpenConfirm(cls)}
+                        disabled={classSessions.length === 0}
+                      >
+                        <Rocket className="h-3.5 w-3.5 mr-1" />
+                        开课
+                      </Button>
+                    )}
                   </div>
 
                   {classSessions.length > 0 ? (
@@ -194,6 +245,21 @@ export default function ClassClaimPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认开课</AlertDialogTitle>
+            <AlertDialogDescription>
+              确认将「{confirmClass?.course} - {confirmClass?.name}」的状态设为"已开课"吗？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmStart}>确认开课</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -202,3 +202,62 @@ export interface KnowledgeGraphEdge {
   to: string
   label?: string
 }
+
+// ====== 学生能力画像相关类型（从 zhiyu-evaluation 迁移） ======
+
+export type EvaluationGrade = 'A' | 'B' | 'C' | 'D' | 'E'
+
+export type AbilityDomain = 'industry' | 'professional' | 'skill' | 'general' | 'quality'
+
+export interface AbilityDomainScore {
+  domain: AbilityDomain
+  domainLabel: string
+  score: number
+  level: string
+}
+
+export interface CourseRecord {
+  courseName: string
+  credit: number
+  grade: EvaluationGrade
+  finalScore: number
+}
+
+export interface StudentAbilityPortrait {
+  id: string
+  studentName: string
+  studentId: string
+  className: string
+  majorName: string
+  positionName: string
+  overallGrade: EvaluationGrade
+  domainScores: AbilityDomainScore[]
+  classRank: number
+  classTotal: number
+  majorRank: number
+  majorTotal: number
+  recommendPositions: { positionName: string; matchRate: number }[]
+  updatedAt: Date
+  gender: string
+  gradeYear: string
+  avatarUrl?: string
+  courses: string[]
+  scenes: string[]
+  completedCourses: number
+  completedScenes: number
+  totalCredits: number
+  archiveCount: number
+  courseRecords: CourseRecord[]
+  graduationQualified: boolean
+  attendanceRate: number
+  diplomaBadge: string
+  yearRank: number
+  yearTotal: number
+  dualBadge: string
+}
+
+export interface PortraitUpdateConfig {
+  autoUpdate: boolean
+  updateTime: string
+  lastUpdateTime: Date
+}
