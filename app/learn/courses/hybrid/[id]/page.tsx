@@ -621,9 +621,6 @@ export default function HybridCourseDetailPage() {
                             <Badge variant={s.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0 h-4">
                               {s.mode === "online" ? "线上" : "线下"}
                             </Badge>
-                            <span className={`text-[10px] px-1.5 py-0 rounded border ${PHASE_META[s.phase].color}`}>
-                              {PHASE_META[s.phase].label}
-                            </span>
                           </div>
                           <h4 className="font-medium text-gray-800 group-hover:text-[#1890ff] transition-colors">
                             {s.name}
@@ -776,9 +773,6 @@ export default function HybridCourseDetailPage() {
                     <CollapsibleTrigger className="flex items-center gap-3 w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors">
                       <ChevronDown className="w-4 h-4 text-gray-400" />
                       <span className="text-sm font-medium text-gray-700">第{s.week}周 · {s.name}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] border ${PHASE_META[s.phase].color}`}>
-                        {PHASE_META[s.phase].label}
-                      </span>
                       <Badge variant="outline" className="text-[10px]">{s.mode === "online" ? "线上" : "线下"}</Badge>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="ml-8 p-3 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-600 whitespace-pre-line leading-relaxed">

@@ -560,9 +560,6 @@ export default function HybridCourseLearnPage() {
                   <Badge variant={activeUnit.mode === "online" ? "default" : "secondary"}>
                     {activeUnit.mode === "online" ? "线上" : "线下"}
                   </Badge>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded border ${currPhaseMeta.color}`}>
-                    {activeUnit.phaseLabel}
-                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">进度</span>
