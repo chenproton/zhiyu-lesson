@@ -44,6 +44,7 @@ import {
   Layers,
   MonitorPlay,
   Users,
+  UserPlus,
 } from "lucide-react"
 import { hybridCourses, hybridCourseStats } from "@/lib/mock-data"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -387,6 +388,10 @@ export default function HybridCoursePage() {
                         <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`复制课程：${course.name}（演示）`)}>
                           <Copy className="mr-1 h-3 w-3" />
                           复制
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => alert(`邀请共建：${course.name}（演示）`)}>
+                          <UserPlus className="mr-1 h-3 w-3" />
+                          邀请共建
                         </Button>
                         <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-red-600 hover:text-red-600 hover:bg-red-50" onClick={() => alert(`删除课程：${course.name}（演示）`)}>
                           <Trash2 className="mr-1 h-3 w-3" />
