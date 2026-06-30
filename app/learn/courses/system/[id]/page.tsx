@@ -93,11 +93,29 @@ const CHAPTER_KNOWLEDGE: Record<string, string[]> = {
   ch4: ["图表设计", "色彩理论", "信息可视化"],
 }
 
-const CHAPTER_QUIZZES: Record<string, { title: string; questions: number; score: number }> = {
-  ch1: { title: "数据分析概述单元测验", questions: 5, score: 50 },
-  ch2: { title: "假设检验单元测验", questions: 8, score: 80 },
-  ch3: { title: "回归分析单元测验", questions: 6, score: 60 },
-  ch4: { title: "数据可视化单元测验", questions: 5, score: 50 },
+const CHAPTER_QUIZZES: Record<string, { title: string; count: number; type: string }[]> = {
+  ch1: [
+    { title: "数据分析基础概念题库", count: 30, type: "题库" },
+    { title: "第一章单元测试卷", count: 15, type: "试卷" },
+    { title: "数据预处理随堂测验", count: 5, type: "随堂测" },
+  ],
+  ch2: [
+    { title: "假设检验专项题库", count: 40, type: "题库" },
+    { title: "T检验实操考核", count: 3, type: "作业" },
+    { title: "第二章综合测评试卷", count: 20, type: "试卷" },
+    { title: "课堂假设检验问答", count: 8, type: "现场问答" },
+  ],
+  ch3: [
+    { title: "回归分析习题库", count: 25, type: "题库" },
+    { title: "线性回归建模作业", count: 2, type: "作业" },
+    { title: "回归分析成果评价", count: 5, type: "成果评价" },
+  ],
+  ch4: [
+    { title: "数据可视化设计题库", count: 20, type: "题库" },
+    { title: "图表设计在线评审", count: 3, type: "在线评审" },
+    { title: "信息可视化成果评价", count: 4, type: "成果评价" },
+    { title: "第四章综合测试卷", count: 18, type: "试卷" },
+  ],
 }
 
 const CHAPTER_RESOURCES: Record<string, { id: string; name: string; type: string; size: string }[]> = {
@@ -807,27 +825,39 @@ export default function SystemCourseDetailPage() {
               <div className="flex gap-4">
                 <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-[#1f2937] mb-4">课程测评</h3>
-                  <div className="space-y-4">
-                    {selectedChapter && CHAPTER_QUIZZES[selectedChapter.id] ? (
-                      <div className="p-4 rounded-lg border border-blue-100 bg-blue-50/50">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-semibold text-gray-800">{CHAPTER_QUIZZES[selectedChapter.id].title}</h4>
-                          <Badge variant="outline" className="text-xs">{CHAPTER_QUIZZES[selectedChapter.id].questions} 题 · {CHAPTER_QUIZZES[selectedChapter.id].score} 分</Badge>
+                  <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-blue-500" />
+                    课程测评
+                    <span className="text-xs font-normal text-gray-400">— {selectedSection?.name || selectedChapter?.name || "请选择章节"}</span>
+                  </h3>
+                  {selectedChapter && (CHAPTER_QUIZZES[selectedChapter.id] || []).length > 0 ? (
+                    <div className="space-y-3">
+                      {(CHAPTER_QUIZZES[selectedChapter.id] || []).map((qz, i) => (
+                        <div key={i} className="p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center">{i + 1}</span>
+                              <h4 className="text-sm font-semibold text-gray-800">{qz.title}</h4>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-[10px]">{qz.type}</Badge>
+                              <Badge variant="outline" className="text-[10px]">{qz.count} 题</Badge>
+                            </div>
+                          </div>
+                          <Link href={`/learn/courses/system/1/learn?chapter=${selectedNodeId}`}>
+                            <Button size="sm" variant="outline" className="mt-1">
+                              <PlayCircle className="w-3 h-3 mr-1" />进入测评
+                            </Button>
+                          </Link>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-center text-gray-400 py-8">请选择左侧章节查看测评</div>
-                    )}
-                    <div className="p-4 rounded-lg border border-gray-100">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-gray-800">课后作业</h4>
-                        <Badge variant="outline" className="text-xs">需提交</Badge>
-                      </div>
-                      <p className="text-sm text-gray-600">使用所学方法，对给定的业务数据集进行分析，撰写一份不少于 500 字的分析报告。</p>
-                      <p className="text-xs text-gray-400 mt-2">截止时间：2025-01-20 23:59</p>
+                      ))}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-center py-10 text-gray-400 text-sm">
+                      <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                      <p>请选择左侧章节查看对应测评</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>

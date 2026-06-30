@@ -188,34 +188,46 @@ const SESSION_RESOURCES: Record<string, { id: string; name: string; type: string
 
 const SESSION_QUIZZES: Record<string, { title: string; count: number; type: string }[]> = {
   "s1": [
-    { title: "前端技术栈基础认知测验", count: 5, type: "单选" },
-    { title: "开发环境搭建检查", count: 3, type: "实操" },
+    { title: "前端技术栈基础习题库", count: 30, type: "题库" },
+    { title: "开发环境搭建验收试卷", count: 12, type: "试卷" },
+    { title: "Git工作流随堂测", count: 5, type: "随堂测" },
   ],
   "s2": [
-    { title: "HTML5语义化标签测验", count: 8, type: "单选" },
-    { title: "Flexbox与Grid布局测验", count: 10, type: "混合" },
+    { title: "HTML5语义化习题库", count: 40, type: "题库" },
+    { title: "CSS3布局实战试卷", count: 15, type: "试卷" },
+    { title: "Flexbox课堂即时问答", count: 8, type: "现场问答" },
+    { title: "响应式页面设计作业", count: 1, type: "作业" },
   ],
   "s3": [
-    { title: "JavaScript基础测验", count: 10, type: "混合" },
-    { title: "DOM操作实践检测", count: 5, type: "编程" },
+    { title: "JavaScript基础题库", count: 50, type: "题库" },
+    { title: "DOM操作编程作业", count: 3, type: "作业" },
+    { title: "JS闭包机制随堂测", count: 6, type: "随堂测" },
   ],
   "s4": [
-    { title: "ES6+新特性测验", count: 8, type: "单选" },
-    { title: "Promise编程挑战", count: 3, type: "编程" },
+    { title: "ES6+新特性题库", count: 35, type: "题库" },
+    { title: "Promise异步编程作业", count: 2, type: "作业" },
+    { title: "ES6综合测评试卷", count: 20, type: "试卷" },
   ],
   "s5": [
-    { title: "React基础概念测验", count: 10, type: "混合" },
+    { title: "React核心概念题库", count: 30, type: "题库" },
+    { title: "组件设计在线评审", count: 4, type: "在线评审" },
+    { title: "Hooks应用随堂测", count: 5, type: "随堂测" },
   ],
   "s6": [
-    { title: "React组件化测验", count: 6, type: "混合" },
-    { title: "组件设计实战考核", count: 2, type: "编程" },
+    { title: "组件封装设计评审", count: 3, type: "在线评审" },
+    { title: "Context状态管理作业", count: 2, type: "作业" },
+    { title: "React组件化成果评价", count: 5, type: "成果评价" },
   ],
   "s7": [
-    { title: "TypeScript类型系统测验", count: 8, type: "单选" },
+    { title: "TypeScript类型系统题库", count: 40, type: "题库" },
+    { title: "工程化配置实践作业", count: 2, type: "作业" },
+    { title: "TS类型体操现场问答", count: 6, type: "现场问答" },
   ],
   "s8": [
-    { title: "前端项目综合考核", count: 15, type: "混合" },
-    { title: "项目答辩评估", count: 1, type: "答辩" },
+    { title: "前端综合能力测评", count: 50, type: "题库" },
+    { title: "项目答辩专家评审", count: 5, type: "在线评审" },
+    { title: "前端项目成果评价", count: 8, type: "成果评价" },
+    { title: "综合结课考核试卷", count: 25, type: "试卷" },
   ],
 }
 
