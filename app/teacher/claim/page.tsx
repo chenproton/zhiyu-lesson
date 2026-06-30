@@ -7,10 +7,19 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +31,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { hybridCourses } from "@/lib/mock-data"
+import { MAJORS } from "@/lib/types"
+import { cn } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
 import { BookOpen, Users, Calendar, CheckCircle2, MapPin, Clock, Rocket, Settings, Search, Copy } from "lucide-react"
 
 const semesters = [
@@ -80,15 +92,31 @@ export default function ClassClaimPage() {
   const [confirmClass, setConfirmClass] = useState<ClassItem | null>(null)
   const [cloneOpen, setCloneOpen] = useState(false)
   const [cloneSearch, setCloneSearch] = useState("")
+  const [cloneMajor, setCloneMajor] = useState("全部")
+  const [cloneCategory, setCloneCategory] = useState("全部")
+  const [cloneBatch, setCloneBatch] = useState("全部")
+  const [cloneSelectedId, setCloneSelectedId] = useState<string | null>(null)
+  const [cloneClassContext, setCloneClassContext] = useState<{ course: string; teacher: string; className: string; sessions: ClassSession[] } | null>(null)
+
+  const uniqueCategories = useMemo(() => {
+    const cats = new Set(hybridCourses.map((c) => c.category).filter(Boolean))
+    return [...cats]
+  }, [])
+
+  const uniqueBatches = useMemo(() => {
+    const batches = new Set(hybridCourses.map((c) => c.batchGroup).filter(Boolean))
+    return [...batches]
+  }, [])
 
   const filteredHybrid = useMemo(() =>
-    hybridCourses.filter((c) =>
-      !cloneSearch ||
-      c.name.includes(cloneSearch) ||
-      (c.major && c.major.includes(cloneSearch)) ||
-      (c.teacher && c.teacher.includes(cloneSearch))
-    ),
-    [cloneSearch]
+    hybridCourses.filter((c) => {
+      if (cloneMajor !== "全部" && c.major !== cloneMajor) return false
+      if (cloneCategory !== "全部" && c.category !== cloneCategory) return false
+      if (cloneBatch !== "全部" && c.batchGroup !== cloneBatch) return false
+      if (cloneSearch && !c.name.includes(cloneSearch) && !c.teacher?.includes(cloneSearch) && !c.major?.includes(cloneSearch)) return false
+      return true
+    }),
+    [cloneSearch, cloneMajor, cloneCategory, cloneBatch]
   )
 
   const termClasses = classes.filter((c) => c.term === selectedTerm)
@@ -221,60 +249,27 @@ export default function ClassClaimPage() {
                           <Settings className="h-3.5 w-3.5 mr-1" />
                           新建混合课
                         </Button>
-                        <Popover open={cloneOpen} onOpenChange={setCloneOpen}>
-                          <PopoverTrigger asChild>
-                            <Button size="sm" variant="outline">
-                              <Copy className="h-3.5 w-3.5 mr-1" />
-                              克隆现有混合课
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-72 p-0" align="end">
-                            <div className="p-2 border-b">
-                              <div className="relative">
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                                <Input
-                                  value={cloneSearch}
-                                  onChange={(e) => setCloneSearch(e.target.value)}
-                                  placeholder="搜索混合课名称..."
-                                  className="pl-8 h-8 text-xs"
-                                />
-                              </div>
-                            </div>
-                            <div className="max-h-[240px] overflow-y-auto p-1">
-                              {filteredHybrid.length === 0 ? (
-                                <p className="text-xs text-gray-400 text-center py-4">未找到匹配的混合课</p>
-                              ) : (
-                                filteredHybrid.map((c) => (
-                                  <button
-                                    key={c.id}
-                                    className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
-                                    onClick={() => {
-                                      const payload = {
-                                        course: cls.course,
-                                        teacher: cls.teacher,
-                                        className: cls.name,
-                                        sessions: classSessions.map((s) => ({
-                                          week: s.week,
-                                          weekday: s.weekday,
-                                          period: s.period,
-                                          venue: s.venue,
-                                        })),
-                                      }
-                                      const encoded = btoa(encodeURIComponent(JSON.stringify(payload)))
-                                      const url = `/admin/hybrid/add?id=${c.id}&claimCourse=${encodeURIComponent(cls.course)}&claimSessions=${encodeURIComponent(encoded)}`
-                                      setCloneOpen(false)
-                                      setCloneSearch("")
-                                      window.open(url, "_blank")
-                                    }}
-                                  >
-                                    <p className="text-xs font-medium text-gray-800 truncate">{c.name}</p>
-                                    <p className="text-[10px] text-gray-400 truncate">{c.major} · {c.teacher}</p>
-                                  </button>
-                                ))
-                              )}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setCloneSearch("")
+                            setCloneMajor("全部")
+                            setCloneCategory("全部")
+                            setCloneBatch("全部")
+                            setCloneSelectedId(null)
+                            setCloneClassContext({
+                              course: cls.course,
+                              teacher: cls.teacher,
+                              className: cls.name,
+                              sessions: classSessions,
+                            })
+                            setCloneOpen(true)
+                          }}
+                        >
+                          <Copy className="h-3.5 w-3.5 mr-1" />
+                          克隆混合课
+                        </Button>
                       </div>
                     ) : (
                       <Button
@@ -334,6 +329,154 @@ export default function ClassClaimPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Clone hybrid course dialog */}
+      <Dialog open={cloneOpen} onOpenChange={setCloneOpen}>
+        <DialogContent className="sm:max-w-[640px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>克隆混合课</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                value={cloneSearch}
+                onChange={(e) => {
+                  setCloneSearch(e.target.value)
+                  setCloneSelectedId(null)
+                }}
+                placeholder="搜索混合课名称、教师..."
+                className="pl-9 text-sm h-9"
+              />
+            </div>
+
+            {/* Filters */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label>所属专业</Label>
+                <Select value={cloneMajor} onValueChange={(v) => { setCloneMajor(v); setCloneSelectedId(null) }}>
+                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="全部">全部</SelectItem>
+                    {MAJORS.filter((m) => m !== "全部").map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>课程分类</Label>
+                <Select value={cloneCategory} onValueChange={(v) => { setCloneCategory(v); setCloneSelectedId(null) }}>
+                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="全部">全部</SelectItem>
+                    {uniqueCategories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>所属批次分组</Label>
+                <Select value={cloneBatch} onValueChange={(v) => { setCloneBatch(v); setCloneSelectedId(null) }}>
+                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="全部">全部</SelectItem>
+                    {uniqueBatches.map((b) => (
+                      <SelectItem key={b} value={b}>{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Course list */}
+            <div className="border-t pt-3">
+              <p className="text-xs text-gray-400 mb-2">
+                共 {filteredHybrid.length} 门课程
+                {cloneSelectedId && (
+                  <span className="text-primary ml-2">已选择 1 门</span>
+                )}
+              </p>
+              <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                {filteredHybrid.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-6">未找到匹配的混合课</p>
+                ) : (
+                  filteredHybrid.map((c) => {
+                    const selected = cloneSelectedId === c.id
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => setCloneSelectedId(selected ? null : c.id)}
+                        className={cn(
+                          "w-full text-left p-3 rounded-lg border transition-all",
+                          selected
+                            ? "border-primary bg-primary/5 ring-1 ring-primary/10"
+                            : "border-gray-200 hover:border-gray-300 bg-white"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "w-5 h-5 rounded-full border flex items-center justify-center shrink-0",
+                            selected ? "bg-primary border-primary" : "border-gray-300"
+                          )}>
+                            {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                          </div>
+                          <span className="text-sm font-medium text-gray-800 truncate flex-1">{c.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1.5 pl-7 text-xs text-gray-500">
+                          {c.major && <span>{c.major}</span>}
+                          {c.major && c.category && <span className="text-gray-300">|</span>}
+                          {c.category && <span>{c.category}</span>}
+                          {c.category && c.batchGroup && <span className="text-gray-300">|</span>}
+                          {c.batchGroup && <span>{c.batchGroup}</span>}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 pl-7">
+                          {c.teacher && <span className="text-[10px] text-gray-400">{c.teacher}</span>}
+                          {c.onlineHours != null && c.offlineHours != null && (
+                            <span className="text-[10px] text-gray-400">
+                              线上{c.onlineHours}学时 + 线下{c.offlineHours}学时
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCloneOpen(false)}>
+              取消
+            </Button>
+            <Button
+              disabled={!cloneSelectedId}
+              onClick={() => {
+                if (!cloneSelectedId || !cloneClassContext) return
+                const payload = {
+                  course: cloneClassContext.course,
+                  teacher: cloneClassContext.teacher,
+                  className: cloneClassContext.className,
+                  sessions: cloneClassContext.sessions.map((s) => ({
+                    week: s.week,
+                    weekday: s.weekday,
+                    period: s.period,
+                    venue: s.venue,
+                  })),
+                }
+                const encoded = btoa(encodeURIComponent(JSON.stringify(payload)))
+                const url = `/admin/hybrid/add?id=${cloneSelectedId}&claimCourse=${encodeURIComponent(cloneClassContext.course)}&claimSessions=${encodeURIComponent(encoded)}`
+                setCloneOpen(false)
+                window.open(url, "_blank")
+              }}
+            >
+              确认关联
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
