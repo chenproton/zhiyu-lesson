@@ -3,21 +3,19 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
-  ArrowLeft, BookOpen, PlayCircle, FileText, Users, MonitorPlay,
-  BarChart3, Clock, GraduationCap, Target, FolderOpen,
-  ClipboardList, MessageCircle, ChevronDown, ChevronRight, CheckCircle2,
-  Circle, Lightbulb, PenTool, Layers, BookMarked, HelpCircle,
-  Wrench, Info, List, BrainCircuit
+  BookOpen, Clock, FileText, FolderOpen, List,
+  PlayCircle, Target, User, BarChart3, GraduationCap,
+  ClipboardList, ChevronDown, ChevronRight, CheckCircle2,
+  PenTool, MonitorPlay, Users, BookMarked,
 } from "lucide-react"
 import { hybridCourses } from "@/lib/mock-data"
-import { COURSE_STATUS_LABELS, COURSE_TYPE_LABELS } from "@/lib/types"
+import { COURSE_TYPE_LABELS } from "@/lib/types"
 
 /* ======================== Mock Data ======================== */
 
@@ -58,12 +56,11 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：HTML5语义化标签、CSS3 Flexbox/Grid布局、响应式设计原理\n教学难点：Grid布局的网格线概念、媒体查询与移动端适配\n教学方法：课前预习微课 + 课堂案例演示 + 随堂练习 + 项目实践",
     review: "课堂互动积极，学生掌握了Flexbox布局核心属性。随堂测验平均分82分，整体情况良好。",
     modules: [
-      { key: "preQuizzes", label: "课前测验", phase: "pre-class", icon: HelpCircle, status: "done", desc: "HTML/CSS基础概念测验（10题）" },
+      { key: "preQuizzes", label: "课前测验", phase: "pre-class", icon: PenTool, status: "done", desc: "HTML/CSS基础概念测验（10题）" },
       { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "done", desc: "HTML5语义化标签 + CSS3 Flexbox/Grid布局" },
       { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "in_progress", desc: "响应式网页布局实战练习" },
       { key: "inClassQuizzes", label: "随堂测验", phase: "in-class", icon: CheckCircle2, status: "done", desc: "Flexbox布局测验，平均分82" },
-      { key: "classQuestions", label: "课堂提问", phase: "in-class", icon: MessageCircle, status: "done", desc: "随堂提问互动3次" },
-      { key: "practiceTasks", label: "实践任务", phase: "in-class", icon: Wrench, status: "in_progress", desc: "仿写京东首页静态布局" },
+      { key: "practiceTasks", label: "实践任务", phase: "in-class", icon: BookMarked, status: "in_progress", desc: "仿写京东首页静态布局" },
     ],
   },
   {
@@ -91,7 +88,6 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：React核心概念与JSX、组件Props与State管理、Hooks（useState, useEffect）\n教学难点：State不可变更新、useEffect的依赖管理",
     review: "",
     modules: [
-      { key: "preQuizzes", label: "课前测验", phase: "pre-class", icon: HelpCircle, status: "pending", desc: "React基础概念测验" },
       { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "pending", desc: "React核心概念、JSX、组件化思想" },
       { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "pending", desc: "编写第一个React组件并进行调试" },
     ],
@@ -120,7 +116,7 @@ const SESSIONS: TeachingSession[] = [
     modules: [
       { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "pending", desc: "项目管理流程与团队协作方案" },
       { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "pending", desc: "分组选题与技术方案评审" },
-      { key: "practiceTasks", label: "实践任务", phase: "in-class", icon: Wrench, status: "pending", desc: "完成小组项目核心功能开发" },
+      { key: "practiceTasks", label: "实践任务", phase: "in-class", icon: BookMarked, status: "pending", desc: "完成小组项目核心功能开发" },
     ],
   },
 ]
@@ -262,7 +258,7 @@ function CatalogNav({
           return (
             <div key={s.id}>
               <button
-                onClick={() => { toggle(s.id); onSelect(s.id); }}
+                onClick={() => { toggle(s.id); onSelect(s.id) }}
                 className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
                   isActive ? "bg-[#e6f7ff] text-[#1890ff] font-medium" : "text-gray-700 hover:bg-gray-50"
                 }`}
@@ -380,104 +376,136 @@ export default function HybridCourseDetailPage() {
   }
 
   const totalProgress = Math.round(SESSIONS.reduce((sum, s) => sum + s.progress, 0) / SESSIONS.length)
+  const [activeTab, setActiveTab] = useState("goals")
   const [selectedId, setSelectedId] = useState("s1")
+  const coverLabel = course.category || "混合课程"
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/learn"><ArrowLeft className="h-4 w-4" /></Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">{COURSE_TYPE_LABELS[course.type]}</Badge>
-            <Badge>{COURSE_STATUS_LABELS[course.status]}</Badge>
+    <div className="space-y-5 max-w-6xl mx-auto">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/learn" className="hover:text-foreground transition-colors">课程首页</Link>
+        <span>/</span>
+        <span className="text-foreground">混合课详情</span>
+      </div>
+
+      {/* Top Card */}
+      <div className="bg-white rounded-2xl p-6 border border-[#e7e5e4] shadow-[0_4px_20px_rgba(69,26,3,0.06)]">
+        <div className="flex gap-6">
+          <div className="w-[260px] min-h-[180px] rounded-xl bg-gradient-to-br from-purple-700 to-violet-500 flex items-center justify-center relative overflow-hidden shrink-0">
+            <span className="absolute top-3 left-3 bg-white/25 text-white px-3 py-1 rounded-md text-sm font-semibold backdrop-blur-sm">{course.version}</span>
+            <span className="text-white text-5xl font-bold opacity-25">{coverLabel}</span>
+            <span className="absolute bottom-3 right-3 bg-black/40 text-white px-3 py-1 rounded-md text-xs">{course.code}</span>
           </div>
-          <h1 className="text-2xl font-bold mt-1">{course.name}</h1>
-        </div>
-        <Button asChild>
-          <Link href={`/learn/courses/hybrid/${course.id}/learn`}>
-            <PlayCircle className="h-4 w-4 mr-1" />进入学习
-          </Link>
-        </Button>
-      </div>
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2"><MonitorPlay className="h-5 w-5 text-blue-600" /><div><p className="text-xs text-muted-foreground">线上学时</p><p className="text-xl font-bold">{course.onlineHours}h</p></div></div></CardContent></Card>
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2"><Users className="h-5 w-5 text-orange-600" /><div><p className="text-xs text-muted-foreground">线下学时</p><p className="text-xl font-bold">{course.offlineHours}h</p></div></div></CardContent></Card>
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-green-600" /><div><p className="text-xs text-muted-foreground">成绩权重</p><p className="text-xl font-bold">{course.onlineWeight}/{course.offlineWeight}</p></div></div></CardContent></Card>
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2"><Clock className="h-5 w-5 text-purple-600" /><div><p className="text-xs text-muted-foreground">学习人数</p><p className="text-xl font-bold">{course.studyCount}</p></div></div></CardContent></Card>
-        <Card><CardContent className="pt-5 pb-4"><div className="flex items-center gap-2"><GraduationCap className="h-5 w-5 text-cyan-600" /><div><p className="text-xs text-muted-foreground">总进度</p><div className="flex items-center gap-2"><p className="text-xl font-bold">{totalProgress}%</p><Progress value={totalProgress} className="h-2 w-16" /></div></div></div></CardContent></Card>
-      </div>
-
-      {/* Main content with tabs */}
-      <Tabs defaultValue="info" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="info"><Info className="h-4 w-4 mr-1" />课程信息</TabsTrigger>
-          <TabsTrigger value="goals"><Target className="h-4 w-4 mr-1" />课程目标</TabsTrigger>
-          <TabsTrigger value="catalog"><List className="h-4 w-4 mr-1" />课程目录</TabsTrigger>
-          <TabsTrigger value="design"><PenTool className="h-4 w-4 mr-1" />教学设计</TabsTrigger>
-          <TabsTrigger value="resources"><FolderOpen className="h-4 w-4 mr-1" />课程资源</TabsTrigger>
-          <TabsTrigger value="quiz"><ClipboardList className="h-4 w-4 mr-1" />课程测评</TabsTrigger>
-        </TabsList>
-
-        {/* Catalog - tree view */}
-        <TabsContent value="catalog">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <List className="w-4 h-4 text-[#1890ff]" />课程目录
-                <span className="text-xs font-normal text-gray-400">({SESSIONS.length} 次课)</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TreeView sessions={SESSIONS} courseId={course.id} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Course Info */}
-        <TabsContent value="info">
-          <Card>
-            <CardHeader><CardTitle>课程简介</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground leading-relaxed">
-                本课程为线上线下混合式课程，融合传统课堂教学与数字课程资源，形成"课前线上自主学习 + 课中线下智慧课堂 + 课后线上作业测验 + 期末过程性考核归档"的完整教学闭环。涵盖HTML/CSS/JavaScript基础、React框架开发、TypeScript工程化、前端项目实战等内容。
-              </p>
-              <div className="space-y-3">
-                <p className="font-medium flex items-center gap-2"><Info className="w-4 h-4 text-[#1890ff]" />课程信息</p>
-                <div className="text-sm text-muted-foreground space-y-2 grid grid-cols-2 gap-x-8">
-                  <div className="flex justify-between py-1.5 border-b border-gray-50"><span>课程编码</span><span className="font-medium text-gray-700">{course.code}</span></div>
-                  <div className="flex justify-between py-1.5 border-b border-gray-50"><span>授课教师</span><span className="font-medium text-gray-700">{course.teacher}</span></div>
-                  <div className="flex justify-between py-1.5 border-b border-gray-50"><span>上课学期</span><span className="font-medium text-gray-700">{course.semester}</span></div>
-                  <div className="flex justify-between py-1.5 border-b border-gray-50"><span>上课班级</span><span className="font-medium text-gray-700">{course.className}</span></div>
-                  <div className="flex justify-between py-1.5 border-b border-gray-50"><span>课程分类</span><span className="font-medium text-gray-700">{course.category}</span></div>
-                  <div className="flex justify-between py-1.5 border-b border-gray-50"><span>所属专业</span><span className="font-medium text-gray-700">{course.major}</span></div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-2xl font-bold text-[#0f172a]">{course.name}</h1>
+              <Badge className="text-xs bg-[#eff6ff] text-[#2563eb] hover:bg-[#eff6ff] border-none">{COURSE_TYPE_LABELS[course.type]}</Badge>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs border border-[#ffedd5] bg-[#fff7ed] text-[#c2410c]">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5" /></svg>
+                面向行业：{course.industry}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs border border-[#bbf7d0] bg-[#dcfce7] text-[#15803d]">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
+                适用专业：{course.major}
+              </span>
+            </div>
+            <div className="flex flex-col gap-2.5 mb-4">
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <User className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>授课教师：{course.teacher}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <Clock className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>更新时间：{course.updateDate}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <BookOpen className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>课程分类：{course.category}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <GraduationCap className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>{course.semester} · {course.className}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Link href={`/learn/courses/hybrid/${course.id}/learn`}>
+                <Button className="bg-gradient-to-r from-[#3b82f6] to-[#60a5fa] hover:from-[#2563eb] hover:to-[#3b82f6] text-white border-0 px-8 py-2.5 text-base rounded-lg">
+                  <PlayCircle className="h-4 w-4 mr-2" />开始学习
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* Goals - single rich text */}
-        <TabsContent value="goals">
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Target className="w-4 h-4 text-[#1890ff]" />课程目标</CardTitle></CardHeader>
-            <CardContent>
+      {/* Stats Box */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {[
+          { label: "线上学时", value: `${course.onlineHours}h` },
+          { label: "线下学时", value: `${course.offlineHours}h` },
+          { label: "成绩权重", value: `${course.onlineWeight}/${course.offlineWeight}` },
+          { label: "学习人数", value: course.studyCount },
+          { label: "总进度", value: `${totalProgress}%` },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-white rounded-xl border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.04)] py-3 px-4 text-center hover:border-[#bfdbfe] hover:shadow-[0_4px_12px_rgba(37,99,235,0.08)] transition-all">
+            <div className="text-[24px] font-bold text-[#1e293b] leading-tight">{stat.value}</div>
+            <div className="text-[13px] text-[#64748b]">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom Tab Card */}
+      <div className="bg-white rounded-2xl border border-[#e7e5e4] shadow-[0_4px_20px_rgba(69,26,3,0.06)] overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start gap-0 rounded-none border-b border-[#f5f5f4] bg-white h-auto p-0 overflow-x-auto">
+            {[
+              { value: "goals", label: "课程目标", icon: Target },
+              { value: "catalog", label: "课程目录", icon: List },
+              { value: "design", label: "教学设计", icon: PenTool },
+              { value: "resources", label: "课程资源", icon: FolderOpen },
+              { value: "quiz", label: "课程测评", icon: ClipboardList },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="relative shrink-0 px-4 py-4 text-[15px] text-[#64748b] rounded-none border-0 bg-transparent data-[state=active]:text-[#3b82f6] data-[state=active]:font-semibold data-[state=active]:shadow-none data-[state=active]:bg-transparent hover:text-[#2563eb] transition-colors
+                  after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-sm data-[state=active]:after:bg-[#3b82f6]"
+              >
+                <tab.icon className="h-4 w-4 mr-1.5" />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <div className="p-6 min-h-[500px]">
+            {/* Goals */}
+            <TabsContent value="goals" className="mt-0">
+              <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
+                <Target className="w-4 h-4 text-[#3b82f6]" />课程目标
+              </h3>
               <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line leading-relaxed">
                 {COURSE_OBJECTIVES}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </TabsContent>
 
-        {/* Design */}
-        <TabsContent value="design">
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><PenTool className="w-4 h-4 text-blue-500" />教学设计总览</CardTitle></CardHeader>
-            <CardContent>
+            {/* Catalog */}
+            <TabsContent value="catalog" className="mt-0">
+              <h3 className="text-base font-semibold text-[#1f2937] mb-4">课程目录</h3>
+              <TreeView sessions={SESSIONS} courseId={course.id} />
+            </TabsContent>
+
+            {/* Design */}
+            <TabsContent value="design" className="mt-0">
+              <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
+                <PenTool className="w-4 h-4 text-[#3b82f6]" />教学设计总览
+              </h3>
               <div className="space-y-3">
                 {SESSIONS.map((s) => (
                   <Collapsible key={s.id}>
@@ -492,24 +520,18 @@ export default function HybridCourseDetailPage() {
                   </Collapsible>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </TabsContent>
 
-        {/* Resources - linked to catalog */}
-        <TabsContent value="resources">
-          <div className="flex gap-4">
-            <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} courseId={course.id} />
-            <div className="flex-1 min-w-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+            {/* Resources */}
+            <TabsContent value="resources" className="mt-0">
+              <div className="flex gap-4">
+                <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} courseId={course.id} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
                     <FolderOpen className="w-4 h-4 text-amber-500" />
                     课程资源
                     <span className="text-xs font-normal text-gray-400">— {SESSIONS.find(s => s.id === selectedId)?.name || ""}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+                  </h3>
                   {(SESSION_RESOURCES[selectedId] || []).length === 0 ? (
                     <div className="text-center py-10 text-gray-400 text-sm">
                       <FolderOpen className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -531,26 +553,20 @@ export default function HybridCourseDetailPage() {
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
+                </div>
+              </div>
+            </TabsContent>
 
-        {/* Quiz - linked to catalog */}
-        <TabsContent value="quiz">
-          <div className="flex gap-4">
-            <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} courseId={course.id} />
-            <div className="flex-1 min-w-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+            {/* Quiz */}
+            <TabsContent value="quiz" className="mt-0">
+              <div className="flex gap-4">
+                <CatalogNav sessions={SESSIONS} selectedId={selectedId} onSelect={setSelectedId} courseId={course.id} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
                     <ClipboardList className="w-4 h-4 text-blue-500" />
                     课程测评
                     <span className="text-xs font-normal text-gray-400">— {SESSIONS.find(s => s.id === selectedId)?.name || ""}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+                  </h3>
                   {(SESSION_QUIZZES[selectedId] || []).length === 0 ? (
                     <div className="text-center py-10 text-gray-400 text-sm">
                       <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -579,12 +595,12 @@ export default function HybridCourseDetailPage() {
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
+            </TabsContent>
           </div>
-        </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   )
 }

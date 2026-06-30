@@ -1,16 +1,16 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { notFound, useParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  ArrowLeft, BookOpen, Clock, FileText, User, Layers, PlayCircle,
-  Star, BrainCircuit, FolderOpen, Target, PenTool, Heart, Share2, Bookmark
+  BookOpen, Clock, FileText, FolderOpen, List,
+  PlayCircle, Target, User, BrainCircuit,
 } from "lucide-react"
 import { courses } from "@/lib/mock-data"
-import { COURSE_STATUS_LABELS, COURSE_STATUS_COLORS } from "@/lib/types"
-import { notFound, useParams } from "next/navigation"
 
 /* ==================== Mock Data ==================== */
 
@@ -49,22 +49,7 @@ const MOCK_LEARNING_GOAL = `## 💡 知识目标
 
 ---
 
-> 📋 **教学提示**：本颗粒课聚焦 API 未授权访问这一具体安全场景，通过理论讲解 + 工具实操 + 靶场演练结合的方式，帮助学习者在 1-2 个课时内快速掌握核心技能。建议配合 /admin/granular/add 后台的「学习目标」富文本编辑器查看完整编辑态效果。`
-
-/* ==================== Sub Components ==================== */
-
-function StarRating({ value, max = 5 }: { value: number; max?: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: max }).map((_, i) => (
-        <Star
-          key={i}
-          className={`w-3.5 h-3.5 ${i < value ? "text-amber-400 fill-amber-400" : "text-gray-200"}`}
-        />
-      ))}
-    </div>
-  )
-}
+> 📋 **教学提示**：本颗粒课聚焦 API 未授权访问这一具体安全场景，通过理论讲解 + 工具实操 + 靶场演练结合的方式，帮助学习者在 1-2 个课时内快速掌握核心技能。`
 
 /* ==================== Main Page ==================== */
 
@@ -74,144 +59,122 @@ export default function GranularCourseDetailPage() {
   const course = courses.find((c) => c.id === id && c.type === "granular")
   if (!course) return notFound()
 
-  const relatedCourses = courses
-    .filter((c) => c.type === "granular" && c.id !== course.id)
-    .slice(0, 3)
+  const [activeTab, setActiveTab] = useState("goal")
+  const coverLabel = course.category || course.courseTag || "颗粒课"
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 max-w-6xl mx-auto">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/learn" className="hover:text-foreground transition-colors">
-          课程首页
-        </Link>
+        <Link href="/learn" className="hover:text-foreground transition-colors">课程首页</Link>
         <span>/</span>
-        <span className="text-foreground">颗粒课</span>
+        <span className="text-foreground">颗粒课详情</span>
       </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="secondary" className="text-xs">{course.courseTag}</Badge>
-            <Badge className={COURSE_STATUS_COLORS[course.status]}>
-              {COURSE_STATUS_LABELS[course.status]}
-            </Badge>
+      {/* Top Card */}
+      <div className="bg-white rounded-2xl p-6 border border-[#e7e5e4] shadow-[0_4px_20px_rgba(69,26,3,0.06)]">
+        <div className="flex gap-6">
+          <div className={`w-[260px] min-h-[180px] rounded-xl bg-gradient-to-br ${course.coverColor || "from-blue-800 to-blue-500"} flex items-center justify-center relative overflow-hidden shrink-0`}>
+            <span className="absolute top-3 left-3 bg-white/25 text-white px-3 py-1 rounded-md text-sm font-semibold backdrop-blur-sm">{course.version}</span>
+            <span className="text-white text-5xl font-bold opacity-25">{coverLabel}</span>
+            <span className="absolute bottom-3 right-3 bg-black/40 text-white px-3 py-1 rounded-md text-xs">{course.code}</span>
           </div>
-          <h1 className="text-2xl font-bold">{course.name}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            课程编码 {course.code} · 授课教师 {course.teacher}
-          </p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          <Link href="/learn">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-1" />返回
-            </Button>
-          </Link>
-          <Button size="sm">
-            <PlayCircle className="h-4 w-4 mr-1" />开始学习
-          </Button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-2xl font-bold text-[#0f172a]">{course.name}</h1>
+              <Badge className="text-xs bg-[#eff6ff] text-[#2563eb] hover:bg-[#eff6ff] border-none">{course.courseTag}</Badge>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs border border-[#ffedd5] bg-[#fff7ed] text-[#c2410c]">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5" /></svg>
+                面向行业：{course.industry}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs border border-[#bbf7d0] bg-[#dcfce7] text-[#15803d]">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
+                适用专业：{course.major}
+              </span>
+            </div>
+            <div className="flex flex-col gap-2.5 mb-4">
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <User className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>授课教师：{course.teacher}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <Clock className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>更新时间：{course.updateDate}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <BookOpen className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>课程类型：{course.category}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Link href={`/learn/courses/granular/${course.id}/learn`}>
+                <Button className="bg-gradient-to-r from-[#3b82f6] to-[#60a5fa] hover:from-[#2563eb] hover:to-[#3b82f6] text-white border-0 px-8 py-2.5 text-base rounded-lg">
+                  <PlayCircle className="h-4 w-4 mr-2" />开始学习
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Two-column layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6">
-        {/* Main column */}
-        <div className="space-y-6">
+      {/* Stats Box */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {[
+          { label: "涉及节点", value: course.nodeCount },
+          { label: "预计课时", value: course.lessonCount },
+          { label: "课程资源", value: MOCK_RESOURCES.length },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-white rounded-xl border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.04)] py-3 px-4 text-center hover:border-[#bfdbfe] hover:shadow-[0_4px_12px_rgba(37,99,235,0.08)] transition-all">
+            <div className="text-[24px] font-bold text-[#1e293b] leading-tight">{stat.value}</div>
+            <div className="text-[13px] text-[#64748b]">{stat.label}</div>
+          </div>
+        ))}
+      </div>
 
-          {/* Basic info card */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#1890ff]" />
-                基本信息
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                <div className="text-center p-3 rounded-lg bg-blue-50">
-                  <p className="text-xs text-blue-500 mb-1">涉及节点</p>
-                  <p className="text-xl font-bold text-blue-700">{course.nodeCount}</p>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-green-50">
-                  <p className="text-xs text-green-500 mb-1">预计课时</p>
-                  <p className="text-xl font-bold text-green-700">{course.lessonCount}</p>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-amber-50">
-                  <p className="text-xs text-amber-500 mb-1">课程资源</p>
-                  <p className="text-xl font-bold text-amber-700">{MOCK_RESOURCES.length}</p>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-purple-50">
-                  <p className="text-xs text-purple-500 mb-1">难度等级</p>
-                  <div className="flex justify-center mt-1">
-                    <StarRating value={3} />
-                  </div>
-                </div>
-              </div>
+      {/* Bottom Tab Card */}
+      <div className="bg-white rounded-2xl border border-[#e7e5e4] shadow-[0_4px_20px_rgba(69,26,3,0.06)] overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start gap-0 rounded-none border-b border-[#f5f5f4] bg-white h-auto p-0 overflow-x-auto">
+            {[
+              { value: "goal", label: "学习目标", icon: Target },
+              { value: "knowledge", label: "关联知识点", icon: BrainCircuit },
+              { value: "resource", label: "课程资源", icon: FolderOpen },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="relative shrink-0 px-4 py-4 text-[15px] text-[#64748b] rounded-none border-0 bg-transparent data-[state=active]:text-[#3b82f6] data-[state=active]:font-semibold data-[state=active]:shadow-none data-[state=active]:bg-transparent hover:text-[#2563eb] transition-colors
+                  after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-sm data-[state=active]:after:bg-[#3b82f6]"
+              >
+                <tab.icon className="h-4 w-4 mr-1.5" />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                <div className="flex justify-between py-1.5 border-b border-gray-50">
-                  <span className="text-muted-foreground">课程名称</span>
-                  <span className="font-medium">{course.name}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-gray-50">
-                  <span className="text-muted-foreground">课程编码</span>
-                  <span className="font-medium font-mono text-xs">{course.code}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-gray-50">
-                  <span className="text-muted-foreground">课程分类</span>
-                  <span className="font-medium">{course.category}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-gray-50">
-                  <span className="text-muted-foreground">所属行业</span>
-                  <span className="font-medium">{course.industry}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-gray-50">
-                  <span className="text-muted-foreground">所属专业</span>
-                  <span className="font-medium">{course.major}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-gray-50">
-                  <span className="text-muted-foreground">授课教师</span>
-                  <span className="font-medium">{course.teacher}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-gray-50">
-                  <span className="text-muted-foreground">浏览人次</span>
-                  <span className="font-medium">{course.viewCount?.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-gray-50">
-                  <span className="text-muted-foreground">学习人次</span>
-                  <span className="font-medium">{course.studyCount?.toLocaleString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Learning Goal - single rich text card */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Target className="w-4 h-4 text-[#1890ff]" />
-                学习目标
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="p-6 min-h-[500px]">
+            {/* Goals */}
+            <TabsContent value="goal" className="mt-0">
+              <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
+                <Target className="w-4 h-4 text-[#3b82f6]" />学习目标
+              </h3>
               <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line leading-relaxed">
                 {MOCK_LEARNING_GOAL}
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
 
-          {/* Knowledge Points */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BrainCircuit className="w-4 h-4 text-[#1890ff]" />
-                关联知识点
+            {/* Knowledge Points */}
+            <TabsContent value="knowledge" className="mt-0">
+              <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
+                <BrainCircuit className="w-4 h-4 text-[#3b82f6]" />关联知识点
                 <span className="text-xs font-normal text-gray-400">({MOCK_KNOWLEDGE_POINTS.length} 项)</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {MOCK_KNOWLEDGE_POINTS.map((kp) => (
                   <div
@@ -231,19 +194,14 @@ export default function GranularCourseDetailPage() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
 
-          {/* Resources */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FolderOpen className="w-4 h-4 text-[#1890ff]" />
-                课程资源
+            {/* Resources */}
+            <TabsContent value="resource" className="mt-0">
+              <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
+                <FolderOpen className="w-4 h-4 text-[#3b82f6]" />课程资源
                 <span className="text-xs font-normal text-gray-400">({MOCK_RESOURCES.length} 项)</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {MOCK_RESOURCES.map((r) => (
                   <div
@@ -265,83 +223,9 @@ export default function GranularCourseDetailPage() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-
-        </div>
-
-        {/* Right sidebar */}
-        <aside className="space-y-4 hidden xl:block">
-          {/* Status */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">课程状态</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">当前状态</span>
-                <Badge className={COURSE_STATUS_COLORS[course.status]}>
-                  {COURSE_STATUS_LABELS[course.status]}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">版本号</span>
-                <span className="text-gray-700">{course.version}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">更新时间</span>
-                <span className="text-gray-700">{course.updateDate}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick actions */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">快捷操作</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-2">
-                <button className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-100 hover:border-red-200 hover:bg-red-50 transition-colors">
-                  <Heart className="w-4 h-4 text-red-400" />
-                  <span className="text-[10px] text-gray-600">收藏</span>
-                </button>
-                <button className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-colors">
-                  <Share2 className="w-4 h-4 text-blue-400" />
-                  <span className="text-[10px] text-gray-600">分享</span>
-                </button>
-                <button className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-100 hover:border-amber-200 hover:bg-amber-50 transition-colors">
-                  <Bookmark className="w-4 h-4 text-amber-400" />
-                  <span className="text-[10px] text-gray-600">标记</span>
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Related courses */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">相关推荐</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {relatedCourses.map((rc) => (
-                <Link
-                  key={rc.id}
-                  href={`/learn/courses/granular/${rc.id}`}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors group"
-                >
-                  <div className={`w-9 h-9 rounded-md bg-gradient-to-br ${rc.coverColor} shrink-0 flex items-center justify-center text-white text-xs font-bold`}>
-                    {rc.name.slice(0, 1)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-700 truncate group-hover:text-blue-600">{rc.name}</p>
-                    <p className="text-[10px] text-gray-400">{rc.major} · {rc.lessonCount}课时</p>
-                  </div>
-                </Link>
-              ))}
-            </CardContent>
-          </Card>
-        </aside>
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   )
