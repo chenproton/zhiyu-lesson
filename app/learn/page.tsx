@@ -105,10 +105,10 @@ export default function HomePage() {
   const hybridCourses = filteredCourses.filter((c) => c.type === "hybrid")
 
   if (search.trim()) {
+    const systemGroup = systemCourses.concat(granularCourses)
     const allGrouped = [
-      ...(systemCourses.length > 0 ? [{ label: "体系课", courses: systemCourses }] : []),
-      ...(granularCourses.length > 0 ? [{ label: "颗粒课", courses: granularCourses }] : []),
-      ...(hybridCourses.length > 0 ? [{ label: "混合课程", courses: hybridCourses }] : []),
+      ...(systemGroup.length > 0 ? [{ label: "在线课资源库", courses: systemGroup }] : []),
+      ...(hybridCourses.length > 0 ? [{ label: "混合课资源库", courses: hybridCourses }] : []),
     ]
 
     return (
@@ -226,30 +226,33 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 体系课 Section */}
-        {systemCourses.length > 0 && (
-          <section className="mb-10">
-            <SectionHeader title="体系课" subtitle={`${systemCourses.length} 门 · 体系化知识结构`} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {systemCourses.map((c) => <CourseCard key={c.id} course={c} />)}
+        {/* 在线课资源库 */}
+        <section className="mb-10">
+          <SectionHeader title="在线课资源库" subtitle={`${systemCourses.length + granularCourses.length} 门 · 体系课 + 颗粒课`} />
+          {/* 体系课 */}
+          {systemCourses.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-slate-500 mb-3 pl-0.5">体系课 · 体系化知识结构</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {systemCourses.map((c) => <CourseCard key={c.id} course={c} />)}
+              </div>
             </div>
-          </section>
-        )}
-
-        {/* 颗粒课 Section */}
-        {granularCourses.length > 0 && (
-          <section className="mb-10">
-            <SectionHeader title="颗粒课" subtitle={`${granularCourses.length} 门 · 碎片化微课学习`} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {granularCourses.map((c) => <CourseCard key={c.id} course={c} />)}
+          )}
+          {/* 颗粒课 */}
+          {granularCourses.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 mb-3 pl-0.5">颗粒课 · 碎片化微课学习</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {granularCourses.map((c) => <CourseCard key={c.id} course={c} />)}
+              </div>
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
-        {/* 混合课程 Section */}
+        {/* 混合课资源库 */}
         {hybridCourses.length > 0 && (
           <section className="mb-10">
-            <SectionHeader title="混合课程" subtitle={`${hybridCourses.length} 门 · 线上线下深度融合`} />
+            <SectionHeader title="混合课资源库" subtitle={`${hybridCourses.length} 门 · 线上线下深度融合`} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {hybridCourses.map((c) => <CourseCard key={c.id} course={c} />)}
             </div>

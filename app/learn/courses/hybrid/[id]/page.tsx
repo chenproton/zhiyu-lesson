@@ -237,24 +237,13 @@ function CatalogNav({
   sessions,
   selectedId,
   onSelect,
-  courseId,
+  courseId: _courseId,
 }: {
   sessions: TeachingSession[]
   selectedId: string
   onSelect: (id: string) => void
   courseId: string
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(sessions.map((s) => s.id)))
-
-  const toggle = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
   return (
     <div className="w-[250px] shrink-0 bg-white rounded-lg border border-gray-100 shadow-sm p-4">
       <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -264,45 +253,20 @@ function CatalogNav({
       </h3>
       <div className="space-y-1 max-h-[calc(100vh-300px)] overflow-y-auto">
         {sessions.map((s) => {
-          const isExpanded = expanded.has(s.id)
           const isActive = selectedId === s.id
-          const doneMods = s.modules.filter((m) => m.status === "done").length
           return (
             <div key={s.id}>
               <button
-                onClick={() => { toggle(s.id); onSelect(s.id) }}
+                onClick={() => onSelect(s.id)}
                 className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
                   isActive ? "bg-[#e6f7ff] text-[#1890ff] font-medium" : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
-                {isExpanded ? <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />}
                 <span className="w-5 h-5 rounded bg-[#1890ff]/10 text-[#1890ff] text-[10px] font-semibold flex items-center justify-center shrink-0">
                   {s.week}
                 </span>
                 <span className="truncate flex-1">{s.name.split("：")[1] || s.name}</span>
-                <span className="text-[10px] text-gray-400 shrink-0">{doneMods}/{s.modules.length}</span>
               </button>
-              {isExpanded && (
-                <div className="ml-7 mt-0.5 space-y-0.5 border-l border-gray-100 pl-2">
-                  {s.modules.map((m) => {
-                    const Icon = m.icon
-                    return (
-                      <Link
-                        key={m.key}
-                        href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}&module=${m.key}`}
-                        className={`flex items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors ${
-                          m.status === "done" ? "text-green-600" :
-                          m.status === "in_progress" ? "text-blue-600" : "text-gray-400"
-                        } hover:bg-gray-50`}
-                      >
-                        <Icon className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{m.label}</span>
-                        {m.status === "done" && <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0 ml-auto" />}
-                      </Link>
-                    )
-                  })}
-                </div>
-              )}
             </div>
           )
         })}
@@ -312,67 +276,28 @@ function CatalogNav({
 }
 
 function TreeView({ sessions, courseId }: { sessions: TeachingSession[]; courseId: string }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(sessions.map((s) => s.id)))
-
-  const toggle = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
   return (
     <div className="space-y-1">
-      {sessions.map((s) => {
-        const isExpanded = expanded.has(s.id)
-        return (
-          <div key={s.id}>
-            <div className="flex items-center gap-2 rounded-md px-3 py-2 transition-colors bg-gray-50 font-medium text-gray-800">
-              <button onClick={() => toggle(s.id)} className="text-gray-400 hover:text-gray-600 shrink-0">
-                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </button>
-              <FileText className="w-4 h-4 text-[#1890ff] shrink-0" />
-              <span className="flex-1 truncate text-sm">{s.name}</span>
-              <div className="flex items-center gap-2 shrink-0">
-                <Badge variant={s.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 h-4">
-                  {s.mode === "online" ? "线上" : "线下"}
-                </Badge>
-                <Progress value={s.progress} className="h-1.5 w-[60px]" />
-                <span className="text-[10px] text-gray-400 w-8 text-right">{s.progress}%</span>
-              </div>
-              <Link href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}`}>
-                <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">
-                  <PlayCircle className="w-3 h-3 mr-1" />开始学习
-                </Button>
-              </Link>
+      {sessions.map((s) => (
+        <div key={s.id}>
+          <div className="flex items-center gap-2 rounded-md px-3 py-2 transition-colors bg-gray-50 font-medium text-gray-800">
+            <FileText className="w-4 h-4 text-[#1890ff] shrink-0" />
+            <span className="flex-1 truncate text-sm">{s.name}</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge variant={s.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 h-4">
+                {s.mode === "online" ? "线上" : "线下"}
+              </Badge>
+              <Progress value={s.progress} className="h-1.5 w-[60px]" />
+              <span className="text-[10px] text-gray-400 w-8 text-right">{s.progress}%</span>
             </div>
-            {isExpanded && (
-              <div className="mt-0.5 ml-6 space-y-0.5 border-l border-gray-100 pl-4 py-1">
-                {s.modules.map((m) => {
-                  const Icon = m.icon
-                  return (
-                    <Link
-                      key={m.key}
-                      href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}&module=${m.key}`}
-                      className={`flex items-center gap-2 rounded-md px-2 py-1 text-xs transition-colors hover:bg-gray-50 ${
-                        m.status === "done" ? "text-green-600" :
-                        m.status === "in_progress" ? "text-blue-600" : "text-gray-400"
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{m.label}</span>
-                      <span className="text-[10px] text-gray-400 ml-auto">{m.desc.length > 18 ? m.desc.slice(0, 18) + "..." : m.desc}</span>
-                      {m.status === "done" && <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />}
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
+            <Link href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}`}>
+              <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">
+                <PlayCircle className="w-3 h-3 mr-1" />开始学习
+              </Button>
+            </Link>
           </div>
-        )
-      })}
+        </div>
+      ))}
     </div>
   )
 }

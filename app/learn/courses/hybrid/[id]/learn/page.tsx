@@ -275,9 +275,6 @@ export default function HybridCourseLearnPage() {
 
   const [currentSessionId, setCurrentSessionId] = useState<number>(SESSIONS[0]?.id ?? 1)
   const [activePhaseTab, setActivePhaseTab] = useState<Phase>("pre-class")
-  const [expandedSessions, setExpandedSessions] = useState<Set<number>>(
-    () => new Set(SESSIONS.map((s) => s.id))
-  )
   const [completedModules, setCompletedModules] = useState<Set<string>>(new Set())
 
   const currentSession = SESSIONS.find((s) => s.id === currentSessionId) ?? SESSIONS[0]
@@ -288,23 +285,8 @@ export default function HybridCourseLearnPage() {
     return Math.round(SESSIONS.reduce((sum, s) => sum + s.progress, 0) / SESSIONS.length)
   }, [])
 
-  const toggleExpand = useCallback((sessionId: number) => {
-    setExpandedSessions((prev) => {
-      const next = new Set(prev)
-      if (next.has(sessionId)) next.delete(sessionId)
-      else next.add(sessionId)
-      return next
-    })
-  }, [])
-
-  const selectPhase = useCallback((sessionId: number, phase: Phase) => {
+  const selectSession = useCallback((sessionId: number) => {
     setCurrentSessionId(sessionId)
-    setActivePhaseTab(phase)
-    setExpandedSessions((prev) => {
-      const next = new Set(prev)
-      next.add(sessionId)
-      return next
-    })
   }, [])
 
   /* ---------- quiz state per session ---------- */
@@ -385,7 +367,6 @@ export default function HybridCourseLearnPage() {
         <ScrollArea className="flex-1">
           <div className="py-2">
             {SESSIONS.map((session) => {
-              const isExpanded = expandedSessions.has(session.id)
               const isCurrent = session.id === currentSessionId
 
               return (
@@ -396,65 +377,29 @@ export default function HybridCourseLearnPage() {
                     isCurrent && "bg-blue-50/50"
                   )}
                 >
-                  {/* session header */}
                   <button
-                    onClick={() => toggleExpand(session.id)}
+                    onClick={() => selectSession(session.id)}
                     className={cn(
-                      "flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-gray-50",
+                      "flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-gray-50",
                       isCurrent && "hover:bg-blue-50/80"
                     )}
                   >
-                    <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <span className="flex-shrink-0 w-5 h-5 rounded bg-green-100 text-green-700 text-[10px] font-semibold flex items-center justify-center">
-                        {session.week}
-                      </span>
-                      <span className={cn("truncate text-sm", isCurrent ? "font-semibold text-blue-600" : "text-gray-700")}>
-                        {session.title}
-                      </span>
-                      {session.progress === 100 && (
-                        <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-500" />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <Badge variant={session.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 h-4">
-                        {session.mode === "online" ? "线上" : "线下"}
-                      </Badge>
-                      {isExpanded ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
-                    </div>
+                    <span className="flex-shrink-0 w-5 h-5 rounded bg-green-100 text-green-700 text-[10px] font-semibold flex items-center justify-center">
+                      {session.week}
+                    </span>
+                    <span className={cn("truncate text-sm flex-1", isCurrent ? "font-semibold text-blue-600" : "text-gray-700")}>
+                      {session.title}
+                    </span>
+                    {session.progress === 100 && (
+                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-500" />
+                    )}
+                    <Badge variant={session.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 h-4">
+                      {session.mode === "online" ? "线上" : "线下"}
+                    </Badge>
                   </button>
-
-                  {/* progress bar */}
                   <div className="px-4 pb-2">
                     <Progress value={session.progress} className="h-1 bg-gray-100" />
                   </div>
-
-                  {/* phase sections */}
-                  {isExpanded && (
-                    <div className="space-y-0.5 pb-2">
-                      {session.sections.map((sec) => {
-                        const isActive = sec.phase === activePhaseTab && session.id === currentSessionId
-                        const pc = phaseColor(sec.phase)
-                        return (
-                          <button
-                            key={sec.id}
-                            onClick={() => selectPhase(session.id, sec.phase)}
-                            className={cn(
-                              "flex w-full items-center gap-2 rounded-md px-4 py-2.5 text-left transition-colors",
-                              isActive ? "bg-blue-100 text-blue-700" : `${pc.text} hover:bg-gray-50`
-                            )}
-                          >
-                            <span className="flex-shrink-0">{phaseIcon(sec.phase)}</span>
-                            <span className={cn("min-w-0 flex-1 truncate text-xs", isActive && "font-semibold")}>
-                              {sec.phaseLabel}教学活动
-                            </span>
-                            <span className="flex-shrink-0 text-[10px] text-gray-300">
-                              {sec.doneCount}/{sec.totalCount}
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
                 </div>
               )
             })}
