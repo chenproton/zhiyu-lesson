@@ -472,7 +472,7 @@ export default function ClassClaimPage() {
                 window.open(url, "_blank")
               }}
             >
-              确认关联
+              确认克隆
             </Button>
           </DialogFooter>
         </DialogContent>
