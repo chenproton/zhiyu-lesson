@@ -15,6 +15,7 @@ import {
   MessageCircleQuestion,
   Wrench,
   FolderOpen,
+  Award,
 } from "lucide-react"
 import { CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -1018,22 +1019,35 @@ function PreTasksModule({ data, onChange }: AtomicModuleProps) {
 }
 
 function PreQuizzesModule({ data, onChange }: AtomicModuleProps) {
+  const methods = data.preQuizEvalMethods
   return (
     <CardContent className="space-y-4">
-      <QuizListEditor
-        items={data.preClassQuizzes}
-        onChange={(v) => onChange({ preClassQuizzes: v })}
-        addLabel="添加课前测验"
-      />
-      <div className="border-t pt-4">
+      <div>
         <p className="text-sm font-semibold flex items-center gap-2 mb-3">
           <ClipboardList className="w-4 h-4 text-[#1890ff]" />
           配置课程测评方式
         </p>
         <EvaluationMethodSelector
-          selectedKeys={data.preQuizEvalMethods}
+          selectedKeys={methods}
           onChange={(keys) => onChange({ preQuizEvalMethods: keys })}
         />
+      </div>
+      <div className="border-t pt-4">
+        <p className="text-sm font-semibold flex items-center gap-2 mb-3">
+          <Award className="w-4 h-4 text-[#1890ff]" />
+          配置课程评价规则
+        </p>
+        {methods.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-gray-400 py-12">
+            <Database className="h-12 w-12 mb-3 opacity-50" />
+            <p className="text-sm">尚未配置评价方式</p>
+            <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
+          </div>
+        ) : (
+          <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
+            参考实践场景学习平台中的测评方式配置功能即可
+          </div>
+        )}
       </div>
     </CardContent>
   )
@@ -1072,22 +1086,35 @@ function InClassTasksModule({ data, onChange }: AtomicModuleProps) {
 }
 
 function InClassQuizzesModule({ data, onChange }: AtomicModuleProps) {
+  const methods = data.inClassQuizEvalMethods
   return (
     <CardContent className="space-y-4">
-      <QuizListEditor
-        items={data.inClassQuizzes}
-        onChange={(v) => onChange({ inClassQuizzes: v })}
-        addLabel="添加随堂测验"
-      />
-      <div className="border-t pt-4">
+      <div>
         <p className="text-sm font-semibold flex items-center gap-2 mb-3">
           <ClipboardList className="w-4 h-4 text-[#1890ff]" />
           配置课程测评方式
         </p>
         <EvaluationMethodSelector
-          selectedKeys={data.inClassQuizEvalMethods}
+          selectedKeys={methods}
           onChange={(keys) => onChange({ inClassQuizEvalMethods: keys })}
         />
+      </div>
+      <div className="border-t pt-4">
+        <p className="text-sm font-semibold flex items-center gap-2 mb-3">
+          <Award className="w-4 h-4 text-[#1890ff]" />
+          配置课程评价规则
+        </p>
+        {methods.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-gray-400 py-12">
+            <Database className="h-12 w-12 mb-3 opacity-50" />
+            <p className="text-sm">尚未配置评价方式</p>
+            <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
+          </div>
+        ) : (
+          <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
+            参考实践场景学习平台中的测评方式配置功能即可
+          </div>
+        )}
       </div>
     </CardContent>
   )
@@ -1117,21 +1144,35 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
 }
 
 function HomeworksModule({ data, onChange }: AtomicModuleProps) {
+  const methods = data.homeworkEvalMethods
   return (
     <CardContent className="space-y-4">
-      <HomeworkListEditor
-        items={data.homeworks}
-        onChange={(v) => onChange({ homeworks: v })}
-      />
-      <div className="border-t pt-4">
+      <div>
         <p className="text-sm font-semibold flex items-center gap-2 mb-3">
           <ClipboardList className="w-4 h-4 text-[#1890ff]" />
           配置课程测评方式
         </p>
         <EvaluationMethodSelector
-          selectedKeys={data.homeworkEvalMethods}
+          selectedKeys={methods}
           onChange={(keys) => onChange({ homeworkEvalMethods: keys })}
         />
+      </div>
+      <div className="border-t pt-4">
+        <p className="text-sm font-semibold flex items-center gap-2 mb-3">
+          <Award className="w-4 h-4 text-[#1890ff]" />
+          配置课程评价规则
+        </p>
+        {methods.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-gray-400 py-12">
+            <Database className="h-12 w-12 mb-3 opacity-50" />
+            <p className="text-sm">尚未配置评价方式</p>
+            <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
+          </div>
+        ) : (
+          <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
+            参考实践场景学习平台中的测评方式配置功能即可
+          </div>
+        )}
       </div>
     </CardContent>
   )
