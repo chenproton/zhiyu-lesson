@@ -577,107 +577,39 @@ export default function CourseLearnPage() {
 
             {/* 学习目标 */}
             <TabsContent value="goals" className="mt-0">
-              <div className="grid gap-4 lg:grid-cols-3">
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Target className="h-4 w-4 text-[#3b82f6]" />
-                      学习目标
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div>
-                      <h4 className="mb-3 text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                        <span className="w-1.5 h-4 rounded-full bg-[#3b82f6]" />
-                        课程目标
-                      </h4>
-                      <p className="text-sm text-gray-600 mb-2">学生通过本课程学习，将能够：</p>
-                      <ul className="space-y-2 pl-4">
-                        {[
-                          "掌握 SQL注入漏洞 的基本概念与原理，理解OWASP Top 10中注入类漏洞的危害与防御",
-                          "能够独立完成 SQL注入漏洞的检测、利用与修复操作",
-                          "理解 渗透测试方法论 的适用场景与局限性，具备基本的渗透测试能力",
-                          "具备 安全漏洞分析报告的撰写能力，能够清晰地描述漏洞成因与修复方案",
-                        ].map((item, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                            <span className="text-[#3b82f6] mt-1 shrink-0">•</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Target className="h-4 w-4 text-[#3b82f6]" />
+                    学习目标
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line leading-relaxed">
+{`## 💡 知识目标
 
-                    <Separator />
+1. 掌握SQL注入漏洞的基本概念与产生原理，理解OWASP Top 10中注入类漏洞的危害评级与防御策略
+2. 熟悉常见SQL注入类型（联合查询注入、布尔盲注、时间盲注、报错注入）的技术原理与利用条件
+3. 掌握SQLMap、Burp Suite等安全测试工具在SQL注入场景中的应用方法
 
-                    <div>
-                      <h4 className="mb-3 text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                        <span className="w-1.5 h-4 rounded-full bg-green-500" />
-                        学习要求
-                      </h4>
-                      <ul className="space-y-2">
-                        {[
-                          { label: "课前预习", desc: "阅读课程配套资料，完成环境搭建" },
-                          { label: "课堂参与", desc: "积极参与讨论与实操练习，跟随讲师完成靶场演练" },
-                          { label: "课后作业", desc: "按时完成并提交章节测评与实训报告" },
-                          { label: "考核方式", desc: "单元测验（40%）+ 实操考核（40%）+ 课后作业（20%）" },
-                        ].map((item, i) => (
-                          <li key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-gray-200 text-[10px] font-semibold text-gray-500 flex items-center justify-center">
-                              {i + 1}
-                            </span>
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">{item.label}</p>
-                              <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+## 🔧 能力目标
 
-                    <Separator />
+1. 能够独立完成SQL注入漏洞的检测、验证与漏洞利用操作
+2. 具备使用参数化查询、输入过滤、WAF配置等方式完成SQL注入漏洞修复的能力
+3. 能够撰写规范的渗透测试报告，清晰描述漏洞成因、风险等级与修复建议
 
-                    <div>
-                      <h4 className="mb-3 text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-                        <span className="w-1.5 h-4 rounded-full bg-amber-500" />
-                        评价标准
-                      </h4>
-                      <div className="space-y-2">
-                        {[
-                          { label: "知识掌握", weight: "40%", desc: "理解核心概念，能正确运用SQL注入检测技术", color: "bg-blue-500" },
-                          { label: "实践能力", weight: "30%", desc: "能独立完成漏洞检测与利用的实操任务", color: "bg-green-500" },
-                          { label: "团队协作", weight: "15%", desc: "积极参与课堂互动与小组讨论", color: "bg-purple-500" },
-                          { label: "创新思维", weight: "15%", desc: "能提出有见地的安全方案或改进建议", color: "bg-orange-500" },
-                        ].map((item, i) => (
-                          <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg">
-                            <div className={`w-2 h-2 rounded-full ${item.color} shrink-0`} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium text-gray-700">{item.label}</p>
-                                <Badge variant="secondary" className="text-[10px]">{item.weight}</Badge>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+## 🎯 素质目标
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">学习数据</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <StatItem icon={<BookOpen className="h-4 w-4 text-blue-500" />} label="章节数" value={`${course.nodeCount} 章`} />
-                    <StatItem icon={<Clock className="h-4 w-4 text-orange-500" />} label="课时数" value={`${course.lessonCount} 课时`} />
-                    <StatItem icon={<Download className="h-4 w-4 text-green-500" />} label="资源数" value={`${course.resourceCount} 个`} />
-                    <Separator />
-                    <StatItem icon={<GraduationCap className="h-4 w-4 text-purple-500" />} label="学习人数" value={course.studyCount.toLocaleString()} />
-                    <StatItem icon={<MonitorPlay className="h-4 w-4 text-pink-500" />} label="浏览次数" value={course.viewCount.toLocaleString()} />
-                  </CardContent>
-                </Card>
-              </div>
+1. 培养安全第一的开发意识，将安全思维融入软件开发全生命周期
+2. 建立严谨的测试方法论与规范化测试流程
+3. 提升信息安全领域的专业素养与职业道德意识
+
+---
+
+> 📋 **课程说明**：本体系课共计${course.nodeCount}章${course.lessonCount}课时，通过系统化的知识结构帮助学习者从零基础逐步掌握SQL注入漏洞检测与利用的核心技能，涵盖理论基础、工具实操、靶场演练等关键环节。`}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* 关联知识点 - 含知识图谱 */}
