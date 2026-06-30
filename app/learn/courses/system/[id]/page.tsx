@@ -378,15 +378,12 @@ export default function SystemCourseDetailPage() {
       {/* Stats Box */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[
-          { label: "章节数", value: course.nodeCount, icon: Layers, color: "text-blue-600", bg: "bg-blue-100" },
-          { label: "预计课时", value: course.lessonCount, icon: Clock, color: "text-green-600", bg: "bg-green-100" },
-          { label: "资源数", value: course.resourceCount, icon: FileText, color: "text-amber-600", bg: "bg-amber-100" },
+          { label: "章节数", value: course.nodeCount },
+          { label: "预计课时", value: course.lessonCount },
+          { label: "资源数", value: course.resourceCount },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 text-center hover:border-[#bfdbfe] hover:shadow-[0_4px_12px_rgba(37,99,235,0.08)] transition-all">
-            <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${stat.bg} ${stat.color} mb-2`}>
-              <stat.icon className="h-5 w-5" />
-            </div>
-            <div className="text-[28px] font-bold text-[#1e293b] leading-tight mb-1">{stat.value}</div>
+          <div key={stat.label} className="bg-white rounded-xl border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.04)] py-3 px-4 text-center hover:border-[#bfdbfe] hover:shadow-[0_4px_12px_rgba(37,99,235,0.08)] transition-all">
+            <div className="text-[24px] font-bold text-[#1e293b] leading-tight">{stat.value}</div>
             <div className="text-[13px] text-[#64748b]">{stat.label}</div>
           </div>
         ))}
