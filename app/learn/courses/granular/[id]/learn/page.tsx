@@ -233,10 +233,6 @@ export default function GranularCourseLearnPage() {
                 <Lightbulb className="mr-1.5 h-4 w-4" />
                 关联知识点
               </TabsTrigger>
-              <TabsTrigger value="assessment">
-                <ClipboardList className="mr-1.5 h-4 w-4" />
-                课程测评
-              </TabsTrigger>
               <TabsTrigger value="notes">
                 <StickyNote className="mr-1.5 h-4 w-4" />
                 笔记
@@ -282,39 +278,6 @@ export default function GranularCourseLearnPage() {
             {/* 关联知识点 - 知识图谱 */}
             <TabsContent value="knowledge" className="mt-0">
               <KnowledgeGraphTab course={course} showSidebar={false} />
-            </TabsContent>
-
-            {/* 课程测评 */}
-            <TabsContent value="assessment" className="mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-blue-500" />
-                    课程测评
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {QUIZ_LISTING.map((qz, i) => (
-                      <div key={i} className="p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center">{i + 1}</span>
-                            <h4 className="text-sm font-semibold text-gray-800">{qz.title}</h4>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-[10px]">{qz.type}</Badge>
-                            <Badge variant="outline" className="text-[10px]">{qz.count} 题</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" className="mt-1">
-                          <PlayCircle className="w-3 h-3 mr-1" />进入测评
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
 
             {/* 笔记 */}
