@@ -38,6 +38,7 @@ import { Separator } from "@/components/ui/separator"
 import { courses } from "@/lib/mock-data"
 import type { KnowledgeGraphNode, KnowledgeGraphEdge } from "@/lib/types"
 import KnowledgeGraph from "@/components/KnowledgeGraph"
+import KnowledgeGraphTab from "@/components/KnowledgeGraphTab"
 
 /* ---------- types ---------- */
 
@@ -67,6 +68,39 @@ interface Chapter {
   id: number
   title: string
   sections: Section[]
+}
+
+/* ---------- quiz listing mock data ---------- */
+
+const CHAPTER_QUIZ_LISTING: Record<number, { title: string; count: number; type: string }[]> = {
+  1: [
+    { title: "SQL注入基础题库", count: 30, type: "题库" },
+    { title: "第一章单元测试卷", count: 15, type: "试卷" },
+    { title: "SQL基础随堂测验", count: 5, type: "随堂测" },
+  ],
+  2: [
+    { title: "注入技术专项题库", count: 40, type: "题库" },
+    { title: "SQLMap实操作业", count: 3, type: "作业" },
+    { title: "第二章综合测评试卷", count: 20, type: "试卷" },
+    { title: "课堂注入技术问答", count: 8, type: "现场问答" },
+  ],
+  3: [
+    { title: "漏洞检测习题库", count: 25, type: "题库" },
+    { title: "渗透测试实操作业", count: 2, type: "作业" },
+    { title: "漏洞检测成果评价", count: 5, type: "成果评价" },
+  ],
+  4: [
+    { title: "安全防护设计题库", count: 20, type: "题库" },
+    { title: "代码审计在线评审", count: 3, type: "在线评审" },
+    { title: "防护方案成果评价", count: 4, type: "成果评价" },
+    { title: "第四章综合测试卷", count: 18, type: "试卷" },
+  ],
+}
+
+// fill in chapters 5+
+for (let c = 5; c <= 15; c++) {
+  const ref = ((c - 1) % 4) + 1
+  CHAPTER_QUIZ_LISTING[c] = CHAPTER_QUIZ_LISTING[ref].map(q => ({ ...q }))
 }
 
 /* ---------- helpers ---------- */
@@ -612,109 +646,50 @@ export default function CourseLearnPage() {
               </Card>
             </TabsContent>
 
-            {/* 关联知识点 - 含知识图谱 */}
+            {/* 关联知识点 - 知识图谱 */}
             <TabsContent value="knowledge" className="mt-0">
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">关联知识点</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {(CHAPTER_KG[currentChapterId]?.nodes ?? []).map((node) => (
-                        <span
-                          key={node.id}
-                          className={`px-3 py-1.5 text-sm rounded-full border cursor-pointer transition-colors ${
-                            node.type === "core"
-                              ? "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100"
-                              : node.type === "related"
-                                ? "bg-green-50 text-green-600 border-green-100 hover:bg-green-100"
-                                : "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100"
-                          }`}
-                        >
-                          {node.label}
-                        </span>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">知识图谱</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-center overflow-x-auto">
-                      <KnowledgeGraph
-                        nodes={CHAPTER_KG[currentChapterId]?.nodes ?? []}
-                        edges={CHAPTER_KG[currentChapterId]?.edges ?? []}
-                        width={700}
-                        height={450}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <KnowledgeGraphTab course={course} showSidebar={false} />
             </TabsContent>
 
             {/* 课程测评 */}
             <TabsContent value="assessment" className="mt-0">
-              <ChapterQuizPanel
-                chapterId={currentChapterId}
-                questions={CHAPTER_QUIZZES[currentChapterId] ?? []}
-                quizData={quizState[currentChapterId]}
-                onAnswer={(qId, answer) => {
-                  setQuizState((prev) => ({
-                    ...prev,
-                    [currentChapterId]: {
-                      ...(prev[currentChapterId] ?? { answers: {}, submitted: false, score: 0 }),
-                      answers: {
-                        ...(prev[currentChapterId]?.answers ?? {}),
-                        [qId]: answer,
-                      },
-                    },
-                  }))
-                }}
-                onSubmit={() => {
-                  const qs = CHAPTER_QUIZZES[currentChapterId] ?? []
-                  const answers = quizState[currentChapterId]?.answers ?? {}
-                  let score = 0
-                  qs.forEach((q) => {
-                    const ans = answers[q.id]
-                    if (!ans) return
-                    if (q.type === "single" && ans === q.correctAnswer) {
-                      score += q.score
-                    } else if (q.type === "multiple") {
-                      const userSet = new Set(ans.split(",").filter(Boolean))
-                      const correctSet = new Set((q.correctAnswer ?? "").split(",").filter(Boolean))
-                      const intersection = [...userSet].filter((k) => correctSet.has(k))
-                      if (intersection.length === correctSet.size && userSet.size === correctSet.size) {
-                        score += q.score
-                      } else if (intersection.length > 0) {
-                        score += Math.floor(q.score * 0.5)
-                      }
-                    } else if (q.type === "judge" && ans === q.correctAnswer) {
-                      score += q.score
-                    } else if (q.type === "essay" && ans.trim().length > 5) {
-                      score += Math.floor(q.score * 0.6)
-                    }
-                  })
-                  setQuizState((prev) => ({
-                    ...prev,
-                    [currentChapterId]: {
-                      ...(prev[currentChapterId] ?? { answers: {}, submitted: false, score: 0 }),
-                      submitted: true,
-                      score,
-                    },
-                  }))
-                }}
-                onRetake={() => {
-                  setQuizState((prev) => ({
-                    ...prev,
-                    [currentChapterId]: { answers: {}, submitted: false, score: 0 },
-                  }))
-                }}
-              />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-blue-500" />
+                    课程测评
+                    <span className="text-xs font-normal text-gray-400">— 第{currentChapterId}章</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(CHAPTER_QUIZ_LISTING[currentChapterId] || []).length === 0 ? (
+                    <div className="text-center py-10 text-gray-400 text-sm">
+                      <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                      <p>暂无测评内容</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {(CHAPTER_QUIZ_LISTING[currentChapterId] || []).map((qz, i) => (
+                        <div key={i} className="p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center">{i + 1}</span>
+                              <h4 className="text-sm font-semibold text-gray-800">{qz.title}</h4>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-[10px]">{qz.type}</Badge>
+                              <Badge variant="outline" className="text-[10px]">{qz.count} 题</Badge>
+                            </div>
+                          </div>
+                          <Button size="sm" variant="outline" className="mt-1">
+                            <PlayCircle className="w-3 h-3 mr-1" />进入测评
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* 笔记 */}
