@@ -106,84 +106,71 @@ for (let c = 5; c <= 15; c++) {
 
 /* ---------- helpers ---------- */
 
-const DIGITS = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
-
-function toChinese(num: number): string {
-  if (num <= 10) return DIGITS[num]
-  const ten = Math.floor(num / 10)
-  const rest = num % 10
-  if (ten === 1) return "十" + (rest ? DIGITS[rest] : "")
-  return DIGITS[ten] + "十" + (rest ? DIGITS[rest] : "")
+interface CourseTreeNode {
+  id: string
+  name: string
+  children?: CourseTreeNode[]
 }
 
-function generateChapters(nodeCount: number, courseName: string, completedIds: Set<string>): Chapter[] {
-  const chapterTitles = [
-    `${courseName}概述`,
-    "核心概念与原理",
-    "实践操作方法",
-    "进阶技巧与策略",
-    "案例分析",
-    "综合应用",
-    "拓展与延伸",
-    "项目实战",
-    "测试与评估",
-    "总结与展望",
-    "行业应用",
-    "前沿技术",
-    "最佳实践",
-    "常见问题",
-    "能力提升",
-  ]
+const COURSE_TREE: CourseTreeNode[] = [
+  {
+    id: "ch1", name: "第一章：数据分析概述",
+    children: [
+      { id: "s1-1", name: "1.1 数据分析概念" },
+      { id: "s1-2", name: "1.2 数据预处理" },
+      { id: "s1-3", name: "1.3 描述性统计" },
+    ],
+  },
+  {
+    id: "ch2", name: "第二章：假设检验",
+    children: [
+      { id: "s2-1", name: "2.1 P值与显著性" },
+      { id: "s2-2", name: "2.2 T检验实战" },
+      { id: "s2-3", name: "2.3 卡方检验" },
+    ],
+  },
+  {
+    id: "ch3", name: "第三章：回归分析",
+    children: [
+      { id: "s3-1", name: "3.1 线性回归" },
+      { id: "s3-2", name: "3.2 相关系数" },
+    ],
+  },
+  {
+    id: "ch4", name: "第四章：数据可视化",
+    children: [
+      { id: "s4-1", name: "4.1 图表设计" },
+      { id: "s4-2", name: "4.2 色彩理论" },
+      { id: "s4-3", name: "4.3 信息可视化" },
+    ],
+  },
+]
 
-  const sectionTitles = [
-    "基础理论讲解",
-    "核心知识点解析",
-    "操作演示",
-    "实战练习",
-    "案例研究",
-    "进阶应用",
-    "技巧分享",
-    "难点突破",
-    "综合训练",
-    "测验与反馈",
-  ]
-
+function generateChapters(_nodeCount: number, _courseName: string, completedIds: Set<string>): Chapter[] {
   const chapters: Chapter[] = []
-  for (let i = 1; i <= nodeCount; i++) {
-    const sectionCount = i % 3 === 0 ? 3 : 2
+  COURSE_TREE.forEach((node, ci) => {
+    const chapterId = ci + 1
     const sections: Section[] = []
-    for (let j = 1; j <= sectionCount; j++) {
-      const type: SectionType = j % 2 === 1 ? "video" : "reading"
-      const duration = `${10 + ((i + j) % 5) * 5}分钟`
-
+    const children = node.children || []
+    children.forEach((child, si) => {
+      const sid = `${chapterId}-${si + 1}`
+      const type: SectionType = si % 2 === 0 ? "video" : "reading"
+      const duration = `${10 + ((chapterId + si) % 5) * 5}分钟`
       let status: SectionStatus = "not_started"
-      const sid = `${i}-${j}`
       if (completedIds.has(sid)) {
         status = "done"
-      } else if (i === 1) {
+      } else if (chapterId === 1) {
         status = "done"
-      } else if (i === 2) {
-        if (j < sectionCount) status = "done"
+      } else if (chapterId === 2) {
+        if (si < children.length - 1) status = "done"
         else status = "current"
-      } else if (i === 3 && j === 1) {
+      } else if (chapterId === 3 && si === 0) {
         status = "current"
       }
-
-      sections.push({
-        id: `${i}-${j}`,
-        title: `${i}.${j} ${sectionTitles[(i + j) % sectionTitles.length]}`,
-        type,
-        duration,
-        status,
-      })
-    }
-
-    chapters.push({
-      id: i,
-      title: `第${toChinese(i)}章 ${chapterTitles[(i - 1) % chapterTitles.length]}`,
-      sections,
+      sections.push({ id: sid, title: child.name, type, duration, status })
     })
-  }
+    chapters.push({ id: chapterId, title: node.name, sections })
+  })
   return chapters
 }
 
@@ -607,7 +594,7 @@ export default function CourseLearnPage() {
               </TabsTrigger>
               <TabsTrigger value="assessment">
                 <ClipboardList className="mr-1.5 h-4 w-4" />
-                课程测评
+                节点测评
               </TabsTrigger>
               <TabsTrigger value="notes">
                 <StickyNote className="mr-1.5 h-4 w-4" />
@@ -657,13 +644,13 @@ export default function CourseLearnPage() {
               <KnowledgeGraphTab course={course} showSidebar={false} />
             </TabsContent>
 
-            {/* 课程测评 */}
+            {/* 节点测评 */}
             <TabsContent value="assessment" className="mt-0">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <ClipboardList className="w-4 h-4 text-blue-500" />
-                    课程测评
+                    节点测评
                     <span className="text-xs font-normal text-gray-400">— 第{currentChapterId}章</span>
                   </CardTitle>
                 </CardHeader>
@@ -815,7 +802,7 @@ function ChapterQuizPanel({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">第{chapterId}章 课程测评</CardTitle>
+            <CardTitle className="text-base">第{chapterId}章 节点测评</CardTitle>
             <p className="text-xs text-gray-400 mt-1">
               共 {questions.length} 题 · 满分 {totalScore} 分
             </p>

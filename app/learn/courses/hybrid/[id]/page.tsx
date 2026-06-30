@@ -482,7 +482,7 @@ export default function HybridCourseDetailPage() {
               { value: "catalog", label: "课程目录", icon: List },
               { value: "design", label: "教学设计", icon: PenTool },
               { value: "resources", label: "课程资源", icon: FolderOpen },
-              { value: "quiz", label: "课程测评", icon: ClipboardList },
+              { value: "quiz", label: "节点测评", icon: ClipboardList },
             ].map((tab) => (
               <TabsTrigger
                 key={tab.value}
@@ -576,7 +576,7 @@ export default function HybridCourseDetailPage() {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
                     <ClipboardList className="w-4 h-4 text-blue-500" />
-                    课程测评
+                    节点测评
                     <span className="text-xs font-normal text-gray-400">— {SESSIONS.find(s => s.id === selectedId)?.name || ""}</span>
                   </h3>
                   {(SESSION_QUIZZES[selectedId] || []).length === 0 ? (
