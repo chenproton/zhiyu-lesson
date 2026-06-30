@@ -448,7 +448,7 @@ function KnowledgeGraphTab({ course }: { course: { name: string; code: string } 
     nodeG.on("mouseover", (ev, d: any) => {
       if (!tooltip) return
       tooltip.style.display = "block"
-      const label = d.type === "core" ? "核心课程" : d.type === "ability" ? "能力点" : "知识点"
+      const label = d.type === "core" ? "核心课程" : d.type === "ability" ? "章节" : "知识点"
       tooltip.innerHTML = `<strong>${d.name}</strong><br><span style="font-size:10px;opacity:0.8;">${label}</span>`
     }).on("mousemove", (ev) => {
       if (!tooltip) return
@@ -520,7 +520,7 @@ function KnowledgeGraphTab({ course }: { course: { name: string; code: string } 
             </div>
             <div className="flex items-center gap-1.5 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-[#52c41a] shrink-0" />
-              <span>能力点 (可点击)</span>
+              <span>章节 (可点击)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shrink-0" />
@@ -539,7 +539,7 @@ function KnowledgeGraphTab({ course }: { course: { name: string; code: string } 
             </button>
           </div>
           <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 bg-black/55 text-white text-[11px] px-3 py-1 rounded-full pointer-events-none whitespace-nowrap">
-            拖拽节点 · 滚轮缩放 · 点击能力点与知识点查看详情
+            拖拽节点 · 滚轮缩放 · 点击章节与知识点查看详情
           </div>
           <div ref={tooltipRef} className="absolute bg-black/75 text-white text-xs px-2.5 py-1.5 rounded-md pointer-events-none hidden z-[100] max-w-[220px] leading-relaxed" />
         </div>
@@ -570,7 +570,7 @@ function KnowledgeGraphTab({ course }: { course: { name: string; code: string } 
                 <div className="text-base font-semibold text-[#1f2937] flex items-center gap-2">{modalData.name}</div>
                 <div className="mt-1">
                   {modalData.type === "ability" ? (
-                    <span className="text-[11px] px-2 py-0.5 rounded-xl bg-[#f6ffed] text-[#52c41a] border border-[#b7eb8f]">能力点</span>
+                    <span className="text-[11px] px-2 py-0.5 rounded-xl bg-[#f6ffed] text-[#52c41a] border border-[#b7eb8f]">章节</span>
                   ) : (
                     <span className="text-[11px] px-2 py-0.5 rounded-xl bg-[#fff7e6] text-[#f59e0b] border border-[#ffd591]">知识点</span>
                   )}
