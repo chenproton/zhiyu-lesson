@@ -143,9 +143,9 @@ export default function HybridCoursePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">混合课管理</h1>
+        <h1 className="text-2xl font-semibold">混合课模板管理</h1>
         <p className="text-muted-foreground mt-1">
-          维护线上线下混合式课程，支持课程创建、大纲设计、资源组课、教学实施与过程性评价
+          维护线上线下混合式课程模板，支持课程创建、大纲设计、资源组课，开课后自动归档至历史档案库
         </p>
       </div>
 

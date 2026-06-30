@@ -45,7 +45,8 @@ export const unifiedNavigationConfig: PlatformNavigationConfig = {
       label: "混合课资源库",
       icon: "layers3",
       children: [
-        { id: "hybrid", label: "混合课管理", href: "/admin/hybrid", matchers: ["/admin/hybrid$", "/admin/hybrid/add"] },
+        { id: "hybrid", label: "混合课模板管理", href: "/admin/hybrid", matchers: ["/admin/hybrid$", "/admin/hybrid/add"] },
+        { id: "hybrid-archive", label: "混合课历史档案库", href: "/admin/hybrid-archive", matchers: ["/admin/hybrid-archive"] },
       ],
     },
     {
@@ -128,7 +129,8 @@ export const adminNavigationConfig: PlatformNavigationConfig = {
       label: "混合课资源库",
       icon: "layers3",
       children: [
-        { id: "hybrid", label: "混合课管理", href: "/admin/hybrid", matchers: ["/admin/hybrid$", "/admin/hybrid/add"] },
+        { id: "hybrid", label: "混合课模板管理", href: "/admin/hybrid", matchers: ["/admin/hybrid$", "/admin/hybrid/add"] },
+        { id: "hybrid-archive", label: "混合课历史档案库", href: "/admin/hybrid-archive", matchers: ["/admin/hybrid-archive"] },
       ],
     },
     {
