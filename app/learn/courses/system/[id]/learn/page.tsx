@@ -306,6 +306,7 @@ export default function CourseLearnPage() {
   }
 
   const [completedSectionIds, setCompletedSectionIds] = useState<Set<string>>(new Set())
+  const [showResources, setShowResources] = useState(false)
   const chapters = useMemo(() => generateChapters(course.nodeCount, course.name, completedSectionIds), [course, completedSectionIds])
 
   const [currentChapterId, setCurrentChapterId] = useState<number>(chapters[0]?.id ?? 1)
@@ -505,6 +506,54 @@ export default function CourseLearnPage() {
               <span className="text-xs text-slate-400">{currentSection.duration}</span>
             </div>
           )}
+
+          {/* 课程资源浮动入口 */}
+          <button
+            onClick={() => setShowResources((v) => !v)}
+            className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800/80 border border-slate-600 text-slate-300 text-xs hover:bg-slate-700 hover:text-white transition-colors"
+          >
+            <FolderOpen className="h-3.5 w-3.5" />
+            课程资源
+          </button>
+
+          {/* 资源浮动面板 */}
+          {showResources && (
+            <div className="absolute top-12 left-3 w-[320px] max-h-[360px] overflow-y-auto rounded-lg bg-slate-800/95 backdrop-blur-sm border border-slate-600 shadow-lg z-20">
+              <div className="px-3 py-2.5 border-b border-slate-700 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <FolderOpen className="h-3.5 w-3.5" />
+                  课程资源
+                </span>
+                <button onClick={() => setShowResources(false)} className="text-slate-500 hover:text-slate-300">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="p-2 space-y-1.5">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-700/50 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-700 text-slate-400 group-hover:bg-blue-600/50 group-hover:text-blue-300 shrink-0">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-slate-200 truncate group-hover:text-white transition-colors">
+                        {course.name} - 配套资料 {i}.pdf
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        PDF · {(2.5 + i * 1.2).toFixed(1)} MB · 2026-04-27
+                      </p>
+                    </div>
+                    <Button size="sm" variant="ghost" className="h-7 px-2 text-[10px] text-slate-400 hover:text-blue-300 hover:bg-slate-700">
+                      <Download className="h-3 w-3 mr-1" />
+                      下载
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* tabs content */}
@@ -514,10 +563,6 @@ export default function CourseLearnPage() {
               <TabsTrigger value="intro">
                 <GraduationCap className="mr-1.5 h-4 w-4" />
                 章节介绍
-              </TabsTrigger>
-              <TabsTrigger value="materials">
-                <Download className="mr-1.5 h-4 w-4" />
-                课程资源
               </TabsTrigger>
               <TabsTrigger value="knowledge">
                 <Lightbulb className="mr-1.5 h-4 w-4" />
@@ -575,39 +620,6 @@ export default function CourseLearnPage() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-
-            {/* 课程资源 */}
-            <TabsContent value="materials" className="mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">课程资料</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-4 rounded-lg border border-gray-100 bg-white p-4 transition-colors hover:border-blue-200 hover:bg-blue-50/30"
-                    >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                        <FileText className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-800">
-                          {course.name} - 配套资料 {i}.pdf
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          PDF · {(2.5 + i * 1.2).toFixed(1)} MB · 2026-04-27
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm" className="flex-shrink-0 gap-1">
-                        <Download className="h-3.5 w-3.5" />
-                        下载
-                      </Button>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
             </TabsContent>
 
             {/* 关联知识点 - 含知识图谱 */}
