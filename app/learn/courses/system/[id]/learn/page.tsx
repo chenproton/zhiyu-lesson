@@ -307,7 +307,7 @@ export default function CourseLearnPage() {
   }
 
   const [completedSectionIds, setCompletedSectionIds] = useState<Set<string>>(new Set())
-  const [showResources, setShowResources] = useState(false)
+  const [showResources, setShowResources] = useState(true)
   const chapters = useMemo(() => generateChapters(course.nodeCount, course.name, completedSectionIds), [course, completedSectionIds])
 
   const [currentChapterId, setCurrentChapterId] = useState<number>(chapters[0]?.id ?? 1)
@@ -546,10 +546,6 @@ export default function CourseLearnPage() {
                         PDF · {(2.5 + i * 1.2).toFixed(1)} MB · 2026-04-27
                       </p>
                     </div>
-                    <Button size="sm" variant="ghost" className="h-7 px-2 text-[10px] text-slate-400 hover:text-blue-300 hover:bg-slate-700">
-                      <Download className="h-3 w-3 mr-1" />
-                      下载
-                    </Button>
                   </div>
                 ))}
               </div>
