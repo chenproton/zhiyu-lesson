@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { MAJORS } from "@/lib/types"
+import { EvaluationMethodSelector } from "../../../_components/assessment/evaluation-method-selector"
 
 // ==================== Types ====================
 
@@ -125,13 +126,16 @@ export interface NodeModuleData {
   preClassResources: ResourceItem[]
   preClassTasks: TaskItem[]
   preClassQuizzes: QuizItem[]
+  preQuizEvalMethods: string[]
   lectureContent: string
   lectureResources: ResourceItem[]
   inClassTasks: TaskItem[]
   inClassQuizzes: QuizItem[]
+  inClassQuizEvalMethods: string[]
   classQuestions: ClassroomQuestion[]
   practiceTasks: TaskItem[]
   homeworks: HomeworkItem[]
+  homeworkEvalMethods: string[]
   extensionMaterials: ResourceItem[]
   trainingReports: ReportItem[]
 }
@@ -205,13 +209,16 @@ export function createDefaultNodeModuleData(
     preClassResources: [],
     preClassTasks: [],
     preClassQuizzes: [],
+    preQuizEvalMethods: [],
     lectureContent: "",
     lectureResources: [],
     inClassTasks: [],
     inClassQuizzes: [],
+    inClassQuizEvalMethods: [],
     classQuestions: [],
     practiceTasks: [],
     homeworks: [],
+    homeworkEvalMethods: [],
     extensionMaterials: [],
     trainingReports: [],
   }
@@ -1012,12 +1019,22 @@ function PreTasksModule({ data, onChange }: AtomicModuleProps) {
 
 function PreQuizzesModule({ data, onChange }: AtomicModuleProps) {
   return (
-    <CardContent>
+    <CardContent className="space-y-4">
       <QuizListEditor
         items={data.preClassQuizzes}
         onChange={(v) => onChange({ preClassQuizzes: v })}
         addLabel="添加课前测验"
       />
+      <div className="border-t pt-4">
+        <p className="text-sm font-semibold flex items-center gap-2 mb-3">
+          <ClipboardList className="w-4 h-4 text-[#1890ff]" />
+          配置课程测评方式
+        </p>
+        <EvaluationMethodSelector
+          selectedKeys={data.preQuizEvalMethods}
+          onChange={(keys) => onChange({ preQuizEvalMethods: keys })}
+        />
+      </div>
     </CardContent>
   )
 }
@@ -1056,12 +1073,22 @@ function InClassTasksModule({ data, onChange }: AtomicModuleProps) {
 
 function InClassQuizzesModule({ data, onChange }: AtomicModuleProps) {
   return (
-    <CardContent>
+    <CardContent className="space-y-4">
       <QuizListEditor
         items={data.inClassQuizzes}
         onChange={(v) => onChange({ inClassQuizzes: v })}
         addLabel="添加随堂测验"
       />
+      <div className="border-t pt-4">
+        <p className="text-sm font-semibold flex items-center gap-2 mb-3">
+          <ClipboardList className="w-4 h-4 text-[#1890ff]" />
+          配置课程测评方式
+        </p>
+        <EvaluationMethodSelector
+          selectedKeys={data.inClassQuizEvalMethods}
+          onChange={(keys) => onChange({ inClassQuizEvalMethods: keys })}
+        />
+      </div>
     </CardContent>
   )
 }
@@ -1091,11 +1118,21 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
 
 function HomeworksModule({ data, onChange }: AtomicModuleProps) {
   return (
-    <CardContent>
+    <CardContent className="space-y-4">
       <HomeworkListEditor
         items={data.homeworks}
         onChange={(v) => onChange({ homeworks: v })}
       />
+      <div className="border-t pt-4">
+        <p className="text-sm font-semibold flex items-center gap-2 mb-3">
+          <ClipboardList className="w-4 h-4 text-[#1890ff]" />
+          配置课程测评方式
+        </p>
+        <EvaluationMethodSelector
+          selectedKeys={data.homeworkEvalMethods}
+          onChange={(keys) => onChange({ homeworkEvalMethods: keys })}
+        />
+      </div>
     </CardContent>
   )
 }
