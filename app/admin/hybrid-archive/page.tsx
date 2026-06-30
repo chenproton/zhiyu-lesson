@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table"
 import {
   Search,
-  Eye,
+  Pencil,
   Archive,
   GraduationCap,
   BookOpen,
@@ -115,7 +115,21 @@ export default function HybridArchivePage() {
   const [selectedCollege, setSelectedCollege] = useState<string | null>(null)
   const [selectedMajor, setSelectedMajor] = useState<string | null>(null)
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null)
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(["college-1", "college-2"]))
+  const allExpandableIds = useMemo(() => {
+    const ids: string[] = []
+    const walk = (nodes: ArchiveTreeNode[]) => {
+      for (const node of nodes) {
+        if (node.children?.length) {
+          ids.push(node.id)
+          walk(node.children)
+        }
+      }
+    }
+    walk(archiveTree)
+    return ids
+  }, [])
+
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set(allExpandableIds))
 
   const handleToggle = (id: string) => {
     setExpandedIds((prev) => {
@@ -299,12 +313,9 @@ export default function HybridArchivePage() {
                   <TableRow key={entry.id}>
                     <TableCell>
                       <div>
-                        <Link
-                          href={`/learn/courses/hybrid/${entry.course.id}`}
-                          className="font-medium hover:text-primary hover:underline"
-                        >
+                        <span className="font-medium">
                           {entry.course.name}
-                        </Link>
+                        </span>
                         <p className="text-xs text-muted-foreground">
                           {entry.college} · {entry.major} · {entry.grade}
                         </p>
@@ -350,11 +361,11 @@ export default function HybridArchivePage() {
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>
                         <Link
-                          href={`/learn/courses/hybrid/${entry.course.id}`}
+                          href="/admin/hybrid/add?id=hybrid-1"
                           className="flex items-center"
                         >
-                          <Eye className="mr-1 h-3 w-3" />
-                          查看详情
+                          <Pencil className="mr-1 h-3 w-3" />
+                          编辑
                         </Link>
                       </Button>
                     </TableCell>
