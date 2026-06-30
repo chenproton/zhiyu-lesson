@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { notFound, useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -13,7 +12,6 @@ import {
   ChevronDown, ChevronRight,
 } from "lucide-react"
 import { courses } from "@/lib/mock-data"
-import { type Course, COURSE_STATUS_LABELS, COURSE_STATUS_COLORS } from "@/lib/types"
 import KnowledgeGraph from "@/components/KnowledgeGraph"
 
 /* ---------- mock tree data ---------- */
@@ -309,8 +307,10 @@ export default function SystemCourseDetailPage() {
   const selectedChapter = COURSE_TREE.find((c) => c.id === selectedNodeId || c.children?.some((s) => s.id === selectedNodeId))
   const selectedSection = selectedChapter?.children?.find((s) => s.id === selectedNodeId)
 
+  const coverLabel = course.category || course.courseTag || "体系课"
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/learn" className="hover:text-foreground transition-colors">课程首页</Link>
@@ -318,50 +318,108 @@ export default function SystemCourseDetailPage() {
         <span className="text-foreground">体系课详情</span>
       </div>
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary">{course.courseTag}</Badge>
-            <Badge variant="outline">{course.version}</Badge>
+      {/* Top Card */}
+      <div className="bg-white rounded-2xl p-6 border border-[#e7e5e4] shadow-[0_4px_20px_rgba(69,26,3,0.06)]">
+        <div className="flex gap-6">
+          <div className={`w-[260px] min-h-[180px] rounded-xl bg-gradient-to-br ${course.coverColor || "from-blue-800 to-blue-500"} flex items-center justify-center relative overflow-hidden shrink-0`}>
+            <span className="absolute top-3 left-3 bg-white/25 text-white px-3 py-1 rounded-md text-sm font-semibold backdrop-blur-sm">{course.version}</span>
+            <span className="text-white text-5xl font-bold opacity-25">{coverLabel}</span>
+            <span className="absolute bottom-3 right-3 bg-black/40 text-white px-3 py-1 rounded-md text-xs">{course.code}</span>
           </div>
-          <h1 className="text-2xl font-semibold">{course.name}</h1>
-          <p className="text-muted-foreground mt-1">课程编码：{course.code}</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/learn">
-            <Button variant="outline" size="sm"><ArrowLeft className="h-4 w-4 mr-1" />返回列表</Button>
-          </Link>
-          <Link href={`/learn/courses/system/${course.id}/learn`}>
-            <Button size="sm"><PlayCircle className="h-4 w-4 mr-1" />开始学习</Button>
-          </Link>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-2xl font-bold text-[#0f172a]">{course.name}</h1>
+              <Badge className="text-xs bg-[#eff6ff] text-[#2563eb] hover:bg-[#eff6ff] border-none">{course.courseTag}</Badge>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs border border-[#ffedd5] bg-[#fff7ed] text-[#c2410c]">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5" /></svg>
+                面向行业：{course.industry}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs border border-[#bbf7d0] bg-[#dcfce7] text-[#15803d]">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
+                适用专业：{course.major}
+              </span>
+            </div>
+            <div className="flex flex-col gap-2.5 mb-4">
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <User className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>授课教师：{course.teacher}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <Clock className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>更新时间：{course.updateDate}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-2 text-sm text-[#64748b]">
+                  <BookOpen className="h-3.5 w-3.5 text-[#94a3b8]" />
+                  <span>课程类型：{course.category}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Link href={`/learn/courses/system/${course.id}/learn`}>
+                <Button className="bg-gradient-to-r from-[#3b82f6] to-[#60a5fa] hover:from-[#2563eb] hover:to-[#3b82f6] text-white border-0 px-8 py-2.5 text-base rounded-lg">
+                  <PlayCircle className="h-4 w-4 mr-2" />开始学习
+                </Button>
+              </Link>
+              <Link href="/learn">
+                <Button variant="outline" className="px-6 py-2.5 rounded-lg">
+                  <ArrowLeft className="h-4 w-4 mr-2" />返回列表
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats Box */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-6 flex items-center gap-3"><div className="p-2.5 rounded-lg bg-blue-100 text-blue-600"><Layers className="h-5 w-5" /></div><div><p className="text-xs text-muted-foreground">章节数</p><p className="text-xl font-bold">{course.nodeCount}</p></div></CardContent></Card>
-        <Card><CardContent className="pt-6 flex items-center gap-3"><div className="p-2.5 rounded-lg bg-green-100 text-green-600"><Clock className="h-5 w-5" /></div><div><p className="text-xs text-muted-foreground">预计课时</p><p className="text-xl font-bold">{course.lessonCount}</p></div></CardContent></Card>
-        <Card><CardContent className="pt-6 flex items-center gap-3"><div className="p-2.5 rounded-lg bg-amber-100 text-amber-600"><FileText className="h-5 w-5" /></div><div><p className="text-xs text-muted-foreground">资源数</p><p className="text-xl font-bold">{course.resourceCount}</p></div></CardContent></Card>
-        <Card><CardContent className="pt-6 flex items-center gap-3"><div className="p-2.5 rounded-lg bg-purple-100 text-purple-600"><User className="h-5 w-5" /></div><div><p className="text-xs text-muted-foreground">授课教师</p><p className="text-xl font-bold">{course.teacher}</p></div></CardContent></Card>
+        {[
+          { label: "章节数", value: course.nodeCount, icon: Layers, color: "text-blue-600", bg: "bg-blue-100" },
+          { label: "预计课时", value: course.lessonCount, icon: Clock, color: "text-green-600", bg: "bg-green-100" },
+          { label: "资源数", value: course.resourceCount, icon: FileText, color: "text-amber-600", bg: "bg-amber-100" },
+          { label: "授课教师", value: course.teacher, icon: User, color: "text-purple-600", bg: "bg-purple-100" },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-white rounded-xl border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 text-center hover:border-[#bfdbfe] hover:shadow-[0_4px_12px_rgba(37,99,235,0.08)] transition-all">
+            <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${stat.bg} ${stat.color} mb-2`}>
+              <stat.icon className="h-5 w-5" />
+            </div>
+            <div className="text-[28px] font-bold text-[#1e293b] leading-tight mb-1">{stat.value}</div>
+            <div className="text-[13px] text-[#64748b]">{stat.label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="info"><Info className="h-4 w-4 mr-1" />课程信息</TabsTrigger>
-          <TabsTrigger value="goal"><Target className="h-4 w-4 mr-1" />课程目标</TabsTrigger>
-          <TabsTrigger value="catalog"><List className="h-4 w-4 mr-1" />课程目录</TabsTrigger>
-          <TabsTrigger value="resource"><FolderOpen className="h-4 w-4 mr-1" />课程资源</TabsTrigger>
-          <TabsTrigger value="knowledge"><BrainCircuit className="h-4 w-4 mr-1" />课程知识点</TabsTrigger>
-          <TabsTrigger value="quiz"><ClipboardList className="h-4 w-4 mr-1" />课程测评</TabsTrigger>
-        </TabsList>
+      {/* Bottom Tab Card */}
+      <div className="bg-white rounded-2xl border border-[#e7e5e4] shadow-[0_4px_20px_rgba(69,26,3,0.06)] overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start gap-0 rounded-none border-b border-[#f5f5f4] bg-white h-auto p-0 overflow-x-auto">
+            {[
+              { value: "info", label: "课程信息", icon: Info },
+              { value: "goal", label: "课程目标", icon: Target },
+              { value: "catalog", label: "课程目录", icon: List },
+              { value: "resource", label: "课程资源", icon: FolderOpen },
+              { value: "knowledge", label: "课程知识点", icon: BrainCircuit },
+              { value: "quiz", label: "课程测评", icon: ClipboardList },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="relative shrink-0 px-4 py-4 text-[15px] text-[#64748b] rounded-none border-0 bg-transparent data-[state=active]:text-[#3b82f6] data-[state=active]:font-semibold data-[state=active]:shadow-none data-[state=active]:bg-transparent hover:text-[#2563eb] transition-colors
+                  after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-sm data-[state=active]:after:bg-[#3b82f6]"
+              >
+                <tab.icon className="h-4 w-4 mr-1.5" />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        {/* Info */}
-        <TabsContent value="info">
-          <Card>
-            <CardHeader><CardTitle>基本信息</CardTitle></CardHeader>
-            <CardContent>
+          <div className="p-6 min-h-[500px]">
+            {/* Info */}
+            <TabsContent value="info" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   ["课程名称", course.name], ["课程编码", course.code],
@@ -369,50 +427,40 @@ export default function SystemCourseDetailPage() {
                   ["课程类型", course.category], ["授课教师", course.teacher],
                   ["版本号", course.version], ["更新时间", course.updateDate],
                 ].map(([label, value]) => (
-                  <div key={label} className="flex justify-between py-2 border-b">
+                  <div key={label} className="flex justify-between py-3 border-b border-[#f5f5f4] last:border-b-0">
                     <span className="text-muted-foreground">{label}</span>
                     <span className="font-medium">{value}</span>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </TabsContent>
 
-        {/* Goals */}
-        <TabsContent value="goal">
-          <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><Target className="w-4 h-4 text-[#1890ff]" />课程目标</CardTitle></CardHeader>
-            <CardContent>
+            {/* Goals */}
+            <TabsContent value="goal" className="mt-0">
+              <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
+                <Target className="w-4 h-4 text-[#3b82f6]" />课程目标
+              </h3>
               <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line leading-relaxed">
                 {COURSE_OBJECTIVES}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </TabsContent>
 
-        {/* Catalog */}
-        <TabsContent value="catalog">
-          <Card>
-            <CardHeader><CardTitle>课程目录</CardTitle></CardHeader>
-            <CardContent><TreeView nodes={COURSE_TREE} /></CardContent>
-          </Card>
-        </TabsContent>
+            {/* Catalog */}
+            <TabsContent value="catalog" className="mt-0">
+              <h3 className="text-base font-semibold text-[#1f2937] mb-4">课程目录</h3>
+              <TreeView nodes={COURSE_TREE} />
+            </TabsContent>
 
-        {/* Resources */}
-        <TabsContent value="resource">
-          <div className="flex gap-4">
-            <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
-            <div className="flex-1 min-w-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+            {/* Resources */}
+            <TabsContent value="resource" className="mt-0">
+              <div className="flex gap-4">
+                <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
                     <FolderOpen className="w-4 h-4 text-amber-500" />
                     课程资源
                     <span className="text-xs font-normal text-gray-400">— {selectedSection?.name || selectedChapter?.name || "请选择章节"}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+                  </h3>
                   {selectedChapter && (CHAPTER_RESOURCES[selectedChapter.id] || []).length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {(CHAPTER_RESOURCES[selectedChapter.id] || []).map((r) => (
@@ -434,75 +482,71 @@ export default function SystemCourseDetailPage() {
                       <p>请选择左侧章节查看对应资源</p>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
+                </div>
+              </div>
+            </TabsContent>
 
-        {/* Knowledge Points + Graph */}
-        <TabsContent value="knowledge">
-          <div className="flex gap-4">
-            <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
-            <div className="flex-1 min-w-0 space-y-4">
-              <Card>
-                <CardHeader><CardTitle>涉及知识点</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {(selectedChapter ? CHAPTER_KNOWLEDGE[selectedChapter.id] : [])?.map((kp) => (
-                      <span key={kp} className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer">{kp}</span>
-                    )) || <span className="text-sm text-gray-400">请选择左侧章节查看知识点</span>}
-                  </div>
-                </CardContent>
-              </Card>
-              {selectedChapter && CHAPTER_KG[selectedChapter.id] && (
-                <Card>
-                  <CardHeader><CardTitle className="flex items-center gap-2"><Lightbulb className="w-4 h-4 text-amber-500" />知识关联图谱</CardTitle></CardHeader>
-                  <CardContent>
-                    <KnowledgeGraph
-                      nodes={CHAPTER_KG[selectedChapter.id].nodes}
-                      edges={CHAPTER_KG[selectedChapter.id].edges}
-                      height={360}
-                    />
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Quiz */}
-        <TabsContent value="quiz">
-          <div className="flex gap-4">
-            <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
-            <div className="flex-1 min-w-0">
-              <Card>
-                <CardHeader><CardTitle>课程测评</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  {selectedChapter && CHAPTER_QUIZZES[selectedChapter.id] ? (
-                    <div className="p-4 rounded-lg border border-blue-100 bg-blue-50/50">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-gray-800">{CHAPTER_QUIZZES[selectedChapter.id].title}</h4>
-                        <Badge variant="outline" className="text-xs">{CHAPTER_QUIZZES[selectedChapter.id].questions} 题 · {CHAPTER_QUIZZES[selectedChapter.id].score} 分</Badge>
-                      </div>
+            {/* Knowledge Points + Graph */}
+            <TabsContent value="knowledge" className="mt-0">
+              <div className="flex gap-4">
+                <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
+                <div className="flex-1 min-w-0 space-y-4">
+                  <div>
+                    <h3 className="text-base font-semibold text-[#1f2937] mb-3">涉及知识点</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {(selectedChapter ? CHAPTER_KNOWLEDGE[selectedChapter.id] : [])?.map((kp) => (
+                        <span key={kp} className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer">{kp}</span>
+                      )) || <span className="text-sm text-gray-400">请选择左侧章节查看知识点</span>}
                     </div>
-                  ) : (
-                    <div className="text-center text-gray-400 py-8">请选择左侧章节查看测评</div>
+                  </div>
+                  {selectedChapter && CHAPTER_KG[selectedChapter.id] && (
+                    <div>
+                      <h3 className="text-base font-semibold text-[#1f2937] mb-3 flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-amber-500" />知识关联图谱
+                      </h3>
+                      <KnowledgeGraph
+                        nodes={CHAPTER_KG[selectedChapter.id].nodes}
+                        edges={CHAPTER_KG[selectedChapter.id].edges}
+                        height={360}
+                      />
+                    </div>
                   )}
-                  <div className="p-4 rounded-lg border border-gray-100">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-semibold text-gray-800">课后作业</h4>
-                      <Badge variant="outline" className="text-xs">需提交</Badge>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Quiz */}
+            <TabsContent value="quiz" className="mt-0">
+              <div className="flex gap-4">
+                <CatalogNav selectedId={selectedNodeId} onSelect={setSelectedNodeId} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-[#1f2937] mb-4">课程测评</h3>
+                  <div className="space-y-4">
+                    {selectedChapter && CHAPTER_QUIZZES[selectedChapter.id] ? (
+                      <div className="p-4 rounded-lg border border-blue-100 bg-blue-50/50">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-gray-800">{CHAPTER_QUIZZES[selectedChapter.id].title}</h4>
+                          <Badge variant="outline" className="text-xs">{CHAPTER_QUIZZES[selectedChapter.id].questions} 题 · {CHAPTER_QUIZZES[selectedChapter.id].score} 分</Badge>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center text-gray-400 py-8">请选择左侧章节查看测评</div>
+                    )}
+                    <div className="p-4 rounded-lg border border-gray-100">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-gray-800">课后作业</h4>
+                        <Badge variant="outline" className="text-xs">需提交</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">使用所学方法，对给定的业务数据集进行分析，撰写一份不少于 500 字的分析报告。</p>
+                      <p className="text-xs text-gray-400 mt-2">截止时间：2025-01-20 23:59</p>
                     </div>
-                    <p className="text-sm text-gray-600">使用所学方法，对给定的业务数据集进行分析，撰写一份不少于 500 字的分析报告。</p>
-                    <p className="text-xs text-gray-400 mt-2">截止时间：2025-01-20 23:59</p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
+            </TabsContent>
           </div>
-        </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   )
 }
