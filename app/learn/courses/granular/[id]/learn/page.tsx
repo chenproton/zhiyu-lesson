@@ -16,6 +16,7 @@ import {
   Target,
   FolderOpen,
   X,
+  Trash2,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -99,6 +100,10 @@ export default function GranularCourseLearnPage() {
   const chapters = useMemo(() => generateSections(), [])
   const [currentSectionId, setCurrentSectionId] = useState<string>(chapters[0]?.sections[1]?.id ?? "1-2")
   const [showResources, setShowResources] = useState(true)
+  const [notes, setNotes] = useState([
+    { id: 1, date: "2026-04-23 10:15", content: "重点理解IDOR漏洞的检测方法，使用Burp Suite进行实操练习效果很好。" },
+    { id: 2, date: "2026-04-20 14:30", content: "JWT Token的权限校验必须在服务端完成，前端只负责携带Token。" },
+  ])
 
   const chapter = chapters[0]
   const currentSection = chapter?.sections.find((s) => s.id === currentSectionId)
@@ -298,12 +303,23 @@ export default function GranularCourseLearnPage() {
                   <Separator />
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-gray-700">历史笔记</p>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-3">
-                      <p className="text-xs text-gray-400">2026-04-23 10:15</p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        重点理解IDOR漏洞的检测方法，使用Burp Suite进行实操练习效果很好。
-                      </p>
-                    </div>
+                    {notes.map((note) => (
+                      <div key={note.id} className="rounded-lg border border-gray-100 bg-gray-50/50 p-3 group relative">
+                        <div className="flex items-start justify-between">
+                          <p className="text-xs text-gray-400">{note.date}</p>
+                          <button
+                            onClick={() => setNotes(notes.filter((n) => n.id !== note.id))}
+                            className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-600">{note.content}</p>
+                      </div>
+                    ))}
+                    {notes.length === 0 && (
+                      <p className="text-xs text-gray-400 text-center py-4">暂无历史笔记</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

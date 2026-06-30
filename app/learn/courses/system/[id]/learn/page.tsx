@@ -25,6 +25,7 @@ import {
   Check,
   X,
   Target,
+  Trash2,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -342,6 +343,11 @@ export default function CourseLearnPage() {
 
   const [completedSectionIds, setCompletedSectionIds] = useState<Set<string>>(new Set())
   const [showResources, setShowResources] = useState(true)
+  const [notes, setNotes] = useState([
+    { id: 1, date: "2026-04-27 14:30", content: "本章重点掌握了SQL注入漏洞的核心概念，需要课后多做练习巩固。" },
+    { id: 2, date: "2026-04-25 09:15", content: "SQLMap工具使用很顺手，联合查询注入的payload构造需要再练几次。" },
+    { id: 3, date: "2026-04-22 16:40", content: "参数化查询是防御SQL注入最有效的手段，已经记录到代码片段库。" },
+  ])
   const chapters = useMemo(() => generateChapters(course.nodeCount, course.name, completedSectionIds), [course, completedSectionIds])
 
   const [currentChapterId, setCurrentChapterId] = useState<number>(chapters[0]?.id ?? 1)
@@ -712,12 +718,23 @@ export default function CourseLearnPage() {
 
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-gray-700">历史笔记</p>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-3">
-                      <p className="text-xs text-gray-400">2026-04-27 14:30</p>
-                      <p className="mt-1 text-sm text-gray-600">
-                        本章重点掌握了{course.name}的核心概念，需要课后多做练习巩固。
-                      </p>
-                    </div>
+                    {notes.map((note) => (
+                      <div key={note.id} className="rounded-lg border border-gray-100 bg-gray-50/50 p-3 group relative">
+                        <div className="flex items-start justify-between">
+                          <p className="text-xs text-gray-400">{note.date}</p>
+                          <button
+                            onClick={() => setNotes(notes.filter((n) => n.id !== note.id))}
+                            className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-600">{note.content}</p>
+                      </div>
+                    ))}
+                    {notes.length === 0 && (
+                      <p className="text-xs text-gray-400 text-center py-4">暂无历史笔记</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
