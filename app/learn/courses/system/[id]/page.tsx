@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  ArrowLeft, BookOpen, Clock, FileText, FolderOpen, Info, Layers, List,
+  BookOpen, Clock, FileText, FolderOpen, List,
   PlayCircle, Target, User, BrainCircuit, ClipboardList, Lightbulb,
   ChevronDown, ChevronRight,
 } from "lucide-react"
@@ -301,7 +301,7 @@ export default function SystemCourseDetailPage() {
   const course = courses.find((c) => String(c.id) === String(id))
   if (!course) return notFound()
 
-  const [activeTab, setActiveTab] = useState("info")
+  const [activeTab, setActiveTab] = useState("goal")
   const [selectedNodeId, setSelectedNodeId] = useState("ch1")
 
   const selectedChapter = COURSE_TREE.find((c) => c.id === selectedNodeId || c.children?.some((s) => s.id === selectedNodeId))
@@ -310,7 +310,7 @@ export default function SystemCourseDetailPage() {
   const coverLabel = course.category || course.courseTag || "体系课"
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto">
+    <div className="space-y-5 max-w-6xl mx-auto">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/learn" className="hover:text-foreground transition-colors">课程首页</Link>
@@ -365,11 +365,6 @@ export default function SystemCourseDetailPage() {
                   <PlayCircle className="h-4 w-4 mr-2" />开始学习
                 </Button>
               </Link>
-              <Link href="/learn">
-                <Button variant="outline" className="px-6 py-2.5 rounded-lg">
-                  <ArrowLeft className="h-4 w-4 mr-2" />返回列表
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
@@ -394,7 +389,6 @@ export default function SystemCourseDetailPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start gap-0 rounded-none border-b border-[#f5f5f4] bg-white h-auto p-0 overflow-x-auto">
             {[
-              { value: "info", label: "课程信息", icon: Info },
               { value: "goal", label: "课程目标", icon: Target },
               { value: "catalog", label: "课程目录", icon: List },
               { value: "resource", label: "课程资源", icon: FolderOpen },
@@ -414,23 +408,6 @@ export default function SystemCourseDetailPage() {
           </TabsList>
 
           <div className="p-6 min-h-[500px]">
-            {/* Info */}
-            <TabsContent value="info" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  ["课程名称", course.name], ["课程编码", course.code],
-                  ["所属行业", course.industry], ["所属专业", course.major],
-                  ["课程类型", course.category], ["授课教师", course.teacher],
-                  ["版本号", course.version], ["更新时间", course.updateDate],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex justify-between py-3 border-b border-[#f5f5f4] last:border-b-0">
-                    <span className="text-muted-foreground">{label}</span>
-                    <span className="font-medium">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-
             {/* Goals */}
             <TabsContent value="goal" className="mt-0">
               <h3 className="text-base font-semibold text-[#1f2937] mb-4 flex items-center gap-2">
