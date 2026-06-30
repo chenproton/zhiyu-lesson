@@ -21,10 +21,7 @@ import {
   BookOpen,
   ChevronRight,
   ChevronDown,
-  Users,
-  Clock,
   Building2,
-  MonitorPlay,
 } from "lucide-react"
 import { COURSE_STATUS_LABELS, COURSE_STATUS_COLORS } from "@/lib/types"
 import {
@@ -296,14 +293,13 @@ export default function HybridArchivePage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>课程名称</TableHead>
-                  <TableHead>课程编码</TableHead>
-                  <TableHead>学期</TableHead>
-                  <TableHead>班级</TableHead>
-                  <TableHead>授课教师</TableHead>
-                  <TableHead>线上/线下学时</TableHead>
-                  <TableHead>学生人数</TableHead>
-                  <TableHead>归档时间</TableHead>
+                  <TableHead>混合课名称</TableHead>
+                  <TableHead>混合课编码</TableHead>
+                  <TableHead>版本号</TableHead>
+                  <TableHead>所属批次分组</TableHead>
+                  <TableHead>创建人</TableHead>
+                  <TableHead>创建时间</TableHead>
+                  <TableHead>共建人</TableHead>
                   <TableHead>状态</TableHead>
                   <TableHead className="text-right">操作</TableHead>
                 </TableRow>
@@ -321,40 +317,14 @@ export default function HybridArchivePage() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {entry.course.code}
-                    </TableCell>
-                    <TableCell className="text-sm">{entry.semester}</TableCell>
-                    <TableCell className="text-sm">{entry.course.className || "-"}</TableCell>
-                    <TableCell className="text-sm">{entry.course.teacher}</TableCell>
-                    <TableCell className="text-sm">
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-blue-600">
-                          <MonitorPlay className="h-3 w-3" />
-                          {entry.course.onlineHours}h
-                        </span>
-                        <span className="flex items-center gap-1 text-green-600">
-                          <Users className="h-3 w-3" />
-                          {entry.course.offlineHours}h
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                        {entry.studentCount}人
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {entry.archivedAt}
-                      </div>
-                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{entry.course.code}</TableCell>
+                    <TableCell className="text-sm">{entry.course.version}</TableCell>
+                    <TableCell className="text-sm">{entry.course.batchGroup || "-"}</TableCell>
+                    <TableCell className="text-sm">{entry.course.creator || "-"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{entry.course.createDate || "-"}</TableCell>
+                    <TableCell className="text-sm">{entry.course.coCreator || "-"}</TableCell>
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${COURSE_STATUS_COLORS[entry.course.status]}`}
-                      >
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${COURSE_STATUS_COLORS[entry.course.status]}`}>
                         {COURSE_STATUS_LABELS[entry.course.status]}
                       </span>
                     </TableCell>
@@ -373,7 +343,7 @@ export default function HybridArchivePage() {
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-10 text-muted-foreground">
                       暂无匹配的归档课程
                     </TableCell>
                   </TableRow>
