@@ -310,7 +310,7 @@ export default function SystemCourseDetailPage() {
   const coverLabel = course.category || course.courseTag || "体系课"
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-5xl mx-auto">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/learn" className="hover:text-foreground transition-colors">课程首页</Link>
@@ -376,12 +376,11 @@ export default function SystemCourseDetailPage() {
       </div>
 
       {/* Stats Box */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[
           { label: "章节数", value: course.nodeCount, icon: Layers, color: "text-blue-600", bg: "bg-blue-100" },
           { label: "预计课时", value: course.lessonCount, icon: Clock, color: "text-green-600", bg: "bg-green-100" },
           { label: "资源数", value: course.resourceCount, icon: FileText, color: "text-amber-600", bg: "bg-amber-100" },
-          { label: "授课教师", value: course.teacher, icon: User, color: "text-purple-600", bg: "bg-purple-100" },
         ].map((stat) => (
           <div key={stat.label} className="bg-white rounded-xl border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 text-center hover:border-[#bfdbfe] hover:shadow-[0_4px_12px_rgba(37,99,235,0.08)] transition-all">
             <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${stat.bg} ${stat.color} mb-2`}>
