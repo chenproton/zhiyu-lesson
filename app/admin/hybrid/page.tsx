@@ -332,11 +332,14 @@ export default function HybridCoursePage() {
                       onCheckedChange={toggleSelectAll}
                     />
                   </TableHead>
-                  <TableHead>课程信息</TableHead>
-                  <TableHead>线上线下学时</TableHead>
-                  <TableHead>成绩权重</TableHead>
+                  <TableHead>混合课名称</TableHead>
+                  <TableHead>混合课编码</TableHead>
+                  <TableHead>版本号</TableHead>
+                  <TableHead>所属批次分组</TableHead>
+                  <TableHead>创建人</TableHead>
+                  <TableHead>创建时间</TableHead>
+                  <TableHead>共建人</TableHead>
                   <TableHead>状态</TableHead>
-                  <TableHead>更新日期</TableHead>
                   <TableHead className="text-right">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -354,22 +357,19 @@ export default function HybridCoursePage() {
                         <Link href={`/admin/hybrid/add?id=${course.id}`} className="font-medium hover:text-primary hover:underline">
                           {course.name}
                         </Link>
-                        <div className="text-xs text-muted-foreground">{course.code} · {course.major}</div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm">线上 {course.onlineHours}h / 线下 {course.offlineHours}h</div>
-                      <div className="text-xs text-muted-foreground">{course.semester}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">线上 {course.onlineWeight}% / 线下 {course.offlineWeight}%</div>
-                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{course.code}</TableCell>
+                    <TableCell className="text-sm">{course.version}</TableCell>
+                    <TableCell className="text-sm">{course.batchGroup || "-"}</TableCell>
+                    <TableCell className="text-sm">{course.creator || "-"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{course.createDate || "-"}</TableCell>
+                    <TableCell className="text-sm">{course.coCreator || "-"}</TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${COURSE_STATUS_COLORS[course.status]}`}>
                         {COURSE_STATUS_LABELS[course.status]}
                       </span>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{course.updateDate}</TableCell>
                     <TableCell className="text-right relative">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm z-10 px-2 py-1 rounded-lg shadow-sm border border-slate-100">
                         <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" asChild>

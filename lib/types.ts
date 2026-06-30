@@ -20,6 +20,10 @@ export interface Course {
   status: CourseStatus
   coverColor?: string
   courseTag?: string
+  creator?: string
+  createDate?: string
+  coCreator?: string
+  batchGroup?: string
   /** 混合课程：线上学时 */
   onlineHours?: number
   /** 混合课程：线下学时 */

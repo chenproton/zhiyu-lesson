@@ -350,12 +350,13 @@ export default function SystemCoursePage() {
                       onCheckedChange={toggleSelectAll}
                     />
                   </TableHead>
-                  <TableHead>课程名称</TableHead>
-                  <TableHead>课程编号</TableHead>
-                  <TableHead>行业</TableHead>
-                  <TableHead>专业</TableHead>
-                  <TableHead>课时</TableHead>
-                  <TableHead>节点数</TableHead>
+                  <TableHead>体系课名称</TableHead>
+                  <TableHead>体系课编码</TableHead>
+                  <TableHead>版本号</TableHead>
+                  <TableHead>所属批次分组</TableHead>
+                  <TableHead>创建人</TableHead>
+                  <TableHead>创建时间</TableHead>
+                  <TableHead>共建人</TableHead>
                   <TableHead>状态</TableHead>
                   <TableHead className="w-[80px]">操作</TableHead>
                 </TableRow>
@@ -376,10 +377,11 @@ export default function SystemCoursePage() {
                         </Link>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{course.code}</TableCell>
-                      <TableCell>{course.industry}</TableCell>
-                      <TableCell>{course.major}</TableCell>
-                      <TableCell>{course.lessonCount}</TableCell>
-                      <TableCell>{course.nodeCount}</TableCell>
+                      <TableCell className="text-sm">{course.version}</TableCell>
+                      <TableCell className="text-sm">{course.batchGroup || "-"}</TableCell>
+                      <TableCell className="text-sm">{course.creator || "-"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{course.createDate || "-"}</TableCell>
+                      <TableCell className="text-sm">{course.coCreator || "-"}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${COURSE_STATUS_COLORS[course.status]}`}>
                           {COURSE_STATUS_LABELS[course.status]}
@@ -421,7 +423,7 @@ export default function SystemCoursePage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       暂无符合条件的体系课
                     </TableCell>
                   </TableRow>
