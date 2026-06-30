@@ -283,7 +283,6 @@ function AddSystemPageInner() {
   /* ========== current node form state ========== */
   const selectedNode = nodes.find((n) => n.id === selectedNodeId)
   const isQuoteNode = selectedNode?.type === "quote"
-  const isGranularNode = selectedNode?.type === "original" || selectedNode?.type === "quote"
 
   /* ========== node type selector ========== */
   const [nodeTypeMode, setNodeTypeMode] = useState<NodeRefType>("normal")
@@ -835,7 +834,6 @@ function AddSystemPageInner() {
                     <EvaluationMethodSelector
                       selectedKeys={selectedEvalMethods}
                       onChange={setSelectedEvalMethods}
-                      isGranular={isGranularNode}
                     />
                   </CardContent>
                 </Card>

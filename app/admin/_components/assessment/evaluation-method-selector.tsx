@@ -22,7 +22,6 @@ export interface EvalMethodOption {
 interface EvaluationMethodSelectorProps {
   selectedKeys: string[]
   onChange: (keys: string[]) => void
-  isGranular?: boolean
 }
 
 const evaluationMethodOptions: EvalMethodOption[] = [
@@ -32,7 +31,7 @@ const evaluationMethodOptions: EvalMethodOption[] = [
   { key: "quiz", label: "随堂测", icon: <FileQuestion className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", available: true, desc: "课堂即时测验" },
 ]
 
-export function EvaluationMethodSelector({ selectedKeys, onChange, isGranular }: EvaluationMethodSelectorProps) {
+export function EvaluationMethodSelector({ selectedKeys, onChange }: EvaluationMethodSelectorProps) {
   const toggleMethod = (key: string) => {
     const opts = evaluationMethodOptions.find((o) => o.key === key)
     if (!opts || !opts.available) return
@@ -40,14 +39,10 @@ export function EvaluationMethodSelector({ selectedKeys, onChange, isGranular }:
     onChange(enabled ? selectedKeys.filter((m) => m !== key) : [...selectedKeys, key])
   }
 
-  const visibleOptions = isGranular
-    ? evaluationMethodOptions.filter((o) => o.key !== "quiz")
-    : evaluationMethodOptions
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        {visibleOptions.map((method) => {
+        {evaluationMethodOptions.map((method) => {
           const enabled = selectedKeys.includes(method.key)
           return (
             <button

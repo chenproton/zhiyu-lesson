@@ -40,6 +40,7 @@ import { courses } from "@/lib/mock-data"
 import type { KnowledgeGraphNode, KnowledgeGraphEdge } from "@/lib/types"
 import KnowledgeGraph from "@/components/KnowledgeGraph"
 import KnowledgeGraphTab from "@/components/KnowledgeGraphTab"
+import { AssessmentCardGroup } from "@/components/shared/AssessmentCardGroup"
 
 /* ---------- types ---------- */
 
@@ -655,32 +656,10 @@ export default function CourseLearnPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {(CHAPTER_QUIZ_LISTING[currentChapterId] || []).length === 0 ? (
-                    <div className="text-center py-10 text-gray-400 text-sm">
-                      <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                      <p>暂无测评内容</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {(CHAPTER_QUIZ_LISTING[currentChapterId] || []).map((qz, i) => (
-                        <div key={i} className="p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center">{i + 1}</span>
-                              <h4 className="text-sm font-semibold text-gray-800">{qz.title}</h4>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-[10px]">{qz.type}</Badge>
-                              <Badge variant="outline" className="text-[10px]">{qz.count} 题</Badge>
-                            </div>
-                          </div>
-                          <Button size="sm" variant="outline" className="mt-1">
-                            <PlayCircle className="w-3 h-3 mr-1" />进入测评
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <AssessmentCardGroup
+                    items={CHAPTER_QUIZ_LISTING[currentChapterId] || []}
+                    emptyMessage="暂无测评内容"
+                  />
                 </CardContent>
               </Card>
             </TabsContent>

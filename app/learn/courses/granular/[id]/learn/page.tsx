@@ -13,7 +13,7 @@ import {
   MonitorPlay,
   Lightbulb,
   ClipboardList,
-  Target,
+
   FolderOpen,
   X,
   Trash2,
@@ -228,12 +228,8 @@ export default function GranularCourseLearnPage() {
 
         {/* tabs content */}
         <div className="p-6">
-          <Tabs defaultValue="goals" className="w-full">
+          <Tabs defaultValue="knowledge" className="w-full">
             <TabsList className="mb-4">
-              <TabsTrigger value="goals">
-                <Target className="mr-1.5 h-4 w-4" />
-                学习目标
-              </TabsTrigger>
               <TabsTrigger value="knowledge">
                 <Lightbulb className="mr-1.5 h-4 w-4" />
                 关联知识点
@@ -243,42 +239,6 @@ export default function GranularCourseLearnPage() {
                 笔记
               </TabsTrigger>
             </TabsList>
-
-            {/* 学习目标 */}
-            <TabsContent value="goals" className="mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Target className="h-4 w-4 text-[#3b82f6]" />
-                    学习目标
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-line leading-relaxed">
-{`## 💡 知识目标
-
-1. 理解API未授权访问漏洞的产生原理，掌握水平越权（IDOR）与垂直越权两类核心攻击模式的区别与关联
-2. 熟悉RESTful API的安全设计规范，了解OWASP API Security Top 10中的关键风险项（BOLA、BFLA、过量数据暴露等）
-3. 掌握JWT Token、OAuth 2.0等现代API认证授权机制的工作原理与常见配置缺陷
-
-## 🔧 能力目标
-
-1. 能够使用 Burp Suite、Postman 等工具对目标 API 进行安全测试，识别未授权访问漏洞
-2. 具备编写清晰的 API 安全测试报告的能力，能够准确描述漏洞成因、风险等级与修复建议
-3. 能够根据业务场景设计合理的 API 访问控制策略（RBAC/ABAC），并进行安全加固
-
-## 🎯 素质目标
-
-1. 培养安全第一的开发意识，将安全设计融入 API 开发全生命周期
-2. 建立严谨的测试思维与规范化测试流程，养成"先验证权限，再处理请求"的编码习惯
-
----
-
-> 📋 **课程说明**：本颗粒课聚焦 API 未授权访问这一具体安全场景，通过理论讲解 + 工具实操 + 靶场演练结合的方式，帮助学习者在${course.lessonCount}个课时内快速掌握核心技能。`}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             {/* 关联知识点 - 知识图谱 */}
             <TabsContent value="knowledge" className="mt-0">

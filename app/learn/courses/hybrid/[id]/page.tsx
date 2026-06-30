@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { hybridCourses } from "@/lib/mock-data"
 import { COURSE_TYPE_LABELS } from "@/lib/types"
+import { AssessmentCardGroup } from "@/components/shared/AssessmentCardGroup"
 
 /* ======================== Mock Data ======================== */
 
@@ -502,34 +503,11 @@ export default function HybridCourseDetailPage() {
                     节点测评
                     <span className="text-xs font-normal text-gray-400">— {SESSIONS.find(s => s.id === selectedId)?.name || ""}</span>
                   </h3>
-                  {(SESSION_QUIZZES[selectedId] || []).length === 0 ? (
-                    <div className="text-center py-10 text-gray-400 text-sm">
-                      <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                      <p>请选择左侧目录查看对应课时测评</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {(SESSION_QUIZZES[selectedId] || []).map((qz, i) => (
-                        <div key={i} className="p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold flex items-center justify-center">{i + 1}</span>
-                              <h4 className="text-sm font-semibold text-gray-800">{qz.title}</h4>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-[10px]">{qz.type}</Badge>
-                              <Badge variant="outline" className="text-[10px]">{qz.count} 题</Badge>
-                            </div>
-                          </div>
-                          <Link href={`/learn/courses/hybrid/${course.id}/learn?session=${selectedId}`}>
-                            <Button size="sm" variant="outline" className="mt-1">
-                              <PlayCircle className="w-3 h-3 mr-1" />进入测评
-                            </Button>
-                          </Link>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <AssessmentCardGroup
+                    items={SESSION_QUIZZES[selectedId] || []}
+                    emptyMessage="请选择左侧目录查看对应课时测评"
+                    getLink={() => `/learn/courses/hybrid/${course.id}/learn?session=${selectedId}`}
+                  />
                 </div>
               </div>
             </TabsContent>

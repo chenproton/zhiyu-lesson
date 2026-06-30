@@ -95,6 +95,7 @@ export default function ClassClaimPage() {
   const [cloneMajor, setCloneMajor] = useState("全部")
   const [cloneCategory, setCloneCategory] = useState("全部")
   const [cloneBatch, setCloneBatch] = useState("全部")
+  const [cloneScope, setCloneScope] = useState<"mine" | "shared" | "public">("mine")
   const [cloneSelectedId, setCloneSelectedId] = useState<string | null>(null)
   const [cloneClassContext, setCloneClassContext] = useState<{ course: string; teacher: string; className: string; sessions: ClassSession[] } | null>(null)
 
@@ -108,15 +109,22 @@ export default function ClassClaimPage() {
     return [...batches]
   }, [])
 
+  const getCourseScope = (c: typeof hybridCourses[number]) => {
+    if (c.creator === "杭州知与未来科技有限公司") return "public" as const
+    if (c.creator === "张教授团队") return "mine" as const
+    return "shared" as const
+  }
+
   const filteredHybrid = useMemo(() =>
     hybridCourses.filter((c) => {
+      if (getCourseScope(c) !== cloneScope) return false
       if (cloneMajor !== "全部" && c.major !== cloneMajor) return false
       if (cloneCategory !== "全部" && c.category !== cloneCategory) return false
       if (cloneBatch !== "全部" && c.batchGroup !== cloneBatch) return false
       if (cloneSearch && !c.name.includes(cloneSearch) && !c.teacher?.includes(cloneSearch) && !c.major?.includes(cloneSearch)) return false
       return true
     }),
-    [cloneSearch, cloneMajor, cloneCategory, cloneBatch]
+    [cloneSearch, cloneScope, cloneMajor, cloneCategory, cloneBatch]
   )
 
   const termClasses = classes.filter((c) => c.term === selectedTerm)
@@ -257,6 +265,7 @@ export default function ClassClaimPage() {
                             setCloneMajor("全部")
                             setCloneCategory("全部")
                             setCloneBatch("全部")
+                            setCloneScope("mine")
                             setCloneSelectedId(null)
                             setCloneClassContext({
                               course: cls.course,
@@ -332,11 +341,32 @@ export default function ClassClaimPage() {
 
       {/* Clone hybrid course dialog */}
       <Dialog open={cloneOpen} onOpenChange={setCloneOpen}>
-        <DialogContent className="sm:max-w-[640px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>克隆混合课</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {/* Scope tabs */}
+            <div className="flex gap-2">
+              {[
+                { key: "mine" as const, label: "我的" },
+                { key: "shared" as const, label: "共建" },
+                { key: "public" as const, label: "公共" },
+              ].map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => { setCloneScope(t.key); setCloneSelectedId(null) }}
+                  className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
+                    cloneScope === t.key
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -352,42 +382,44 @@ export default function ClassClaimPage() {
             </div>
 
             {/* Filters */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label>所属专业</Label>
-                <Select value={cloneMajor} onValueChange={(v) => { setCloneMajor(v); setCloneSelectedId(null) }}>
-                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="全部">全部</SelectItem>
-                    {MAJORS.filter((m) => m !== "全部").map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label>课程分类</Label>
-                <Select value={cloneCategory} onValueChange={(v) => { setCloneCategory(v); setCloneSelectedId(null) }}>
-                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="全部">全部</SelectItem>
-                    {uniqueCategories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label>所属批次分组</Label>
-                <Select value={cloneBatch} onValueChange={(v) => { setCloneBatch(v); setCloneSelectedId(null) }}>
-                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="全部">全部</SelectItem>
-                    {uniqueBatches.map((b) => (
-                      <SelectItem key={b} value={b}>{b}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label>所属专业</Label>
+                  <Select value={cloneMajor} onValueChange={(v) => { setCloneMajor(v); setCloneSelectedId(null) }}>
+                    <SelectTrigger className="h-9 text-sm w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="全部">全部</SelectItem>
+                      {MAJORS.filter((m) => m !== "全部").map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>课程分类</Label>
+                  <Select value={cloneCategory} onValueChange={(v) => { setCloneCategory(v); setCloneSelectedId(null) }}>
+                    <SelectTrigger className="h-9 text-sm w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="全部">全部</SelectItem>
+                      {uniqueCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>所属批次分组</Label>
+                  <Select value={cloneBatch} onValueChange={(v) => { setCloneBatch(v); setCloneSelectedId(null) }}>
+                    <SelectTrigger className="h-9 text-sm w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="全部">全部</SelectItem>
+                      {uniqueBatches.map((b) => (
+                        <SelectItem key={b} value={b}>{b}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
