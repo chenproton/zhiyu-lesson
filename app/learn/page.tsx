@@ -88,6 +88,7 @@ export default function HomePage() {
   const [activeIndustry, setActiveIndustry] = useState("全部")
   const [activeMajor, setActiveMajor] = useState("全部")
   const [search, setSearch] = useState("")
+  const [onlineTab, setOnlineTab] = useState<"system" | "granular">("system")
 
   const filteredCourses = useMemo(() => {
     let result = courses
@@ -229,22 +230,29 @@ export default function HomePage() {
         {/* 在线课资源库 */}
         <section className="mb-10">
           <SectionHeader title="在线课资源库" subtitle={`${systemCourses.length + granularCourses.length} 门 · 体系课 + 颗粒课`} />
-          {/* 体系课 */}
-          {systemCourses.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-slate-500 mb-3 pl-0.5">体系课 · 体系化知识结构</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {systemCourses.map((c) => <CourseCard key={c.id} course={c} />)}
-              </div>
+          {/* tab switcher */}
+          <div className="flex gap-1 bg-slate-100 rounded-lg p-1 mb-5 w-fit">
+            <button
+              onClick={() => setOnlineTab("system")}
+              className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
+                onlineTab === "system" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >体系课</button>
+            <button
+              onClick={() => setOnlineTab("granular")}
+              className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
+                onlineTab === "granular" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >颗粒课</button>
+          </div>
+          {onlineTab === "system" && systemCourses.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {systemCourses.map((c) => <CourseCard key={c.id} course={c} />)}
             </div>
           )}
-          {/* 颗粒课 */}
-          {granularCourses.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-slate-500 mb-3 pl-0.5">颗粒课 · 碎片化微课学习</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {granularCourses.map((c) => <CourseCard key={c.id} course={c} />)}
-              </div>
+          {onlineTab === "granular" && granularCourses.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {granularCourses.map((c) => <CourseCard key={c.id} course={c} />)}
             </div>
           )}
         </section>

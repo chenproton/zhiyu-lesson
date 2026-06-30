@@ -25,6 +25,7 @@ import {
   Check,
   Upload,
   Database,
+  X,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -276,6 +277,7 @@ export default function HybridCourseLearnPage() {
   const [currentSessionId, setCurrentSessionId] = useState<number>(SESSIONS[0]?.id ?? 1)
   const [activePhaseTab, setActivePhaseTab] = useState<Phase>("pre-class")
   const [completedModules, setCompletedModules] = useState<Set<string>>(new Set())
+  const [showResources, setShowResources] = useState(true)
 
   const currentSession = SESSIONS.find((s) => s.id === currentSessionId) ?? SESSIONS[0]
   const modules = PHASE_MODULES[currentSessionId] ?? PHASE_MODULES[1]
@@ -357,10 +359,7 @@ export default function HybridCourseLearnPage() {
           </div>
           <div className="mt-2 flex items-center text-xs text-gray-400">
             <span>共 {SESSIONS.length} 次课</span>
-            <span className="mx-2">|</span>
-            <span>学习进度 {totalProgress}%</span>
           </div>
-          <Progress value={totalProgress} className="mt-2 h-1.5 bg-gray-100" />
         </div>
 
         {/* session list */}
@@ -397,9 +396,6 @@ export default function HybridCourseLearnPage() {
                       {session.mode === "online" ? "线上" : "线下"}
                     </Badge>
                   </button>
-                  <div className="px-4 pb-2">
-                    <Progress value={session.progress} className="h-1 bg-gray-100" />
-                  </div>
                 </div>
               )
             })}
@@ -426,6 +422,49 @@ export default function HybridCourseLearnPage() {
             </Badge>
             <span className="text-xs text-slate-400">第{currentSession?.week}周</span>
           </div>
+
+          {/* 课程资源浮动入口 */}
+          <button
+            onClick={() => setShowResources((v) => !v)}
+            className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800/80 border border-slate-600 text-slate-300 text-xs hover:bg-slate-700 hover:text-white transition-colors"
+          >
+            <FolderOpen className="h-3.5 w-3.5" />
+            课程资源
+          </button>
+
+          {/* 资源浮动面板 */}
+          {showResources && (
+            <div className="absolute top-12 left-3 w-[320px] max-h-[360px] overflow-y-auto rounded-lg bg-slate-800/95 backdrop-blur-sm border border-slate-600 shadow-lg z-20">
+              <div className="px-3 py-2.5 border-b border-slate-700 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <FolderOpen className="h-3.5 w-3.5" />
+                  课程资源
+                </span>
+                <button onClick={() => setShowResources(false)} className="text-slate-500 hover:text-slate-300">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="p-2 space-y-1.5">
+                {[
+                  { name: "前端开发环境搭建指南.pdf", type: "PDF", size: "2.3MB" },
+                  { name: "HTML5与CSS3权威指南.pdf", type: "PDF", size: "8.5MB" },
+                  { name: "ES6标准入门（阮一峰）", type: "链接", size: "在线" },
+                  { name: "React 18官方文档（中文版）", type: "链接", size: "在线" },
+                  { name: "前端项目实战源码仓库", type: "链接", size: "在线" },
+                ].map((r, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-700/50 transition-colors cursor-pointer group">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-700 text-slate-400 group-hover:bg-blue-600/50 group-hover:text-blue-300 shrink-0">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-slate-200 truncate group-hover:text-white transition-colors">{r.name}</p>
+                      <p className="text-[10px] text-slate-500">{r.type} · {r.size}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* phase tabs */}

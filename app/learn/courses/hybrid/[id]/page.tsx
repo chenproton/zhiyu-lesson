@@ -287,8 +287,6 @@ function TreeView({ sessions, courseId }: { sessions: TeachingSession[]; courseI
               <Badge variant={s.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 h-4">
                 {s.mode === "online" ? "线上" : "线下"}
               </Badge>
-              <Progress value={s.progress} className="h-1.5 w-[60px]" />
-              <span className="text-[10px] text-gray-400 w-8 text-right">{s.progress}%</span>
             </div>
             <Link href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}`}>
               <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">
