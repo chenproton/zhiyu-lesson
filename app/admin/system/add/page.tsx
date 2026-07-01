@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense, useMemo, useCallback, useEffect } from "react"
+import { useState, useRef, Suspense, useMemo, useCallback, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -19,6 +19,7 @@ import {
   Lock,
   Search,
   CheckCircle2,
+  ImageUp,
   Copy,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -216,6 +217,8 @@ function AddSystemPageInner() {
   const [industry, setIndustry] = useState(isEdit ? "软件测试工程师" : "")
   const [major, setMajor] = useState(isEdit ? "岗位优化测试专业01" : "")
   const [description, setDescription] = useState(isEdit ? "本课程系统介绍数据分析的基本方法与工具。" : "")
+  const [coverImage, setCoverImage] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   /* ========== course node tree ========== */
   const [nodes, setNodes] = useState<SystemCourseNode[]>(isEdit ? INITIAL_NODES : [])
@@ -561,6 +564,42 @@ function AddSystemPageInner() {
                       rows={2}
                       className="text-sm resize-y"
                     />
+                  </div>
+                  <div className="md:col-span-2 space-y-1.5">
+                    <Label className="text-xs">封面图片</Label>
+                    <div className="flex items-start gap-4">
+                      {coverImage ? (
+                        <div className="relative w-[200px] h-[120px] rounded-lg overflow-hidden border border-gray-200">
+                          <img src={coverImage} alt="封面预览" className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => setCoverImage("")}
+                            className="absolute top-1 right-1 w-6 h-6 bg-black/50 text-white rounded-full text-xs flex items-center justify-center hover:bg-black/70"
+                          >✕</button>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-[200px] h-[120px] rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
+                        >
+                          <ImageUp className="w-8 h-8 text-gray-400" />
+                          <span className="text-xs text-gray-400 mt-1">点击上传封面</span>
+                        </div>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const reader = new FileReader()
+                            reader.onload = (ev) => setCoverImage(ev.target?.result as string)
+                            reader.readAsDataURL(file)
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </CardContent>

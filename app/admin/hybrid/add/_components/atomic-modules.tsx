@@ -60,6 +60,7 @@ export interface CourseBasicForm {
   semester: string
   category: CourseCategory
   courseObjectives: string
+  coverImage: string
 }
 
 export interface TaskItem {
@@ -180,6 +181,7 @@ export function createDefaultNodeModuleData(
     major?: string
     semester?: string
     category?: CourseCategory
+    coverImage?: string
   }
 ): NodeModuleData {
   const incomingCategory = existing?.category
@@ -196,6 +198,7 @@ export function createDefaultNodeModuleData(
       semester: existing?.semester ?? "2026-2027-1",
       category,
       courseObjectives: "",
+      coverImage: "",
     },
     teachingDesignContent: `● 知识目标
 ● 能力目标

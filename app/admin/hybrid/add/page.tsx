@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useCallback, useMemo } from "react"
+import { Suspense, useState, useRef, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -14,7 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MAJORS } from "@/lib/types"
-import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft } from "lucide-react"
+import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, ImageUp, Link as LinkIcon, AlignLeft } from "lucide-react"
 import { toast } from "sonner"
 import { hybridCourses } from "@/lib/mock-data"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
@@ -573,6 +573,42 @@ function HybridCourseAddForm() {
                     onChange={(v) => updateRootForm({ courseObjectives: v })}
                     placeholder="请输入课程目标，可填写多条，按回车分隔"
                   />
+                </div>
+                <div className="mt-5 space-y-1.5">
+                  <Label className="text-xs">封面图片</Label>
+                  <div className="flex items-start gap-4">
+                    {rootForm.coverImage ? (
+                      <div className="relative w-[200px] h-[120px] rounded-lg overflow-hidden border border-gray-200">
+                        <img src={rootForm.coverImage} alt="封面预览" className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => updateRootForm({ coverImage: "" })}
+                          className="absolute top-1 right-1 w-6 h-6 bg-black/50 text-white rounded-full text-xs flex items-center justify-center hover:bg-black/70"
+                        >✕</button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => document.getElementById("hybrid-cover-input")?.click()}
+                        className="w-[200px] h-[120px] rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
+                      >
+                        <ImageUp className="w-8 h-8 text-gray-400" />
+                        <span className="text-xs text-gray-400 mt-1">点击上传封面</span>
+                      </div>
+                    )}
+                    <input
+                      id="hybrid-cover-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          const reader = new FileReader()
+                          reader.onload = (ev) => updateRootForm({ coverImage: ev.target?.result as string })
+                          reader.readAsDataURL(file)
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </CollapsibleContent>
