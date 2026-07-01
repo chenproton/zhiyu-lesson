@@ -88,7 +88,7 @@ export default function HomePage() {
   const [activeIndustry, setActiveIndustry] = useState("全部")
   const [activeMajor, setActiveMajor] = useState("全部")
   const [search, setSearch] = useState("")
-  const [onlineTab, setOnlineTab] = useState<"system" | "granular">("system")
+  const [tab, setTab] = useState<"system" | "granular" | "hybrid">("system")
 
   const filteredCourses = useMemo(() => {
     let result = courses
@@ -106,11 +106,8 @@ export default function HomePage() {
   const hybridCourses = filteredCourses.filter((c) => c.type === "hybrid")
 
   if (search.trim()) {
-    const systemGroup = systemCourses.concat(granularCourses)
-    const allGrouped = [
-      ...(systemGroup.length > 0 ? [{ label: "在线课资源库", courses: systemGroup }] : []),
-      ...(hybridCourses.length > 0 ? [{ label: "混合课资源库", courses: hybridCourses }] : []),
-    ]
+    const allCourses = systemCourses.concat(granularCourses, hybridCourses)
+    const allGrouped = allCourses.length > 0 ? [{ label: "课程资源库", courses: allCourses }] : []
 
     return (
       <div>
@@ -187,22 +184,19 @@ export default function HomePage() {
 
       <div className="max-w-7xl mx-auto px-5 py-4">
         {/* Top bar */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            {[
-              { label: "课程总数", value: courseStats.totalCourses },
-              { label: "体系课", value: courseStats.systemCourses },
-              { label: "颗粒课", value: courseStats.granularCourses },
-              { label: "混合课程", value: courseStats.hybridCourses },
-              { label: "知识点", value: courseStats.knowledgePoints },
-            ].map((s) => (
-              <div key={s.label} className="text-center px-5 py-2 border-r border-slate-100 last:border-0">
-                <div className="text-xl font-bold text-blue-600">{s.value}</div>
-                <div className="text-xs text-slate-400">{s.label}</div>
-              </div>
-            ))}
-          </div>
-
+        <div className="bg-white rounded-xl shadow-sm p-6 grid grid-cols-5 gap-5 mb-6">
+          {[
+            { label: "课程总数", value: courseStats.totalCourses },
+            { label: "体系课", value: courseStats.systemCourses },
+            { label: "颗粒课", value: courseStats.granularCourses },
+            { label: "混合课程", value: courseStats.hybridCourses },
+            { label: "知识点", value: courseStats.knowledgePoints },
+          ].map((s, i) => (
+            <div key={s.label} className="text-center border-r border-slate-100 last:border-0">
+              <div className="text-[28px] font-bold text-blue-600 leading-tight">{s.value}</div>
+              <div className="text-[13px] text-slate-400 mt-1.5">{s.label}</div>
+            </div>
+          ))}
         </div>
 
         {/* Filters */}
@@ -227,45 +221,46 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 在线课资源库 */}
+        {/* 课程资源库 */}
         <section className="mb-10">
-          <SectionHeader title="在线课资源库" subtitle={`${systemCourses.length + granularCourses.length} 门 · 体系课 + 颗粒课`} />
+          <SectionHeader title="课程资源库" subtitle={`${systemCourses.length + granularCourses.length + hybridCourses.length} 门课程`} />
           {/* tab switcher */}
           <div className="flex gap-1 bg-slate-100 rounded-lg p-1 mb-5 w-fit">
             <button
-              onClick={() => setOnlineTab("system")}
+              onClick={() => setTab("hybrid")}
               className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
-                onlineTab === "system" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500 hover:text-slate-700"
+                tab === "hybrid" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >混合课</button>
+            <button
+              onClick={() => setTab("system")}
+              className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
+                tab === "system" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500 hover:text-slate-700"
               }`}
             >体系课</button>
             <button
-              onClick={() => setOnlineTab("granular")}
+              onClick={() => setTab("granular")}
               className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
-                onlineTab === "granular" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500 hover:text-slate-700"
+                tab === "granular" ? "bg-white shadow-sm text-blue-600 font-medium" : "text-slate-500 hover:text-slate-700"
               }`}
             >颗粒课</button>
           </div>
-          {onlineTab === "system" && systemCourses.length > 0 && (
+          {tab === "system" && systemCourses.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {systemCourses.map((c) => <CourseCard key={c.id} course={c} />)}
             </div>
           )}
-          {onlineTab === "granular" && granularCourses.length > 0 && (
+          {tab === "granular" && granularCourses.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {granularCourses.map((c) => <CourseCard key={c.id} course={c} />)}
             </div>
           )}
-        </section>
-
-        {/* 混合课资源库 */}
-        {hybridCourses.length > 0 && (
-          <section className="mb-10">
-            <SectionHeader title="混合课资源库" subtitle={`${hybridCourses.length} 门 · 线上线下深度融合`} />
+          {tab === "hybrid" && hybridCourses.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {hybridCourses.map((c) => <CourseCard key={c.id} course={c} />)}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         <div className="text-center py-4 text-xs text-slate-300">
           当前共收录 <span className="text-blue-400 font-medium">{filteredCourses.length}</span> 门课程
