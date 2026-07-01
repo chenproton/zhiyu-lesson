@@ -51,9 +51,10 @@ interface AssessmentCardGroupProps {
   items: AssessmentItem[]
   emptyMessage?: string
   getLink?: (item: AssessmentItem, index: number) => string
+  onItemClick?: (item: AssessmentItem, index: number) => void
 }
 
-export function AssessmentCardGroup({ items, emptyMessage, getLink }: AssessmentCardGroupProps) {
+export function AssessmentCardGroup({ items, emptyMessage, getLink, onItemClick }: AssessmentCardGroupProps) {
   if (items.length === 0) {
     return (
       <div className="text-center py-10 text-gray-400 text-sm">
@@ -112,7 +113,12 @@ export function AssessmentCardGroup({ items, emptyMessage, getLink }: Assessment
                       </Button>
                     </Link>
                   ) : (
-                    <Button size="sm" variant="outline" className="shrink-0 ml-2 h-8 text-xs gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0 ml-2 h-8 text-xs gap-1"
+                      onClick={onItemClick ? () => onItemClick(item, idx) : undefined}
+                    >
                       <PlayCircle className="w-3 h-3" />
                       进入测评
                     </Button>

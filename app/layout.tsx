@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: '场景化数智教学服务平台',
+  title: '数字课程服务平台',
   description: '课程管理、智慧课堂一体化平台',
   generator: 'v0.app',
 }

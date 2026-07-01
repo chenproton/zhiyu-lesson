@@ -9,9 +9,9 @@ const externalAppsUrl = "http://111.170.170.202:3001/portal/apps"
    不再区分课程资源中心 / 课程建设与教学运行 / 学生学习平台
    ============================================================ */
 export const unifiedNavigationConfig: PlatformNavigationConfig = {
-  brandTitle: "数字课程平台",
+  brandTitle: "数字课程服务平台",
   currentPlatformId: "lesson-unified",
-  currentPlatformLabel: "数字课程平台",
+  currentPlatformLabel: "数字课程服务平台",
   brandHref: "/teacher/claim",
   brandIcon: "bookOpen",
   platformIcon: "bookOpen",
@@ -93,7 +93,7 @@ const platformSwitchItems: PlatformNavigationConfig["platformSwitchItems"] = [
 ]
 
 export const adminNavigationConfig: PlatformNavigationConfig = {
-  brandTitle: "数字课程平台",
+  brandTitle: "数字课程服务平台",
   currentPlatformId: "lesson-admin",
   currentPlatformLabel: "课程资源中心",
   brandHref: "/admin/system",
@@ -151,7 +151,7 @@ export const adminNavigationConfig: PlatformNavigationConfig = {
 }
 
 export const learnNavigationConfig: PlatformNavigationConfig = {
-  brandTitle: "数字课程平台",
+  brandTitle: "数字课程服务平台",
   currentPlatformId: "lesson-learn",
   currentPlatformLabel: "学生学习平台",
   brandHref: "/learn",
@@ -197,7 +197,7 @@ export const learnNavigationConfig: PlatformNavigationConfig = {
 }
 
 export const publicNavigationConfig: PlatformNavigationConfig = {
-  brandTitle: "数字课程平台",
+  brandTitle: "数字课程服务平台",
   currentPlatformId: "lesson-public",
   currentPlatformLabel: "课程首页",
   brandHref: "/",

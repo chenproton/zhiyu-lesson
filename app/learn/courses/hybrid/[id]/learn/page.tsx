@@ -37,6 +37,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 
 import { hybridCourses } from "@/lib/mock-data"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { AssessmentCardGroup } from "@/components/shared/AssessmentCardGroup"
 
 /* ---------- types ---------- */
 
@@ -244,6 +246,34 @@ for (let s = 1; s <= 5; s++) {
   }
 }
 
+/* ---------- mock data: assessments per session ---------- */
+
+interface AssessmentItem {
+  title: string
+  count: number
+  type: string
+}
+
+const SESSION_ASSESSMENTS: Record<number, { preQuizzes: AssessmentItem[]; inClassQuizzes: AssessmentItem[]; homeworks: AssessmentItem[] }> = {}
+
+for (let s = 1; s <= 5; s++) {
+  SESSION_ASSESSMENTS[s] = {
+    preQuizzes: [
+      { title: `第${s}周 课前预习习题库`, count: 15 + s * 2, type: "题库" },
+      { title: `第${s}周 课前摸底试卷`, count: 10, type: "试卷" },
+    ],
+    inClassQuizzes: [
+      { title: `第${s}周 课堂随堂测`, count: 5 + s, type: "随堂测" },
+      { title: `第${s}周 课堂即时问答`, count: 3 + s, type: "现场问答" },
+    ],
+    homeworks: [
+      { title: `第${s}周 课后编程作业`, count: 3, type: "作业" },
+      { title: `第${s}周 项目成果评价`, count: 5, type: "成果评价" },
+      { title: `第${s}周 代码评审`, count: 1, type: "在线评审" },
+    ],
+  }
+}
+
 /* ---------- helpers ---------- */
 
 function phaseIcon(phase: Phase) {
@@ -278,6 +308,7 @@ export default function HybridCourseLearnPage() {
   const [activePhaseTab, setActivePhaseTab] = useState<Phase>("pre-class")
   const [completedModules, setCompletedModules] = useState<Set<string>>(new Set())
   const [showResources, setShowResources] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const currentSession = SESSIONS.find((s) => s.id === currentSessionId) ?? SESSIONS[0]
   const modules = PHASE_MODULES[currentSessionId] ?? PHASE_MODULES[1]
@@ -537,13 +568,10 @@ export default function HybridCourseLearnPage() {
                 {/* 课前测验 */}
                 {modules.preQuizzes && (
                   <ModuleCard icon={<HelpCircle className="h-4 w-4 text-amber-500" />} title="课前测验" badge="课前" badgeClass={phaseColor("pre-class").badge}>
-                    <QuizWidget
-                      quizKey={`s${currentSessionId}-preQuizzes`}
-                      questions={modules.preQuizzes.quizzes}
-                      quizData={quizState[`s${currentSessionId}-preQuizzes`]}
-                      onAnswer={(qId, a) => handleQuizAnswer(`s${currentSessionId}-preQuizzes`, qId, a)}
-                      onSubmit={() => handleQuizSubmit(`s${currentSessionId}-preQuizzes`, modules.preQuizzes!.quizzes)}
-                      onRetake={() => handleQuizRetake(`s${currentSessionId}-preQuizzes`)}
+                    <AssessmentCardGroup
+                      items={SESSION_ASSESSMENTS[currentSessionId]?.preQuizzes ?? []}
+                      emptyMessage="暂未配置课前测验"
+                      onItemClick={() => setDialogOpen(true)}
                     />
                   </ModuleCard>
                 )}
@@ -580,13 +608,10 @@ export default function HybridCourseLearnPage() {
                 {/* 随堂测验 */}
                 {modules.inClassQuizzes && (
                   <ModuleCard icon={<HelpCircle className="h-4 w-4 text-amber-500" />} title="随堂测验" badge="课中" badgeClass={phaseColor("in-class").badge}>
-                    <QuizWidget
-                      quizKey={`s${currentSessionId}-inClassQuizzes`}
-                      questions={modules.inClassQuizzes.quizzes}
-                      quizData={quizState[`s${currentSessionId}-inClassQuizzes`]}
-                      onAnswer={(qId, a) => handleQuizAnswer(`s${currentSessionId}-inClassQuizzes`, qId, a)}
-                      onSubmit={() => handleQuizSubmit(`s${currentSessionId}-inClassQuizzes`, modules.inClassQuizzes!.quizzes)}
-                      onRetake={() => handleQuizRetake(`s${currentSessionId}-inClassQuizzes`)}
+                    <AssessmentCardGroup
+                      items={SESSION_ASSESSMENTS[currentSessionId]?.inClassQuizzes ?? []}
+                      emptyMessage="暂未配置随堂测验"
+                      onItemClick={() => setDialogOpen(true)}
                     />
                   </ModuleCard>
                 )}
@@ -643,23 +668,11 @@ export default function HybridCourseLearnPage() {
                 {/* 课后作业 */}
                 {modules.homeworks && (
                   <ModuleCard icon={<FileText className="h-4 w-4 text-purple-500" />} title="课后作业" badge="课后" badgeClass={phaseColor("post-class").badge}>
-                    <div className="space-y-3">
-                      {modules.homeworks.homeworks.map((h, i) => (
-                        <div key={i} className="p-4 rounded-lg border border-gray-100">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm font-medium text-gray-700">课后作业 {i + 1}</span>
-                            <Badge variant="destructive" className="text-[10px]">截止：{h.deadline}</Badge>
-                          </div>
-                          <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed mb-3">{h.requirement}</div>
-                          <div className="flex items-center gap-3">
-                            <Button size="sm" variant="outline">
-                              <Upload className="w-3.5 h-3.5 mr-1" />提交作业
-                            </Button>
-                            <span className="text-xs text-gray-400">支持 .zip, .pdf, .docx 格式</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <AssessmentCardGroup
+                      items={SESSION_ASSESSMENTS[currentSessionId]?.homeworks ?? []}
+                      emptyMessage="暂未配置课后作业"
+                      onItemClick={() => setDialogOpen(true)}
+                    />
                   </ModuleCard>
                 )}
 
@@ -715,6 +728,17 @@ export default function HybridCourseLearnPage() {
           </Tabs>
         </div>
       </main>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>提示</DialogTitle>
+            <DialogDescription className="text-center py-4 text-base">
+              前往测评中心使用
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
