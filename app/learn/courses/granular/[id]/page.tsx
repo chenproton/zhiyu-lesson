@@ -10,7 +10,7 @@ import {
   BookOpen, Clock, FileText, FolderOpen, List,
   PlayCircle, Target, User, BrainCircuit,
 } from "lucide-react"
-import { courses } from "@/lib/mock-data"
+import { courses, getCourseCover } from "@/lib/mock-data"
 
 /* ==================== Mock Data ==================== */
 
@@ -74,9 +74,11 @@ export default function GranularCourseDetailPage() {
       {/* Top Card */}
       <div className="bg-white rounded-2xl p-6 border border-[#e7e5e4] shadow-[0_4px_20px_rgba(69,26,3,0.06)]">
         <div className="flex gap-6">
-          <div className={`w-[260px] min-h-[180px] rounded-xl bg-gradient-to-br ${course.coverColor || "from-blue-800 to-blue-500"} flex items-center justify-center relative overflow-hidden shrink-0`}>
+          <div className="w-[260px] min-h-[180px] rounded-xl bg-slate-100 flex items-center justify-center relative overflow-hidden shrink-0">
+            <img src={course.coverImage || getCourseCover(course.id)} alt={course.name} className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             <span className="absolute top-3 left-3 bg-white/25 text-white px-3 py-1 rounded-md text-sm font-semibold backdrop-blur-sm">{course.version}</span>
-            <span className="text-white text-5xl font-bold opacity-25">{coverLabel}</span>
+            <span className="text-white text-5xl font-bold opacity-25 relative">{coverLabel}</span>
             <span className="absolute bottom-3 right-3 bg-black/40 text-white px-3 py-1 rounded-md text-xs">{course.code}</span>
           </div>
           <div className="flex-1 min-w-0">

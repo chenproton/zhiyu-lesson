@@ -1265,6 +1265,47 @@ export const granularCourses = courses.filter((c) => c.type === 'granular')
 export const systemCourses = courses.filter((c) => c.type === 'system')
 export const hybridCourses = courses.filter((c) => c.type === 'hybrid')
 
+const coverImages = [
+  'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1515378960530-425c93719894?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1523240792832-3bf3561f0bdc?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1509062526727-cb043d1bd179?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1619410283995-43d9134e7656?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=400&h=250&fit=crop',
+  'https://images.unsplash.com/photo-1522202176988-66273c2b55c9?w=400&h=250&fit=crop',
+]
+
+function hashId(id: string): number {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    const char = id.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+export function getCourseCover(id: string): string {
+  return coverImages[hashId(id) % coverImages.length]
+}
+
 // ========== Batch & Approval (from zhiyu-scene) ==========
 
 export interface Batch {

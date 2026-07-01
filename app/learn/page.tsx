@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import {
   BookOpen, Search, Eye, Users, FileText, Clock,
 } from "lucide-react"
-import { courses, courseStats } from "@/lib/mock-data"
+import { courses, courseStats, getCourseCover } from "@/lib/mock-data"
 import { INDUSTRIES, MAJORS, COURSE_TYPE_LABELS } from "@/lib/types"
 import type { Course } from "@/lib/types"
 
@@ -25,12 +25,6 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
   )
 }
 
-const courseCovers: Record<string, string> = {
-  system: "from-sky-500 to-indigo-600",
-  granular: "from-emerald-500 to-teal-600",
-  hybrid: "from-violet-500 to-fuchsia-600",
-}
-
 const courseIcons: Record<string, string> = {
   system: "📚",
   granular: "🔬",
@@ -38,7 +32,7 @@ const courseIcons: Record<string, string> = {
 }
 
 function CourseCard({ course }: { course: Course }) {
-  const cover = courseCovers[course.type] || "from-slate-600 to-slate-800"
+  const imgSrc = course.coverImage || getCourseCover(course.id)
   return (
     <Link href={`/learn/courses/${course.type}/${course.id}`} className="block no-underline">
       <div
@@ -53,12 +47,14 @@ function CourseCard({ course }: { course: Course }) {
           e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"
         }}
       >
-        <div className={`h-28 bg-gradient-to-br ${cover} relative p-4 flex flex-col justify-end`}>
+        <div className="h-28 relative overflow-hidden bg-slate-100">
+          <img src={imgSrc} alt={course.name} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           <div className="flex items-center gap-2 absolute top-3 left-3">
-            <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs">{COURSE_TYPE_LABELS[course.type]}</Badge>
+            <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs backdrop-blur-sm">{COURSE_TYPE_LABELS[course.type]}</Badge>
             <Badge variant="secondary" className="bg-black/30 text-white border-0 text-xs">v{course.version}</Badge>
           </div>
-          <span className="text-white/70 text-[40px] absolute top-3 right-4 leading-none">{courseIcons[course.type] || "📖"}</span>
+          <span className="text-white/80 text-[32px] absolute top-3 right-4 leading-none drop-shadow-lg">{courseIcons[course.type] || "📖"}</span>
         </div>
         <div className="p-4 space-y-3">
           <div className="flex items-start gap-2">

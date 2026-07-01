@@ -19,6 +19,7 @@ export interface Course {
   studyCount: number
   status: CourseStatus
   coverColor?: string
+  coverImage?: string
   courseTag?: string
   creator?: string
   createDate?: string

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Plus, Minus, Maximize2, X, BrainCircuit } from "lucide-react"
 import * as d3 from "d3"
-import { courses } from "@/lib/mock-data"
+import { courses, getCourseCover } from "@/lib/mock-data"
 
 export interface KgNode {
   id: string
@@ -245,7 +245,10 @@ export default function KnowledgeGraphTab({ course, showSidebar = true }: {
             </div>
             {relatedCourses.map(c => (
               <Link key={c.id} href={`/learn/courses/system/${c.id}`} className="flex items-center gap-3 p-3 border border-[#f5f5f4] rounded-lg hover:border-[#bfdbfe] hover:bg-[#eff6ff] hover:shadow-sm transition-all">
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${c.coverColor || "from-blue-500 to-blue-700"} flex items-center justify-center text-white text-lg shrink-0`}>{c.courseTag?.charAt(0)}</div>
+                <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden shrink-0 relative">
+                  <img src={c.coverImage || getCourseCover(c.id)} alt={c.name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center text-white text-xs font-bold">{c.courseTag?.charAt(0)}</div>
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-[#1f2937] truncate">{c.name}</div>
                   <div className="text-xs text-[#64748b] leading-relaxed">{c.industry}</div>
