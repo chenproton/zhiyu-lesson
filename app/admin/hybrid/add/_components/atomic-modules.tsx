@@ -64,11 +64,17 @@ export interface CourseBasicForm {
   coverImage: string
 }
 
+export interface AttachmentItem {
+  id: string
+  name: string
+  file: string
+}
+
 export interface TaskItem {
   id: string
   name: string
   requirement: string
-  attachments: string[]
+  attachments: AttachmentItem[]
 }
 
 export interface QuestionOption {
@@ -127,6 +133,7 @@ export interface NodeModuleData {
   teachingDesignSharedNodeIds: string[]
   moduleModes: Record<AtomicModuleKey, "online" | "offline">
   previewContent: string
+  previewAttachments: AttachmentItem[]
   preClassResources: ResourceItem[]
   preClassTasks: TaskItem[]
   preClassQuizzes: QuizItem[]
@@ -213,6 +220,7 @@ export function createDefaultNodeModuleData(
     teachingDesignSharedNodeIds: [],
     moduleModes: {},
     previewContent: "",
+    previewAttachments: [],
     preClassResources: [],
     preClassTasks: [],
     preClassQuizzes: [],
@@ -269,6 +277,72 @@ function uid(prefix = "id") {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
 }
 
+// ==================== Attachment editor ====================
+
+function AttachmentListEditor({
+  items,
+  onChange,
+  addLabel = "上传附件",
+}: {
+  items: AttachmentItem[]
+  onChange: (items: AttachmentItem[]) => void
+  addLabel?: string
+}) {
+  const update = (idx: number, patch: Partial<AttachmentItem>) => {
+    const next = [...items]
+    next[idx] = { ...next[idx], ...patch }
+    onChange(next)
+  }
+
+  return (
+    <div className="space-y-3">
+      {items.map((item, idx) => (
+        <div key={item.id} className="flex items-center gap-2 border rounded-lg p-3 bg-gray-50/50">
+          <Input
+            value={item.name}
+            onChange={(e) => update(idx, { name: e.target.value })}
+            placeholder="附件名称"
+            className="h-9 text-sm bg-white"
+          />
+          <div className="flex items-center gap-2 shrink-0">
+            {item.file ? (
+              <Badge variant="secondary" className="font-normal text-xs">
+                {item.file}
+              </Badge>
+            ) : (
+              <span className="text-xs text-gray-400 whitespace-nowrap">未选择资料</span>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => update(idx, { file: `资料附件${idx + 1}.pdf` })}
+            >
+              <Upload className="h-3.5 w-3.5 mr-1" />
+              选择资料
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-gray-400 hover:text-red-500"
+              onClick={() => onChange(items.filter((_, i) => i !== idx))}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      ))}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => onChange([...items, { id: uid("att"), name: "", file: "" }])}
+      >
+        <Plus className="h-4 w-4 mr-1" />
+        {addLabel}
+      </Button>
+    </div>
+  )
+}
+
 // ==================== Task editor ====================
 
 function TaskListEditor({
@@ -309,24 +383,13 @@ function TaskListEditor({
             onChange={(v) => update(idx, { requirement: v })}
             placeholder="任务要求"
           />
-          <div className="flex flex-wrap gap-2 items-center">
-            {item.attachments.map((att, aidx) => (
-              <Badge key={aidx} variant="secondary" className="font-normal">
-                {att}
-              </Badge>
-            ))}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                update(idx, {
-                  attachments: [...item.attachments, `附件${item.attachments.length + 1}.pdf`],
-                })
-              }
-            >
-              <Upload className="h-3.5 w-3.5 mr-1" />
-              上传附件
-            </Button>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">任务附件</Label>
+            <AttachmentListEditor
+              items={item.attachments}
+              onChange={(attachments) => update(idx, { attachments })}
+              addLabel="上传附件"
+            />
           </div>
         </div>
       ))}
@@ -990,12 +1053,20 @@ function ReportListEditor({
 
 function PrePreviewModule({ data, onChange }: AtomicModuleProps) {
   return (
-    <CardContent>
+    <CardContent className="space-y-4">
       <MockRichEditor
         value={data.previewContent}
         onChange={(v) => onChange({ previewContent: v })}
         placeholder="请输入课前预习内容"
       />
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">预习资料附件</Label>
+        <AttachmentListEditor
+          items={data.previewAttachments}
+          onChange={(v) => onChange({ previewAttachments: v })}
+          addLabel="添加附件"
+        />
+      </div>
     </CardContent>
   )
 }
