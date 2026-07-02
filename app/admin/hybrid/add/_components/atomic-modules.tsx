@@ -16,6 +16,7 @@ import {
   Wrench,
   FolderOpen,
   Award,
+  PenTool,
 } from "lucide-react"
 import { CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -82,6 +83,9 @@ export interface TaskItem {
   name: string
   requirement: string
   attachments: AttachmentItem[]
+  source?: "manual" | "scenario"
+  scenarioId?: string
+  scenarioTitle?: string
 }
 
 export interface QuestionOption {
@@ -406,7 +410,7 @@ function TaskListEditor({
         size="sm"
         variant="outline"
         onClick={() =>
-          onChange([...items, { id: uid("task"), name: "", requirement: "", attachments: [] }])
+          onChange([...items, { id: uid("task"), name: "", requirement: "", attachments: [], source: "manual" }])
         }
       >
         <Plus className="h-4 w-4 mr-1" />
@@ -1262,14 +1266,209 @@ function ClassQuestionsModule({ data, onChange }: AtomicModuleProps) {
   )
 }
 
+const MOCK_SCENARIOS = [
+  { id: "sc-1", title: "企业官网响应式布局实战", desc: "完成一个企业官网的响应式页面开发，包含首页、产品页、关于我们等模块。" },
+  { id: "sc-2", title: "电商商品详情页开发", desc: "实现电商平台的商品详情页，包含轮播图、规格选择、评价展示等。" },
+  { id: "sc-3", title: "个人博客前端开发", desc: "使用 React 搭建个人博客，包含文章列表、文章详情、评论功能。" },
+  { id: "sc-4", title: "数据可视化大屏", desc: "使用 ECharts 实现数据可视化大屏，包含多种图表类型和实时数据刷新。" },
+  { id: "sc-5", title: "后台管理系统界面", desc: "实现常见后台管理系统的页面布局与交互，包含表格、表单、权限菜单。" },
+]
+
 function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
+  const tasks = data.practiceTasks || []
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [addMode, setAddMode] = useState<"manual" | "scenario" | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedScenarioId, setSelectedScenarioId] = useState("")
+
+  const filteredScenarios = MOCK_SCENARIOS.filter(
+    (s) =>
+      s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const resetDialog = () => {
+    setDialogOpen(false)
+    setAddMode(null)
+    setSearchQuery("")
+    setSelectedScenarioId("")
+  }
+
+  const handleAddManual = () => {
+    onChange({
+      practiceTasks: [
+        ...tasks,
+        { id: uid("task"), name: "", requirement: "", attachments: [], source: "manual" },
+      ],
+    })
+    resetDialog()
+  }
+
+  const handleAddScenario = () => {
+    const scenario = MOCK_SCENARIOS.find((s) => s.id === selectedScenarioId)
+    if (!scenario) return
+    onChange({
+      practiceTasks: [
+        ...tasks,
+        {
+          id: uid("scenario-task"),
+          name: scenario.title,
+          requirement: scenario.desc,
+          attachments: [],
+          source: "scenario",
+          scenarioId: scenario.id,
+          scenarioTitle: scenario.title,
+        },
+      ],
+    })
+    resetDialog()
+  }
+
+  const updateTask = (idx: number, patch: Partial<TaskItem>) => {
+    const next = [...tasks]
+    next[idx] = { ...next[idx], ...patch }
+    onChange({ practiceTasks: next })
+  }
+
   return (
-    <CardContent>
-      <TaskListEditor
-        items={data.practiceTasks}
-        onChange={(v) => onChange({ practiceTasks: v })}
-        addLabel="添加实践任务"
-      />
+    <CardContent className="space-y-4">
+      {tasks.map((task, idx) => (
+        <div key={task.id} className="border rounded-lg p-3 space-y-3">
+          {task.source === "scenario" ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-[#1890ff]" />
+                <div>
+                  <p className="text-sm font-medium">{task.scenarioTitle || task.name}</p>
+                  <p className="text-xs text-gray-400">来自实践场景库</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onChange({ practiceTasks: tasks.filter((_, i) => i !== idx) })}
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={task.name}
+                  onChange={(e) => updateTask(idx, { name: e.target.value })}
+                  placeholder="任务名称"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onChange({ practiceTasks: tasks.filter((_, i) => i !== idx) })}
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+              <MockRichEditor
+                value={task.requirement}
+                onChange={(v) => updateTask(idx, { requirement: v })}
+                placeholder="任务要求"
+              />
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">任务附件</Label>
+                <AttachmentListEditor
+                  items={task.attachments}
+                  onChange={(attachments) => updateTask(idx, { attachments })}
+                  addLabel="上传附件"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+      <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+        <Plus className="h-4 w-4 mr-1" />
+        添加实践任务
+      </Button>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>添加实践任务</DialogTitle>
+          </DialogHeader>
+          {!addMode ? (
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <button
+                onClick={() => setAddMode("manual")}
+                className="flex flex-col items-center gap-2 p-6 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+              >
+                <PenTool className="h-8 w-8 text-blue-500" />
+                <span className="text-sm font-medium">手动新增任务</span>
+              </button>
+              <button
+                onClick={() => setAddMode("scenario")}
+                className="flex flex-col items-center gap-2 p-6 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+              >
+                <Database className="h-8 w-8 text-blue-500" />
+                <span className="text-sm font-medium">从实践场景库引用</span>
+              </button>
+            </div>
+          ) : addMode === "manual" ? (
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-gray-500">确认新增一个手动任务？添加后可在下方列表中编辑。</p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setAddMode(null)}>
+                  返回
+                </Button>
+                <Button onClick={handleAddManual}>确认新增</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>搜索实践场景</Label>
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="输入场景名称或描述搜索"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>选择场景</Label>
+                <Select value={selectedScenarioId} onValueChange={setSelectedScenarioId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="请选择一个场景" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredScenarios.length === 0 ? (
+                      <SelectItem value="" disabled>
+                        无匹配场景
+                      </SelectItem>
+                    ) : (
+                      filteredScenarios.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.title}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedScenarioId && (
+                <div className="p-3 rounded-lg bg-gray-50 text-sm text-gray-600">
+                  {MOCK_SCENARIOS.find((s) => s.id === selectedScenarioId)?.desc}
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setAddMode(null)}>
+                  返回
+                </Button>
+                <Button onClick={handleAddScenario} disabled={!selectedScenarioId}>
+                  确认引用
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </CardContent>
   )
 }
