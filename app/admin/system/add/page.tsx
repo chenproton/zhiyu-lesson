@@ -50,7 +50,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { INDUSTRIES, MAJORS } from "@/lib/types"
+import { MAJORS } from "@/lib/types"
 import type { SystemCourseNode, NodeResource, NodeRefType } from "@/lib/types"
 
 import { KnowledgeSelector } from "../../_components/knowledge/knowledge-selector"
@@ -301,7 +301,6 @@ function AddSystemPageInner() {
   const [globalInfoOpen, setGlobalInfoOpen] = useState(true)
   const [courseName, setCourseName] = useState(isEdit ? "数据分析基础" : "")
   const [courseCode] = useState(isEdit ? "AB8G-A1-12345678" : `AB8G-A1-${Math.floor(10000000 + Math.random() * 90000000)}`)
-  const [industry, setIndustry] = useState(isEdit ? "软件测试工程师" : "")
   const [major, setMajor] = useState(isEdit ? "岗位优化测试专业01" : "")
   const [description, setDescription] = useState(isEdit ? "本课程系统介绍数据分析的基本方法与工具。" : "")
   const [coverImage, setCoverImage] = useState("")
@@ -647,11 +646,6 @@ function AddSystemPageInner() {
                       <span className="text-xs font-normal text-gray-400">
                         {courseName ? `《${courseName}》` : "未填写课程名称"}
                       </span>
-                      {industry && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                          {industry}
-                        </span>
-                      )}
                       {major && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
                           {major}
@@ -693,23 +687,10 @@ function AddSystemPageInner() {
                     <p className="text-[10px] text-gray-400">系统自动生成，不可修改</p>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">所属行业</Label>
-                    <Select value={industry} onValueChange={setIndustry}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="请选择所属行业" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {INDUSTRIES.filter((i) => i !== "全部").map((i) => (
-                          <SelectItem key={i} value={i}>{i}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">所属专业</Label>
+                    <Label className="text-xs">适用专业</Label>
                     <Select value={major} onValueChange={setMajor}>
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="请选择所属专业" />
+                        <SelectValue placeholder="请选择适用专业" />
                       </SelectTrigger>
                       <SelectContent>
                         {MAJORS.filter((m) => m !== "全部").map((m) => (

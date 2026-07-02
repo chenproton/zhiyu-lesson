@@ -38,9 +38,16 @@ import { Separator } from "@/components/ui/separator"
 
 import { courses } from "@/lib/mock-data"
 import type { KnowledgeGraphNode, KnowledgeGraphEdge } from "@/lib/types"
-import KnowledgeGraph from "@/components/KnowledgeGraph"
-import KnowledgeGraphTab from "@/components/KnowledgeGraphTab"
 import { AssessmentCardGroup } from "@/components/shared/AssessmentCardGroup"
+import { KnowledgePointsList } from "@/components/shared/KnowledgePointsList"
+
+const MOCK_KNOWLEDGE_POINTS = [
+  { id: "kp-1", name: "SQL注入", code: "KP-001", desc: "常见的Web安全漏洞，攻击者通过构造恶意SQL语句操作后端数据库" },
+  { id: "kp-2", name: "漏洞检测", code: "KP-002", desc: "通过自动化工具或手动方式发现系统安全漏洞的过程" },
+  { id: "kp-3", name: "渗透测试", code: "KP-003", desc: "模拟攻击者行为对目标系统进行安全评估的方法论" },
+  { id: "kp-4", name: "Web安全", code: "KP-004", desc: "保护Web应用免受网络威胁的安全实践与技术" },
+  { id: "kp-5", name: "安全防护", code: "KP-005", desc: "通过安全策略、工具与实践构建系统防御体系" },
+]
 
 /* ---------- types ---------- */
 
@@ -640,9 +647,9 @@ export default function CourseLearnPage() {
               </Card>
             </TabsContent>
 
-            {/* 关联知识点 - 知识图谱 */}
+            {/* 关联知识点 */}
             <TabsContent value="knowledge" className="mt-0">
-              <KnowledgeGraphTab course={course} showSidebar={false} />
+              <KnowledgePointsList points={MOCK_KNOWLEDGE_POINTS} />
             </TabsContent>
 
             {/* 节点测评 */}
