@@ -1294,16 +1294,6 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
     setSelectedScenarioId("")
   }
 
-  const handleAddManual = () => {
-    onChange({
-      practiceTasks: [
-        ...tasks,
-        { id: uid("task"), name: "", requirement: "", attachments: [], source: "manual" },
-      ],
-    })
-    resetDialog()
-  }
-
   const handleAddScenario = () => {
     const scenario = MOCK_SCENARIOS.find((s) => s.id === selectedScenarioId)
     if (!scenario) return
@@ -1397,7 +1387,15 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
           {!addMode ? (
             <div className="grid grid-cols-2 gap-4 py-4">
               <button
-                onClick={() => setAddMode("manual")}
+                onClick={() => {
+                  onChange({
+                    practiceTasks: [
+                      ...tasks,
+                      { id: uid("task"), name: "", requirement: "", attachments: [], source: "manual" },
+                    ],
+                  })
+                  resetDialog()
+                }}
                 className="flex flex-col items-center gap-2 p-6 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
               >
                 <PenTool className="h-8 w-8 text-blue-500" />
@@ -1410,16 +1408,6 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
                 <Database className="h-8 w-8 text-blue-500" />
                 <span className="text-sm font-medium">从实践场景库引用</span>
               </button>
-            </div>
-          ) : addMode === "manual" ? (
-            <div className="space-y-4 py-4">
-              <p className="text-sm text-gray-500">确认新增一个手动任务？添加后可在下方列表中编辑。</p>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setAddMode(null)}>
-                  返回
-                </Button>
-                <Button onClick={handleAddManual}>确认新增</Button>
-              </div>
             </div>
           ) : (
             <div className="space-y-4 py-4">
