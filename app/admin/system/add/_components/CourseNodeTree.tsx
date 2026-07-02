@@ -12,13 +12,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -30,14 +23,27 @@ import {
   MoreHorizontal,
   GripVertical,
   BookOpen,
+  Search,
+  CheckCircle2,
+  Upload,
+  Copy,
   Link2,
 } from "lucide-react"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
 import { NODE_REF_TYPE_LABELS, NODE_REF_TYPE_COLORS } from "@/lib/types"
 
+interface GrainCourseOption {
+  id: string
+  name: string
+  description: string
+  source: string
+  duration: number
+}
+
 interface CourseNodeTreeProps {
   nodes: SystemCourseNode[]
   selectedNodeId: string | null
+  grainCourses: GrainCourseOption[]
   onSelect: (nodeId: string) => void
   onAddNode: (parentId: string | null, name: string, order: number, type?: NodeRefType, sourceId?: string, sourceName?: string) => void
   onUpdateNode: (nodeId: string, updates: Partial<SystemCourseNode>) => void
@@ -75,9 +81,12 @@ function buildTree(nodes: SystemCourseNode[]): TreeItem[] {
   return roots
 }
 
+type AddMode = "upload" | "clone" | "quote"
+
 export default function CourseNodeTree({
   nodes,
   selectedNodeId,
+  grainCourses,
   onSelect,
   onAddNode,
   onUpdateNode,
@@ -91,6 +100,9 @@ export default function CourseNodeTree({
   /* add dialog state */
   const [newNodeName, setNewNodeName] = useState("")
   const [newNodeParent, setNewNodeParent] = useState<string>("root")
+  const [addMode, setAddMode] = useState<AddMode>("upload")
+  const [selectedGrainId, setSelectedGrainId] = useState<string | null>(null)
+  const [grainSearch, setGrainSearch] = useState("")
   const nextOrderRef = useRef(1)
 
   const [editNodeName, setEditNodeName] = useState("")
@@ -99,30 +111,62 @@ export default function CourseNodeTree({
 
   const tree = useMemo(() => buildTree(nodes), [nodes])
 
+  const filteredGrains = useMemo(() => {
+    const kw = grainSearch.trim()
+    if (!kw) return grainCourses
+    return grainCourses.filter(
+      (g) =>
+        g.name.includes(kw) ||
+        g.description.includes(kw) ||
+        g.source.includes(kw)
+    )
+  }, [grainCourses, grainSearch])
+
   const openAddDialog = useCallback(
     (parentId: string | null = null) => {
       const siblings = nodes.filter((n) => n.parentId === parentId)
       const nextOrder = siblings.length > 0 ? Math.max(...siblings.map((n) => n.order)) + 1 : 1
       setNewNodeName("")
       setNewNodeParent(parentId ?? "root")
+      setAddMode("upload")
+      setSelectedGrainId(null)
+      setGrainSearch("")
       nextOrderRef.current = nextOrder
       setAddDialogOpen(true)
     },
     [nodes]
   )
 
-  const openEditDialog = useCallback((nodeId: string) => {
-    const node = nodes.find((n) => n.id === nodeId)
-    if (!node) return
-    setEditingNodeId(nodeId)
-    setEditNodeName(node.name)
-    setEditDialogOpen(true)
-  }, [nodes])
+  const openEditDialog = useCallback(
+    (nodeId: string) => {
+      const node = nodes.find((n) => n.id === nodeId)
+      if (!node) return
+      setEditingNodeId(nodeId)
+      setEditNodeName(node.name)
+      setEditDialogOpen(true)
+    },
+    [nodes]
+  )
 
   const handleConfirmAdd = () => {
     if (!newNodeName.trim()) return
     const parentId = newNodeParent === "root" ? null : newNodeParent
-    onAddNode(parentId, newNodeName.trim(), nextOrderRef.current, "normal")
+
+    if (addMode === "upload") {
+      onAddNode(parentId, newNodeName.trim(), nextOrderRef.current, "normal")
+    } else {
+      if (!selectedGrainId) return
+      const grain = grainCourses.find((g) => g.id === selectedGrainId)
+      if (!grain) return
+      onAddNode(
+        parentId,
+        newNodeName.trim(),
+        nextOrderRef.current,
+        "normal",
+        grain.id,
+        grain.name
+      )
+    }
     setAddDialogOpen(false)
   }
 
@@ -164,13 +208,33 @@ export default function CourseNodeTree({
     setDragOverId(null)
   }
 
+  const modeOptions: { key: AddMode; label: string; desc: string; icon: React.ReactNode }[] = [
+    {
+      key: "upload",
+      label: "上传课程资源",
+      desc: "创建普通课程节点，自行编辑内容",
+      icon: <Upload className="w-4 h-4" />,
+    },
+    {
+      key: "clone",
+      label: "克隆颗粒课",
+      desc: "复制颗粒课内容，生成可独立编辑的节点",
+      icon: <Copy className="w-4 h-4" />,
+    },
+    {
+      key: "quote",
+      label: "引用已有颗粒课",
+      desc: "引用颗粒课内容，关联可同步编辑",
+      icon: <Link2 className="w-4 h-4" />,
+    },
+  ]
+
   const renderTreeNode = (item: TreeItem, indexPath: string) => {
     const { node, level, children } = item
     const isActive = selectedNodeId === node.id
     const isDragging = draggingId === node.id
     const isDragOver = dragOverId === node.id
     const seq = indexPath
-    const isQuote = node.type === "quote"
 
     return (
       <div key={node.id}>
@@ -179,8 +243,7 @@ export default function CourseNodeTree({
             "tree-node flex items-center gap-1 px-1 py-1 rounded cursor-pointer text-sm transition-colors select-none",
             isActive ? "bg-blue-50 text-blue-600 border-l-2 border-blue-500" : "text-gray-600 hover:bg-gray-50",
             isDragging && "opacity-40",
-            isDragOver && "border-t-2 border-blue-500",
-            isQuote && !isActive && "bg-blue-50/30"
+            isDragOver && "border-t-2 border-blue-500"
           )}
           style={{ paddingLeft: `${8 + level * 10}px` }}
           draggable
@@ -197,9 +260,9 @@ export default function CourseNodeTree({
           <span className="flex-1 truncate" title={node.name}>
             {node.name}
           </span>
-          {(node.type === 'original' || node.type === 'quote') && (
-            <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS['original']}`}>
-              {NODE_REF_TYPE_LABELS['original']}
+          {node.type === "original" && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${NODE_REF_TYPE_COLORS["original"]}`}>
+              {NODE_REF_TYPE_LABELS["original"]}
             </span>
           )}
           <DropdownMenu>
@@ -237,7 +300,8 @@ export default function CourseNodeTree({
   }
 
   const isRootAdd = newNodeParent === "root"
-  const canConfirm = newNodeName.trim()
+  const canConfirm =
+    newNodeName.trim() && (addMode === "upload" || !!selectedGrainId)
 
   return (
     <aside className="w-64 shrink-0">
@@ -272,8 +336,7 @@ export default function CourseNodeTree({
             <DialogTitle>{isRootAdd ? "添加节点" : "添加子节点"}</DialogTitle>
           </DialogHeader>
 
-          {/* Basic fields - always visible */}
-          <div className="space-y-4 py-2">
+          <div className="space-y-5 py-2">
             <div>
               <Label>节点名称 <span className="text-red-500">*</span></Label>
               <Input
@@ -287,30 +350,102 @@ export default function CourseNodeTree({
                 {newNodeName.length} / 50
               </p>
             </div>
-            {!isRootAdd && (
-              <div>
-                <Label>上级节点</Label>
-                <Select value={newNodeParent} onValueChange={setNewNodeParent}>
-                  <SelectTrigger className="mt-1 w-full">
-                    <SelectValue placeholder="选择上级节点" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {nodes.map((n) => (
-                      <SelectItem key={n.id} value={n.id}>
-                        {n.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+            <div className="space-y-2">
+              <Label>编辑方式</Label>
+              <div className="grid grid-cols-1 gap-2">
+                {modeOptions.map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => {
+                      setAddMode(opt.key)
+                      setSelectedGrainId(null)
+                    }}
+                    className={cn(
+                      "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+                      addMode === opt.key
+                        ? "border-blue-500 bg-blue-50/50 ring-1 ring-blue-200"
+                        : "border-gray-200 hover:border-gray-300 bg-white"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5",
+                        addMode === opt.key
+                          ? "bg-blue-500 border-blue-500"
+                          : "border-gray-300"
+                      )}
+                    >
+                      {addMode === opt.key && <CheckCircle2 className="w-3 h-3 text-white" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-gray-800">
+                        {opt.icon}
+                        {opt.label}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(addMode === "clone" || addMode === "quote") && (
+              <div className="space-y-2">
+                <Label>{addMode === "clone" ? "选择要克隆的颗粒课" : "选择要引用的颗粒课"}</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    value={grainSearch}
+                    onChange={(e) => setGrainSearch(e.target.value)}
+                    placeholder="搜索颗粒课名称、来源..."
+                    className="pl-9 text-sm h-9"
+                  />
+                </div>
+                <div className="space-y-2 max-h-[240px] overflow-y-auto">
+                  {filteredGrains.length === 0 ? (
+                    <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
+                  ) : (
+                    filteredGrains.map((g) => {
+                      const selected = selectedGrainId === g.id
+                      return (
+                        <button
+                          key={g.id}
+                          onClick={() => setSelectedGrainId(g.id)}
+                          className={cn(
+                            "w-full text-left p-3 rounded-lg border transition-all",
+                            selected
+                              ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                              : "border-gray-200 hover:border-gray-300 bg-white"
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={cn(
+                                  "w-5 h-5 rounded-full border flex items-center justify-center",
+                                  selected ? "bg-blue-500 border-blue-500" : "border-gray-300"
+                                )}
+                              >
+                                {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                              </div>
+                              <span className="text-sm font-medium text-gray-800">{g.name}</span>
+                            </div>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                              {g.source}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1 pl-7">
+                            {g.description}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
+                        </button>
+                      )
+                    })
+                  )}
+                </div>
               </div>
             )}
-          </div>
-
-          <div className="border-t pt-4">
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-              <p className="text-sm text-gray-600">创建一个新的课程节点，内容可自由编辑。</p>
-              <p className="text-xs text-gray-400 mt-1">添加后可在右侧编辑区切换为克隆或引用颗粒课。</p>
-            </div>
           </div>
 
           <DialogFooter>
