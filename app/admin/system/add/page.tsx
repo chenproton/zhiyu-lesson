@@ -196,6 +196,81 @@ const MOCK_GRAIN_COURSES = [
   { id: "grain-8", name: "数据可视化", description: "常用图表制作与美化", source: "数据分析系", duration: 3 },
 ]
 
+/* ---------- convert preview tree ---------- */
+
+interface PreviewTreeItem {
+  node: SystemCourseNode
+  level: number
+  children: PreviewTreeItem[]
+}
+
+function buildPreviewTree(nodes: SystemCourseNode[]): PreviewTreeItem[] {
+  const map = new Map<string, PreviewTreeItem>()
+  const roots: PreviewTreeItem[] = []
+  const sorted = [...nodes].sort((a, b) => a.order - b.order)
+  sorted.forEach((node) => {
+    map.set(node.id, { node, level: 0, children: [] })
+  })
+  sorted.forEach((node) => {
+    const item = map.get(node.id)!
+    if (node.parentId && map.has(node.parentId)) {
+      const parent = map.get(node.parentId)!
+      item.level = parent.level + 1
+      parent.children.push(item)
+    } else {
+      roots.push(item)
+    }
+  })
+  return roots
+}
+
+function ConvertPreviewTree({
+  nodes,
+  convertedIds,
+}: {
+  nodes: SystemCourseNode[]
+  convertedIds: Set<string>
+}) {
+  const tree = useMemo(() => buildPreviewTree(nodes), [nodes])
+
+  const renderItem = (item: PreviewTreeItem) => {
+    const { node, level, children } = item
+    const isConverted = convertedIds.has(node.id)
+    const isOriginal = node.type === "original"
+    return (
+      <div key={node.id} style={{ paddingLeft: `${level * 16}px` }}>
+        <div className="flex items-center justify-between gap-2 py-1.5">
+          <span className="text-sm text-gray-700 truncate">{node.name}</span>
+          {isConverted ? (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 shrink-0">
+              即将转为颗粒课
+            </span>
+          ) : isOriginal ? (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 shrink-0">
+              颗粒课
+            </span>
+          ) : (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 shrink-0">
+              普通节点
+            </span>
+          )}
+        </div>
+        {children.length > 0 && (
+          <div className="border-l border-gray-100 ml-1">
+            {children.map(renderItem)}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-3 max-h-[260px] overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white">
+      {tree.map(renderItem)}
+    </div>
+  )
+}
+
 /* ---------- main component ---------- */
 
 function AddSystemPageInner() {
@@ -311,6 +386,7 @@ function AddSystemPageInner() {
 
   /* ---------- submit: convert complete nodes to grain ---------- */
   const [convertDialogOpen, setConvertDialogOpen] = useState(false)
+  const [convertedNodeIds, setConvertedNodeIds] = useState<Set<string>>(new Set())
   const [convertedNodeNames, setConvertedNodeNames] = useState<string[]>([])
 
   const checkNodeComplete = useCallback(
@@ -331,6 +407,7 @@ function AddSystemPageInner() {
   const handleSubmit = useCallback(() => {
     const completeNodes = nodes.filter((n) => n.type !== "original" && checkNodeComplete(n))
     if (completeNodes.length > 0) {
+      setConvertedNodeIds(new Set(completeNodes.map((n) => n.id)))
       setConvertedNodeNames(completeNodes.map((n) => n.name))
       setNodes((prev) =>
         prev.map((n) => (completeNodes.some((c) => c.id === n.id) ? { ...n, type: "original" } : n))
@@ -746,7 +823,7 @@ function AddSystemPageInner() {
 
       {/* Convert complete nodes to grain course dialog */}
       <Dialog open={convertDialogOpen} onOpenChange={setConvertDialogOpen}>
-        <DialogContent className="sm:max-w-[440px]">
+        <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
             <DialogTitle>节点已转换为颗粒课</DialogTitle>
           </DialogHeader>
@@ -757,6 +834,7 @@ function AddSystemPageInner() {
                 检测到 {convertedNodeNames.join("、")} 节点内容完善，已将其转换成颗粒课，支持跨课程复用。
               </p>
             </div>
+            <ConvertPreviewTree nodes={nodes} convertedIds={convertedNodeIds} />
           </div>
           <DialogFooter>
             <Button
