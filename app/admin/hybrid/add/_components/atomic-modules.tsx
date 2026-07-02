@@ -1433,22 +1433,26 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
               </div>
               <div className="space-y-2">
                 <Label>选择场景</Label>
-                <Select value={selectedScenarioId || undefined} onValueChange={setSelectedScenarioId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="请选择一个场景" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredScenarios.length === 0 ? (
-                      <div className="p-2 text-sm text-gray-400 text-center">无匹配场景</div>
-                    ) : (
-                      filteredScenarios.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.title}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <div className="border rounded-lg overflow-hidden max-h-[200px] overflow-y-auto">
+                  {filteredScenarios.length === 0 ? (
+                    <div className="p-3 text-sm text-gray-400 text-center">无匹配场景</div>
+                  ) : (
+                    filteredScenarios.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSelectedScenarioId(s.id)}
+                        className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
+                          selectedScenarioId === s.id
+                            ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
+                            : "hover:bg-gray-50 border-l-2 border-transparent"
+                        }`}
+                      >
+                        {s.title}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
               {selectedScenarioId && (
                 <div className="p-3 rounded-lg bg-gray-50 text-sm text-gray-600">
