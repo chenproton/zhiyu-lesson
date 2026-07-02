@@ -284,6 +284,31 @@ function AddSystemPageInner() {
   const [learningGoal, setLearningGoal] = useState(selectedNode?.teachingGoals || "")
   const [difficulty, setDifficulty] = useState<number>(isEdit ? 4 : 0)
 
+  /* module 2: knowledge points */
+  const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePointItem[]>(
+    selectedNode?.knowledgePoints
+      ? selectedNode.knowledgePoints.map((kp, i) => ({
+          id: `kp-${i}`,
+          name: kp.name,
+          description: "",
+          linked: kp.linked,
+        }))
+      : []
+  )
+
+  /* module 3: resources */
+  const [resourcePool] = useState<ResourceItem[]>(MOCK_RESOURCE_POOL)
+  const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>(
+    isEdit ? ["res-1", "res-2"] : []
+  )
+
+  /* module 4: assessment */
+  const [selectedEvalMethods, setSelectedEvalMethods] = useState<string[]>(
+    isEdit ? ["exam", "question_bank"] : []
+  )
+
+  /* module 5: evaluation rules */
+
   /* ---------- submit: convert complete nodes to grain ---------- */
   const [convertDialogOpen, setConvertDialogOpen] = useState(false)
   const [convertedNodeNames, setConvertedNodeNames] = useState<string[]>([])
@@ -315,31 +340,6 @@ function AddSystemPageInner() {
       toast.success("课程已提交审核")
     }
   }, [nodes, checkNodeComplete])
-
-  /* module 2: knowledge points */
-  const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePointItem[]>(
-    selectedNode?.knowledgePoints
-      ? selectedNode.knowledgePoints.map((kp, i) => ({
-          id: `kp-${i}`,
-          name: kp.name,
-          description: "",
-          linked: kp.linked,
-        }))
-      : []
-  )
-
-  /* module 3: resources */
-  const [resourcePool] = useState<ResourceItem[]>(MOCK_RESOURCE_POOL)
-  const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>(
-    isEdit ? ["res-1", "res-2"] : []
-  )
-
-  /* module 4: assessment */
-  const [selectedEvalMethods, setSelectedEvalMethods] = useState<string[]>(
-    isEdit ? ["exam", "question_bank"] : []
-  )
-
-  /* module 5: evaluation rules */
 
   /* ---------- construct current node for publish check ---------- */
   const currentCheckNode: SystemCourseNode | undefined = useMemo(() => {
