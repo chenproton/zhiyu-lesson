@@ -153,7 +153,7 @@ export default function KnowledgeGraphTab({ course, showSidebar = true }: {
       .text(d => d.name)
 
     nodeG.on("click", (ev, d: any) => {
-      if (d.type !== "core") {
+      if (d.type === "knowledge") {
         setModalData(d)
         setModalOpen(true)
       }
@@ -225,7 +225,7 @@ export default function KnowledgeGraphTab({ course, showSidebar = true }: {
           <div className="absolute top-3.5 right-3.5 bg-white/95 border border-[#f5f5f4] rounded-lg p-2.5 shadow-sm text-xs z-10">
             <div className="font-semibold text-[#64748b] mb-1.5 text-[11px]">图例</div>
             <div className="flex items-center gap-1.5 mb-1"><span className="w-2.5 h-2.5 rounded-full bg-[#722ed1] shrink-0" /><span>课程核心</span></div>
-            <div className="flex items-center gap-1.5 mb-1"><span className="w-2.5 h-2.5 rounded-full bg-[#52c41a] shrink-0" /><span>章节 (可点击)</span></div>
+            <div className="flex items-center gap-1.5 mb-1"><span className="w-2.5 h-2.5 rounded-full bg-[#52c41a] shrink-0" /><span>章节</span></div>
             <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shrink-0" /><span>知识点 (可点击)</span></div>
           </div>
           <div className="absolute top-3.5 left-3.5 flex gap-1 z-10">
@@ -234,7 +234,7 @@ export default function KnowledgeGraphTab({ course, showSidebar = true }: {
             <button onClick={handleReset} className="w-7 h-7 border border-[#e0e0e0] rounded bg-white/95 flex items-center justify-center text-[#64748b] hover:bg-[#eff6ff] hover:text-[#2563eb] hover:border-[#2563eb] transition-colors"><Maximize2 className="w-3 h-3" /></button>
           </div>
           <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 bg-black/55 text-white text-[11px] px-3 py-1 rounded-full pointer-events-none whitespace-nowrap">
-            拖拽节点 · 滚轮缩放 · 点击章节与知识点查看详情
+            拖拽节点 · 滚轮缩放 · 点击知识点查看详情
           </div>
           <div ref={tooltipRef} className="absolute bg-black/75 text-white text-xs px-2.5 py-1.5 rounded-md pointer-events-none hidden z-[100] max-w-[220px] leading-relaxed" />
         </div>
