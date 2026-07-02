@@ -1433,15 +1433,13 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
               </div>
               <div className="space-y-2">
                 <Label>选择场景</Label>
-                <Select value={selectedScenarioId} onValueChange={setSelectedScenarioId}>
+                <Select value={selectedScenarioId || undefined} onValueChange={setSelectedScenarioId}>
                   <SelectTrigger>
                     <SelectValue placeholder="请选择一个场景" />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredScenarios.length === 0 ? (
-                      <SelectItem value="" disabled>
-                        无匹配场景
-                      </SelectItem>
+                      <div className="p-2 text-sm text-gray-400 text-center">无匹配场景</div>
                     ) : (
                       filteredScenarios.map((s) => (
                         <SelectItem key={s.id} value={s.id}>
