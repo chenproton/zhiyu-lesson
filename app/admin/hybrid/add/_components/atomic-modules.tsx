@@ -70,6 +70,13 @@ export interface AttachmentItem {
   file: string
 }
 
+export interface LectureSectionItem {
+  id: string
+  name: string
+  content: string
+  attachments: AttachmentItem[]
+}
+
 export interface TaskItem {
   id: string
   name: string
@@ -140,6 +147,7 @@ export interface NodeModuleData {
   preQuizEvalMethods: string[]
   lectureContent: string
   lectureResources: ResourceItem[]
+  lectureSections: LectureSectionItem[]
   inClassTasks: TaskItem[]
   inClassQuizzes: QuizItem[]
   inClassQuizEvalMethods: string[]
@@ -227,6 +235,7 @@ export function createDefaultNodeModuleData(
     preQuizEvalMethods: [],
     lectureContent: "",
     lectureResources: [],
+    lectureSections: [],
     inClassTasks: [],
     inClassQuizzes: [],
     inClassQuizEvalMethods: [],
@@ -1130,21 +1139,67 @@ function PreQuizzesModule({ data, onChange }: AtomicModuleProps) {
 }
 
 function LectureModule({ data, onChange }: AtomicModuleProps) {
+  const sections = data.lectureSections || []
+
+  const update = (idx: number, patch: Partial<LectureSectionItem>) => {
+    const next = [...sections]
+    next[idx] = { ...next[idx], ...patch }
+    onChange({ lectureSections: next })
+  }
+
   return (
     <CardContent className="space-y-4">
-      <MockRichEditor
-        value={data.lectureContent}
-        onChange={(v) => onChange({ lectureContent: v })}
-        placeholder="请输入课堂讲授内容"
-      />
-      <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">配套资源</Label>
-        <ResourceListEditor
-          items={data.lectureResources}
-          onChange={(v) => onChange({ lectureResources: v })}
-          addLabel="关联课堂资源"
-        />
-      </div>
+      {sections.length === 0 && (
+        <div className="text-center text-sm text-gray-400 py-4 border border-dashed rounded-lg">
+          暂无讲授环节，点击下方按钮新增
+        </div>
+      )}
+      {sections.map((section, idx) => (
+        <div key={section.id} className="border rounded-lg p-3 space-y-3">
+          <div className="flex items-center gap-2">
+            <Input
+              value={section.name}
+              onChange={(e) => update(idx, { name: e.target.value })}
+              placeholder="环节名称"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onChange({ lectureSections: sections.filter((_, i) => i !== idx) })}
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          </div>
+          <MockRichEditor
+            value={section.content}
+            onChange={(v) => update(idx, { content: v })}
+            placeholder="请输入环节讲授内容"
+          />
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">环节附件</Label>
+            <AttachmentListEditor
+              items={section.attachments}
+              onChange={(attachments) => update(idx, { attachments })}
+              addLabel="上传附件"
+            />
+          </div>
+        </div>
+      ))}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() =>
+          onChange({
+            lectureSections: [
+              ...sections,
+              { id: uid("lecture-section"), name: "", content: "", attachments: [] },
+            ],
+          })
+        }
+      >
+        <Plus className="h-4 w-4 mr-1" />
+        新增环节
+      </Button>
     </CardContent>
   )
 }
