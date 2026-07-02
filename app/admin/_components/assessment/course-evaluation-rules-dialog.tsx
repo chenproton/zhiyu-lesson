@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  ArrowRight,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -21,9 +20,6 @@ import {
   Search,
   Target,
   Trash2,
-  Users,
-  User,
-  UserCheck,
   X,
   Award,
   BookOpen,
@@ -1396,126 +1392,6 @@ export function CourseEvaluationRulesDialog({
     }
   }
 
-  const ObjectDialogContent = ({ methodKey }: { methodKey: string }) => {
-    const currentObject = config.methodEvalObjects[methodKey] || config.evalObject
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-gray-500 mb-4">选择本评价方式的测评对象类型</p>
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            { key: "individual", label: "个人", desc: "以学生个人为单位进行测评", icon: <User className="h-6 w-6" /> },
-            { key: "group", label: "小组", desc: "以小组为单位进行测评", icon: <Users className="h-6 w-6" /> },
-          ].map(opt => (
-            <button key={opt.key} onClick={() => updateConfig({ methodEvalObjects: { ...config.methodEvalObjects, [methodKey]: opt.key as EvalObjectType } })} className={cn("p-5 rounded-xl border text-left transition-all flex items-center gap-4", currentObject === opt.key ? "border-primary bg-primary/[0.03] ring-1 ring-primary/20" : "border-gray-200 hover:border-gray-300 bg-white")}>
-              <div className={cn("p-3 rounded-lg", currentObject === opt.key ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-400")}>{opt.icon}</div>
-              <div><p className="text-sm font-semibold mb-1">{opt.label}</p><p className="text-xs text-gray-400">{opt.desc}</p></div>
-            </button>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  const SubjectDialogContent = ({ methodKey }: { methodKey: string }) => {
-    const currentSubjects = config.methodEvalSubjects[methodKey] || config.evalSubjects
-    const evalObject = config.methodEvalObjects[methodKey] || config.evalObject
-    const handleDistributeWeights = () => {
-      const enabled = currentSubjects.filter(s => s.enabled)
-      const count = enabled.length
-      if (count === 0) return
-      const base = Math.floor(100 / count)
-      const remainder = 100 % count
-      const enabledIdxMap = new Map(enabled.map((s, i) => [s.type, i]))
-      const newSubjects = currentSubjects.map(s => !s.enabled ? s : { ...s, params: { ...s.params, weightPercent: base + ((enabledIdxMap.get(s.type) ?? 0) < remainder ? 1 : 0) } })
-      updateConfig({ methodEvalSubjects: { ...config.methodEvalSubjects, [methodKey]: newSubjects } })
-    }
-    const backgroundOptions = ["计算机/软件工程相关专业", "电子信息工程", "自动化/控制工程", "数学/统计学", "设计/艺术相关专业", "工商管理/市场营销", "财务会计/金融", "机械工程/制造业", "建筑工程/土木工程", "医学/护理学", "教育学/心理学", "法学/政治学", "其他专业"]
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between"><p className="text-sm text-gray-500">配置参与评价的主体及其参数</p><Button variant="outline" size="sm" className="text-xs h-8" onClick={handleDistributeWeights}><Scale className="h-3.5 w-3.5 mr-1" />一键平均权重</Button></div>
-        <div className="space-y-3">
-          {currentSubjects.map((subject, idx) => {
-            const allowedSubjectsForMethod: Record<string, string[]> = {
-              paper: ["teacher", "enterprise_mentor"],
-              question_bank: ["teacher", "enterprise_mentor"],
-              random_draw: ["teacher", "enterprise_mentor", "self", "peer"],
-              review: ["teacher", "enterprise_mentor", "self", "peer", "service_target"],
-            }
-            const methodAllowed = (allowedSubjectsForMethod[methodKey] || []).includes(subject.type)
-            const peerAllowed = subject.type !== "peer" || evalObject === "group"
-            const allowed = methodAllowed && peerAllowed
-            return (
-              <div key={subject.type} className={cn("p-4 rounded-xl border transition-all", !allowed ? "opacity-50 bg-gray-50 border-gray-200" : subject.enabled ? "border-primary bg-primary/[0.03]" : "border-gray-200 bg-white")}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3"><Switch checked={subject.enabled} disabled={!allowed} onCheckedChange={v => updateMethodEvalSubject(methodKey, idx, { enabled: v })} /><span className={cn("text-sm font-medium", !allowed && "text-gray-400")}>{subjectLabels[subject.type]}</span></div>
-                  {subject.enabled && allowed && subject.params?.weightPercent !== undefined && <Badge variant="outline" className="text-[10px]">权重 {subject.params.weightPercent}%</Badge>}
-                </div>
-                {subject.enabled && (
-                  <div className="pl-12 space-y-3">
-                    {subject.type === "teacher" && (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div><Label className="text-xs text-gray-500">专业背景要求</Label><Select value={subject.params?.teacherBackground || ""} onValueChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, teacherBackground: v } })}><SelectTrigger className="mt-1 text-sm h-9"><SelectValue placeholder="选择专业背景" /></SelectTrigger><SelectContent>{backgroundOptions.map(bg => <SelectItem key={bg} value={bg}>{bg}</SelectItem>)}</SelectContent></Select></div>
-                        <div><Label className="text-xs text-gray-500">评分人数</Label><Input type="number" value={subject.params?.scorerCount || 1} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, scorerCount: Math.max(1, parseInt(e.target.value) || 1) } })} className="mt-1 text-sm" min={1} />{(subject.params?.scorerCount || 1) > 1 && <div className="mt-2"><Label className="text-xs text-gray-500">统计规则</Label><Select value={subject.params?.aggregationRule || "average"} onValueChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, aggregationRule: v as "average" | "median" | "max" | "min" } })}><SelectTrigger className="mt-1 text-sm h-9"><SelectValue placeholder="选择统计规则" /></SelectTrigger><SelectContent><SelectItem value="average">平均值</SelectItem><SelectItem value="median">中位数</SelectItem><SelectItem value="max">最高分</SelectItem><SelectItem value="min">最低分</SelectItem></SelectContent></Select></div>}</div>
-                        <div><Label className="text-xs text-gray-500">评分权重 (%)</Label><Input type="number" value={subject.params?.weightPercent || 0} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, weightPercent: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) } })} className="mt-1 text-sm" min={0} max={100} /></div>
-                        <div><Label className="text-xs text-gray-500">最低教龄 (年)</Label><Input type="number" value={subject.params?.minTeachingYears || 0} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, minTeachingYears: Math.max(0, parseInt(e.target.value) || 0) } })} className="mt-1 text-sm" min={0} /></div>
-                      </div>
-                    )}
-                    {subject.type === "enterprise_mentor" && (
-                      <>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div><Label className="text-xs text-gray-500">专业领域</Label><Select value={subject.params?.expertise || ""} onValueChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, expertise: v } })}><SelectTrigger className="mt-1 text-sm h-9"><SelectValue placeholder="选择专业领域" /></SelectTrigger><SelectContent>{backgroundOptions.map(bg => <SelectItem key={bg} value={bg}>{bg}</SelectItem>)}</SelectContent></Select></div>
-                          <div><Label className="text-xs text-gray-500">工作年限要求 (年)</Label><Input type="number" value={subject.params?.minYears || 0} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, minYears: Math.max(0, parseInt(e.target.value) || 0) } })} className="mt-1 text-sm" min={0} /></div>
-                          <div><Label className="text-xs text-gray-500">评分人数</Label><Input type="number" value={subject.params?.scorerCount || 1} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, scorerCount: Math.max(1, parseInt(e.target.value) || 1) } })} className="mt-1 text-sm" min={1} />{(subject.params?.scorerCount || 1) > 1 && <div className="mt-2"><Label className="text-xs text-gray-500">统计规则</Label><Select value={subject.params?.aggregationRule || "average"} onValueChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, aggregationRule: v as "average" | "median" | "max" | "min" } })}><SelectTrigger className="mt-1 text-sm h-9"><SelectValue placeholder="选择统计规则" /></SelectTrigger><SelectContent><SelectItem value="average">平均值</SelectItem><SelectItem value="median">中位数</SelectItem><SelectItem value="max">最高分</SelectItem><SelectItem value="min">最低分</SelectItem></SelectContent></Select></div>}</div>
-                          <div><Label className="text-xs text-gray-500">评分权重 (%)</Label><Input type="number" value={subject.params?.weightPercent || 0} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, weightPercent: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) } })} className="mt-1 text-sm" min={0} max={100} /></div>
-                        </div>
-                        <div><Label className="text-xs text-gray-500">岗位工作经历</Label><Input value={subject.params?.jobExperience || ""} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, jobExperience: e.target.value } })} placeholder="请填写岗位工作经历要求" className="mt-1 text-sm" /></div>
-                      </>
-                    )}
-                    {subject.type === "peer" && (
-                      <>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div><Label className="text-xs text-gray-500">互评人数</Label><Input type="number" value={subject.params?.peerCount || 3} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, peerCount: Math.max(1, parseInt(e.target.value) || 1) } })} className="mt-1 text-sm" min={1} />{(subject.params?.peerCount || 3) > 1 && <div className="mt-2"><Label className="text-xs text-gray-500">统计规则</Label><Select value={subject.params?.aggregationRule || "average"} onValueChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, aggregationRule: v as "average" | "median" | "max" | "min" } })}><SelectTrigger className="mt-1 text-sm h-9"><SelectValue placeholder="选择统计规则" /></SelectTrigger><SelectContent><SelectItem value="average">平均值</SelectItem><SelectItem value="median">中位数</SelectItem><SelectItem value="max">最高分</SelectItem><SelectItem value="min">最低分</SelectItem></SelectContent></Select></div>}</div>
-                          <div><Label className="text-xs text-gray-500">评分权重 (%)</Label><Input type="number" value={subject.params?.weightPercent || 0} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, weightPercent: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) } })} className="mt-1 text-sm" min={0} max={100} /></div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div><Label className="text-xs text-gray-500">互评规则</Label><Select value={subject.params?.peerRule || ""} onValueChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, peerRule: v } })}><SelectTrigger className="mt-1 text-sm h-9"><SelectValue placeholder="选择互评规则" /></SelectTrigger><SelectContent><SelectItem value="随机分配">随机分配</SelectItem><SelectItem value="相邻座位">相邻座位</SelectItem><SelectItem value="自由组合">自由组合</SelectItem><SelectItem value="指定分组">指定分组</SelectItem></SelectContent></Select></div>
-                          <div className="flex items-end pb-2"><div className="flex items-center gap-2"><Switch checked={subject.params?.anonymous || false} onCheckedChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, anonymous: v } })} /><span className="text-xs text-gray-600">匿名评价</span></div></div>
-                        </div>
-                      </>
-                    )}
-                    {subject.type === "self" && (
-                      <>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div><Label className="text-xs text-gray-500">评分权重 (%)</Label><Input type="number" value={subject.params?.weightPercent || 0} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, weightPercent: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) } })} className="mt-1 text-sm" min={0} max={100} /></div>
-                          <div className="flex items-end pb-2"><div className="flex items-center gap-2"><Switch checked={subject.params?.requiresReflection || false} onCheckedChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, requiresReflection: v } })} /><span className="text-xs text-gray-600">需要提交反思报告</span></div></div>
-                        </div>
-                        {subject.params?.requiresReflection && <div><Label className="text-xs text-gray-500">反思报告最少字数</Label><Input type="number" value={subject.params?.reflectionMinLength || 300} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, reflectionMinLength: Math.max(100, parseInt(e.target.value) || 100) } })} className="mt-1 text-sm w-32" min={100} /></div>}
-                      </>
-                    )}
-                    {subject.type === "ai" && (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div><Label className="text-xs text-gray-500">AI 模型</Label><Select value={subject.params?.aiModel || ""} onValueChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, aiModel: v } })}><SelectTrigger className="mt-1 text-sm h-9"><SelectValue placeholder="选择 AI 模型" /></SelectTrigger><SelectContent><SelectItem value="GPT-4">GPT-4</SelectItem><SelectItem value="GPT-3.5">GPT-3.5</SelectItem><SelectItem value="Claude">Claude</SelectItem><SelectItem value="文心一言">文心一言</SelectItem><SelectItem value="通义千问">通义千问</SelectItem></SelectContent></Select></div>
-                        <div><Label className="text-xs text-gray-500">评分权重 (%)</Label><Input type="number" value={subject.params?.weightPercent || 0} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, weightPercent: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) } })} className="mt-1 text-sm" min={0} max={100} /></div>
-                      </div>
-                    )}
-                    {subject.type === "service_target" && (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div><Label className="text-xs text-gray-500">评价方式</Label><Select value={subject.params?.serviceMethod || ""} onValueChange={v => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, serviceMethod: v } })}><SelectTrigger className="mt-1 text-sm h-9"><SelectValue placeholder="选择评价方式" /></SelectTrigger><SelectContent><SelectItem value="满意度问卷">满意度问卷</SelectItem><SelectItem value="现场反馈">现场反馈</SelectItem><SelectItem value="线上评价">线上评价</SelectItem><SelectItem value="访谈记录">访谈记录</SelectItem></SelectContent></Select></div>
-                        <div><Label className="text-xs text-gray-500">样本数量</Label><Input type="number" value={subject.params?.sampleSize || 10} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, sampleSize: Math.max(1, parseInt(e.target.value) || 1) } })} className="mt-1 text-sm" min={1} /></div>
-                        <div><Label className="text-xs text-gray-500">评分权重 (%)</Label><Input type="number" value={subject.params?.weightPercent || 0} onChange={e => updateMethodEvalSubject(methodKey, idx, { params: { ...subject.params, weightPercent: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) } })} className="mt-1 text-sm" min={0} max={100} /></div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
   function MixedTagEditor({ text, knowledgePointIds, abilityPointIds, onChange, onOpenKpDialog, onOpenAbDialog }: { text: string; knowledgePointIds: string[]; abilityPointIds: string[]; onChange: (updates: { name?: string; knowledgePointIds?: string[]; abilityPointIds?: string[] }) => void; onOpenKpDialog: () => void; onOpenAbDialog: () => void; }) {
     const ref = useRef<HTMLDivElement>(null)
     const isComposing = useRef(false)
@@ -1820,50 +1696,20 @@ export function CourseEvaluationRulesDialog({
     )
   }
 
-  const objectOptions = [
-    { key: "individual", label: "个人", desc: "以个人为单位" },
-    { key: "group", label: "小组", desc: "以小组为单位" },
-  ] as const
-
-  const ObjectCard = ({ methodKey, onClick }: { methodKey: string; onClick: () => void }) => {
-    const currentObject = config.methodEvalObjects[methodKey] || config.evalObject
-    const opt = objectOptions.find(o => o.key === currentObject)
-    return (
-      <button onClick={onClick} className="flex-1 min-w-0 p-4 rounded-xl border text-left transition-all hover:border-primary/50 hover:bg-primary/[0.02] bg-white group">
-        <div className="flex items-center gap-2 mb-2"><Users className="h-4 w-4 text-gray-400 group-hover:text-primary" /><span className="text-xs font-medium text-gray-500">测评对象</span></div>
-        <p className="text-sm font-semibold truncate">{opt?.label || "未选择"}</p>
-        <p className="text-xs text-gray-400 truncate mt-0.5">{opt?.desc || "点击配置"}</p>
-      </button>
-    )
-  }
-
-  const SubjectCard = ({ methodKey, onClick }: { methodKey: string; onClick: () => void }) => {
-    const currentSubjects = config.methodEvalSubjects[methodKey] || config.evalSubjects
-    const evalObject = config.methodEvalObjects[methodKey] || config.evalObject
-    const enabledSubjects = currentSubjects.filter(s => s.enabled && !(s.type === "peer" && evalObject !== "group"))
-    const totalWeight = enabledSubjects.reduce((s, sub) => s + (sub.params?.weightPercent || 0), 0)
-    return (
-      <button onClick={onClick} className="flex-1 min-w-0 p-4 rounded-xl border text-left transition-all hover:border-primary/50 hover:bg-primary/[0.02] bg-white group">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2"><UserCheck className="h-4 w-4 text-gray-400 group-hover:text-primary" /><span className="text-xs font-medium text-gray-500">评价主体</span></div>
-          {enabledSubjects.length > 0 && <Badge variant="outline" className="text-[10px]">{enabledSubjects.length} 类</Badge>}
-        </div>
-        <p className="text-sm font-semibold truncate">{enabledSubjects.length === 0 ? "未配置" : enabledSubjects.map(s => subjectLabels[s.type]).join("、")}</p>
-        <p className="text-xs text-gray-400 truncate mt-0.5">{enabledSubjects.length === 0 ? "点击配置" : `总权重 ${totalWeight}%`}</p>
-      </button>
-    )
-  }
-
   const ResourceCard = ({ methodKey, onClick }: { methodKey: string; onClick: () => void }) => {
     const summary = getMethodConfigSummary(methodKey)
     return (
-      <button onClick={onClick} className="flex-1 min-w-0 p-4 rounded-xl border text-left transition-all hover:border-primary/50 hover:bg-primary/[0.02] bg-white group">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2"><Database className="h-4 w-4 text-gray-400 group-hover:text-primary" /><span className="text-xs font-medium text-gray-500">测评资源</span></div>
-          {summary.configured && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+      <button onClick={onClick} className="relative p-4 rounded-xl border text-left transition-all hover:border-blue-400 hover:bg-blue-50/30 bg-white group h-full">
+        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-blue-50 text-blue-600 text-[10px] flex items-center justify-center font-medium border border-blue-100">1</div>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="p-1.5 rounded-md bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
+            <Database className="h-4 w-4" />
+          </div>
+          <span className="text-xs font-medium text-gray-600">测评资源</span>
+          {summary.configured && <CheckCircle2 className="h-3.5 w-3.5 text-blue-500 ml-auto" />}
         </div>
-        <p className="text-sm font-semibold truncate">{summary.summary || "未配置"}</p>
-        <p className="text-xs text-gray-400 truncate mt-0.5">&nbsp;</p>
+        <p className="text-sm font-semibold truncate pr-6">{summary.summary || "未配置"}</p>
+        <p className="text-xs text-gray-400 mt-1">{summary.configured ? "点击修改测评资源" : "点击配置测评资源"}</p>
       </button>
     )
   }
@@ -1872,13 +1718,17 @@ export function CourseEvaluationRulesDialog({
     const info = getMethodEvalInfo(methodKey)
     const subTypeCount = Object.entries(info.points.reduce((acc, p) => { if (p.subType) acc[p.subType] = (acc[p.subType] || 0) + 1; return acc; }, {} as Record<string, number>)).map(([k, v]) => `${evalSubTypeLabels[k as EvalSubType]}${v}`)
     return (
-      <button onClick={onClick} className="flex-1 min-w-0 p-4 rounded-xl border text-left transition-all hover:border-primary/50 hover:bg-primary/[0.02] bg-white group">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2"><Target className="h-4 w-4 text-gray-400 group-hover:text-primary" /><span className="text-xs font-medium text-gray-500">评价标准配置</span></div>
-          {info.points.length > 0 && <Badge variant="outline" className="text-[10px]">{info.points.length} 点</Badge>}
+      <button onClick={onClick} className="relative p-4 rounded-xl border text-left transition-all hover:border-purple-400 hover:bg-purple-50/30 bg-white group h-full">
+        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-purple-50 text-purple-600 text-[10px] flex items-center justify-center font-medium border border-purple-100">2</div>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="p-1.5 rounded-md bg-purple-50 text-purple-600 group-hover:bg-purple-100 transition-colors">
+            <Target className="h-4 w-4" />
+          </div>
+          <span className="text-xs font-medium text-gray-600">评价标准配置</span>
+          {info.points.length > 0 && <Badge variant="outline" className="text-[10px] ml-auto">{info.points.length} 点</Badge>}
         </div>
-        <p className="text-sm font-semibold truncate">{info.points.length === 0 ? "未配置评价点" : `${info.points.length} 个评价点`}</p>
-        <p className="text-xs text-gray-400 truncate mt-0.5">{subTypeCount.length === 0 ? "点击配置" : subTypeCount.join(" · ")}</p>
+        <p className="text-sm font-semibold truncate pr-6">{info.points.length === 0 ? "未配置评价点" : `${info.points.length} 个评价点`}</p>
+        <p className="text-xs text-gray-400 mt-1">{subTypeCount.length === 0 ? "点击配置评价标准" : subTypeCount.join(" · ")}</p>
       </button>
     )
   }
@@ -1958,29 +1808,33 @@ export function CourseEvaluationRulesDialog({
             const instanceCount = methodInstanceCounts[methodKey] || 1
             const displayLabel = instanceCount > 1 ? `${method.label} ${instanceIndex + 1}` : method.label
             return (
-              <div key={`${methodKey}-${instanceIndex}`} className="border rounded-xl p-4 bg-gray-50/50">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={cn("p-2 rounded-lg", method.color)}>{method.icon}</div>
+              <div key={`${methodKey}-${instanceIndex}`} className="border rounded-xl overflow-hidden bg-white">
+                <div className={cn("flex items-center gap-3 px-4 py-3 border-b bg-gray-50/80")}>
+                  <div className={cn("p-1.5 rounded-md", method.color)}>{method.icon}</div>
                   <div className="flex-1 min-w-0"><p className="text-sm font-semibold">{displayLabel}</p><p className="text-xs text-gray-400">{method.desc}</p></div>
                   <button onClick={() => { if (confirm(`确定要复制「${method.label}」测评方式吗？`)) duplicateMethod(methodKey); }} className="flex items-center gap-1 px-2 py-1 rounded-md text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors text-xs" title="复制测评方式">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                     复制测评方式
                   </button>
                 </div>
-                <div className="flex items-center gap-1">
-                  <ObjectCard methodKey={methodKey} onClick={() => openDialog("object", methodKey)} />
-                  <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">①</span><ArrowRight className="h-3.5 w-3.5" /></div>
-                  <SubjectCard methodKey={methodKey} onClick={() => openDialog("subject", methodKey)} />
-                  <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">②</span><ArrowRight className="h-3.5 w-3.5" /></div>
-                  <ResourceCard methodKey={methodKey} onClick={() => openDialog("resource", methodKey)} />
-                  <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">③</span><ArrowRight className="h-3.5 w-3.5" /></div>
-                  {(methodKey === "question_bank" || methodKey === "paper" || methodKey === "quiz") ? (
-                    <div className="flex-1 min-w-0 p-4 rounded-xl border text-left bg-green-50/50 border-green-100">
-                      <div className="flex items-center gap-2 mb-2"><Target className="h-4 w-4 text-green-500" /><span className="text-xs font-medium text-green-600">评价标准配置</span></div>
-                      <p className="text-sm font-semibold text-green-700">自动读取得分</p>
-                      <p className="text-xs text-green-500 truncate mt-0.5">系统将自动读取上一步测评资源的得分</p>
-                    </div>
-                  ) : <MethodCard methodKey={methodKey} onClick={() => openDialog("method", methodKey)} />}
+                <div className="p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative">
+                    <ResourceCard methodKey={methodKey} onClick={() => openDialog("resource", methodKey)} />
+                    <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 border border-gray-200 text-gray-400 text-xs items-center justify-center z-10">→</div>
+                    {(methodKey === "question_bank" || methodKey === "paper" || methodKey === "quiz") ? (
+                      <div className="relative p-4 rounded-xl border text-left bg-green-50/50 border-green-100 hover:border-green-200 transition-colors h-full">
+                        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-green-100 text-green-600 text-[10px] flex items-center justify-center font-medium border border-green-200">2</div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-1.5 rounded-md bg-green-100 text-green-600">
+                            <Target className="h-4 w-4" />
+                          </div>
+                          <span className="text-xs font-medium text-green-700">评价标准配置</span>
+                        </div>
+                        <p className="text-sm font-semibold text-green-700">自动读取得分</p>
+                        <p className="text-xs text-green-500 mt-1">系统将自动读取测评资源的得分</p>
+                      </div>
+                    ) : <MethodCard methodKey={methodKey} onClick={() => openDialog("method", methodKey)} />}
+                  </div>
                 </div>
               </div>
             )
@@ -1992,20 +1846,6 @@ export function CourseEvaluationRulesDialog({
 
   const SubDialogs = () => (
     <>
-      <Dialog open={erDialogOpen === "object"} onOpenChange={v => !v && setErDialogOpen(null)}>
-        <DialogContent className="sm:max-w-[63vw] max-w-[63vw] max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>测评对象配置</DialogTitle><DialogDescription>配置 {erDialogMethod ? evaluationMethodOptions.find(o => o.key === erDialogMethod)?.label : ""} 的测评对象</DialogDescription></DialogHeader>
-          {erDialogMethod && <ObjectDialogContent methodKey={erDialogMethod} />}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={erDialogOpen === "subject"} onOpenChange={v => !v && setErDialogOpen(null)}>
-        <DialogContent className="sm:max-w-[63vw] max-w-[63vw] max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>评价主体配置</DialogTitle><DialogDescription>配置 {erDialogMethod ? evaluationMethodOptions.find(o => o.key === erDialogMethod)?.label : ""} 的评价主体</DialogDescription></DialogHeader>
-          {erDialogMethod && <SubjectDialogContent methodKey={erDialogMethod} />}
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={erDialogOpen === "resource"} onOpenChange={v => !v && setErDialogOpen(null)}>
         <DialogContent className="sm:max-w-[85vw] max-w-[85vw] h-[92vh] overflow-y-auto">
           <DialogHeader><DialogTitle>测评资源配置</DialogTitle><DialogDescription>配置 {erDialogMethod ? evaluationMethodOptions.find(o => o.key === erDialogMethod)?.label : ""} 的测评资源</DialogDescription></DialogHeader>
