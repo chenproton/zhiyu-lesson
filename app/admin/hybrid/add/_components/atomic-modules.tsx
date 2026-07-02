@@ -114,6 +114,9 @@ export interface ClassroomQuestion {
   id: string
   stem: string
   answer: string
+  source?: "manual" | "bank"
+  bankId?: string
+  bankTitle?: string
 }
 
 export interface HomeworkItem {
@@ -137,6 +140,7 @@ export interface ReportItem {
   template: string
   requirement: string
   required: boolean
+  attachments: AttachmentItem[]
 }
 
 export interface NodeModuleData {
@@ -466,7 +470,7 @@ function QuestionListEditor({
         size="sm"
         variant="outline"
         onClick={() =>
-          onChange([...items, { id: uid("q"), stem: "", answer: "" }])
+          onChange([...items, { id: uid("q"), stem: "", answer: "", source: "manual" }])
         }
       >
         <Plus className="h-4 w-4 mr-1" />
@@ -1039,6 +1043,14 @@ function ReportListEditor({
             onChange={(v) => update(idx, { requirement: v })}
             placeholder="报告要求"
           />
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">报告附件</Label>
+            <AttachmentListEditor
+              items={item.attachments || []}
+              onChange={(attachments) => update(idx, { attachments })}
+              addLabel="上传附件"
+            />
+          </div>
         </div>
       ))}
       <Button
@@ -1053,6 +1065,7 @@ function ReportListEditor({
               template: "",
               requirement: "",
               required: true,
+              attachments: [],
             },
           ])
         }
@@ -1257,13 +1270,188 @@ function InClassQuizzesModule({ data, onChange }: AtomicModuleProps) {
   )
 }
 
+const MOCK_QUESTION_BANK = [
+  { id: "qb-1", title: "什么是闭包？", type: "简答题" },
+  { id: "qb-2", title: "CSS 中 display: flex 与 display: grid 的区别是什么？", type: "简答题" },
+  { id: "qb-3", title: "React 中 useEffect 的依赖数组作用是什么？", type: "简答题" },
+  { id: "qb-4", title: "HTTP 状态码 404 和 500 分别代表什么？", type: "简答题" },
+  { id: "qb-5", title: "TypeScript 中 interface 和 type 有什么区别？", type: "简答题" },
+  { id: "qb-6", title: "请简述事件委托的原理。", type: "简答题" },
+]
+
 function ClassQuestionsModule({ data, onChange }: AtomicModuleProps) {
+  const questions = data.classQuestions || []
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [addMode, setAddMode] = useState<"manual" | "bank" | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedQuestionId, setSelectedQuestionId] = useState("")
+
+  const filteredQuestions = MOCK_QUESTION_BANK.filter(
+    (q) =>
+      q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      q.type.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const resetDialog = () => {
+    setDialogOpen(false)
+    setAddMode(null)
+    setSearchQuery("")
+    setSelectedQuestionId("")
+  }
+
+  const handleAddBankQuestion = () => {
+    const question = MOCK_QUESTION_BANK.find((q) => q.id === selectedQuestionId)
+    if (!question) return
+    onChange({
+      classQuestions: [
+        ...questions,
+        {
+          id: uid("bank-q"),
+          stem: question.title,
+          answer: "",
+          source: "bank",
+          bankId: question.id,
+          bankTitle: question.title,
+        },
+      ],
+    })
+    resetDialog()
+  }
+
+  const updateQuestion = (idx: number, patch: Partial<ClassroomQuestion>) => {
+    const next = [...questions]
+    next[idx] = { ...next[idx], ...patch }
+    onChange({ classQuestions: next })
+  }
+
   return (
-    <CardContent>
-      <QuestionListEditor
-        items={data.classQuestions}
-        onChange={(v) => onChange({ classQuestions: v })}
-      />
+    <CardContent className="space-y-4">
+      {questions.map((q, idx) => (
+        <div key={q.id} className="border rounded-lg p-3 space-y-3">
+          {q.source === "bank" ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-[#1890ff]" />
+                <div>
+                  <p className="text-sm font-medium">{q.bankTitle || q.stem}</p>
+                  <p className="text-xs text-gray-400">来自题库</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onChange({ classQuestions: questions.filter((_, i) => i !== idx) })}
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={q.stem}
+                  onChange={(e) => updateQuestion(idx, { stem: e.target.value })}
+                  placeholder="问题内容"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onChange({ classQuestions: questions.filter((_, i) => i !== idx) })}
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+              <Input
+                value={q.answer}
+                onChange={(e) => updateQuestion(idx, { answer: e.target.value })}
+                placeholder="参考答案"
+              />
+            </>
+          )}
+        </div>
+      ))}
+      <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
+        <Plus className="h-4 w-4 mr-1" />
+        添加提问
+      </Button>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{addMode === "bank" ? "从题库引用" : "添加提问"}</DialogTitle>
+          </DialogHeader>
+          {!addMode ? (
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <button
+                onClick={() => {
+                  onChange({
+                    classQuestions: [
+                      ...questions,
+                      { id: uid("q"), stem: "", answer: "", source: "manual" },
+                    ],
+                  })
+                  resetDialog()
+                }}
+                className="flex flex-col items-center gap-2 p-6 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+              >
+                <PenTool className="h-8 w-8 text-blue-500" />
+                <span className="text-sm font-medium">手动新增提问</span>
+              </button>
+              <button
+                onClick={() => setAddMode("bank")}
+                className="flex flex-col items-center gap-2 p-6 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+              >
+                <Database className="h-8 w-8 text-blue-500" />
+                <span className="text-sm font-medium">从题库中引用</span>
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setSelectedQuestionId("")
+                  }}
+                  placeholder="搜索题目内容、题型..."
+                  className="pl-9 text-sm h-9"
+                />
+              </div>
+              <div className="border rounded-lg overflow-hidden max-h-[320px] overflow-y-auto">
+                {filteredQuestions.length === 0 ? (
+                  <div className="p-3 text-sm text-gray-400 text-center">无匹配题目</div>
+                ) : (
+                  filteredQuestions.map((q) => (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => setSelectedQuestionId(q.id)}
+                      className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
+                        selectedQuestionId === q.id
+                          ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
+                          : "hover:bg-gray-50 border-l-2 border-transparent"
+                      }`}
+                    >
+                      <span className="font-medium">{q.title}</span>
+                      <span className="ml-2 text-xs text-gray-400">{q.type}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddMode(null)}>
+                  返回
+                </Button>
+                <Button onClick={handleAddBankQuestion} disabled={!selectedQuestionId}>
+                  确认引用
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </CardContent>
   )
 }
@@ -1590,6 +1778,7 @@ function HomeworksModule({ data, onChange }: AtomicModuleProps) {
         <EvaluationMethodSelector
           selectedKeys={methods}
           onChange={(keys) => onChange({ homeworkEvalMethods: keys })}
+          allowedKeys={["exam"]}
         />
       </div>
       <div className="border-t pt-4">
@@ -1616,10 +1805,9 @@ function HomeworksModule({ data, onChange }: AtomicModuleProps) {
 function ExtensionMaterialsModule({ data, onChange }: AtomicModuleProps) {
   return (
     <CardContent>
-      <ResourceListEditor
+      <TeachingResourceSelector
         items={data.extensionMaterials}
         onChange={(v) => onChange({ extensionMaterials: v })}
-        addLabel="关联拓展资料"
       />
     </CardContent>
   )

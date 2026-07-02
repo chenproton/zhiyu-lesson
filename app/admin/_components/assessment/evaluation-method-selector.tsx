@@ -22,6 +22,7 @@ export interface EvalMethodOption {
 interface EvaluationMethodSelectorProps {
   selectedKeys: string[]
   onChange: (keys: string[]) => void
+  allowedKeys?: string[]
 }
 
 const evaluationMethodOptions: EvalMethodOption[] = [
@@ -31,7 +32,7 @@ const evaluationMethodOptions: EvalMethodOption[] = [
   { key: "quiz", label: "随堂测", icon: <FileQuestion className="h-5 w-5" />, color: "bg-purple-50 text-purple-600 border-purple-200", available: true, desc: "课堂即时测验" },
 ]
 
-export function EvaluationMethodSelector({ selectedKeys, onChange }: EvaluationMethodSelectorProps) {
+export function EvaluationMethodSelector({ selectedKeys, onChange, allowedKeys }: EvaluationMethodSelectorProps) {
   const toggleMethod = (key: string) => {
     const opts = evaluationMethodOptions.find((o) => o.key === key)
     if (!opts || !opts.available) return
@@ -39,10 +40,14 @@ export function EvaluationMethodSelector({ selectedKeys, onChange }: EvaluationM
     onChange(enabled ? selectedKeys.filter((m) => m !== key) : [...selectedKeys, key])
   }
 
+  const visibleOptions = allowedKeys
+    ? evaluationMethodOptions.filter((o) => allowedKeys.includes(o.key))
+    : evaluationMethodOptions
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        {evaluationMethodOptions.map((method) => {
+        {visibleOptions.map((method) => {
           const enabled = selectedKeys.includes(method.key)
           return (
             <button
