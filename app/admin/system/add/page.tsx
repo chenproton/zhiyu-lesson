@@ -23,6 +23,7 @@ import {
   Search,
   CheckCircle2,
   Sparkles,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -261,18 +262,10 @@ function ConvertPreviewTree({
       <div key={node.id} style={{ paddingLeft: `${level * 16}px` }}>
         <div className="flex items-center justify-between gap-2 py-1.5">
           <span className="text-sm text-gray-700 truncate">{node.name}</span>
-          {isConverted ? (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 shrink-0">
-              即将转为颗粒课
-            </span>
-          ) : isOriginal ? (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 shrink-0">
-              颗粒课
-            </span>
+          {isConverted || isOriginal ? (
+            <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
           ) : (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 shrink-0">
-              普通节点
-            </span>
+            <X className="w-4 h-4 text-red-500 shrink-0" />
           )}
         </div>
         {children.length > 0 && (
@@ -1012,11 +1005,19 @@ function AddSystemPageInner() {
             <DialogTitle>节点已转换为颗粒课</DialogTitle>
           </DialogHeader>
           <div className="py-2">
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-start gap-2">
-              <Info className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
-              <p className="text-xs text-purple-700">
-                检测到 {convertedNodeNames.join("、")} 节点内容完善，已将其转换成颗粒课，支持跨课程复用。
-              </p>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                <p className="text-xs text-gray-700">
+                  绿色的勾：通过节点完整度校验、提交后另存为颗粒课
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <X className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                <p className="text-xs text-gray-700">
+                  红色的叉：节点未完成建设、提交后无法另外为颗粒课
+                </p>
+              </div>
             </div>
             <ConvertPreviewTree nodes={nodes} convertedIds={convertedNodeIds} />
           </div>
