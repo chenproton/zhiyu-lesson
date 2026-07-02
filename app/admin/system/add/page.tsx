@@ -29,7 +29,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -213,7 +212,7 @@ function AddSystemPageInner() {
   /* ========== global config (collapsible) ========== */
   const [globalInfoOpen, setGlobalInfoOpen] = useState(true)
   const [courseName, setCourseName] = useState(isEdit ? "数据分析基础" : "")
-  const [courseCode] = useState(isEdit ? "SYS-DATA2024" : `SYS-${Date.now().toString(36).toUpperCase()}`)
+  const [courseCode] = useState(isEdit ? "AB8G-A1-12345678" : `AB8G-A1-${Math.floor(10000000 + Math.random() * 90000000)}`)
   const [industry, setIndustry] = useState(isEdit ? "软件测试工程师" : "")
   const [major, setMajor] = useState(isEdit ? "岗位优化测试专业01" : "")
   const [description, setDescription] = useState(isEdit ? "本课程系统介绍数据分析的基本方法与工具。" : "")
@@ -514,7 +513,7 @@ function AddSystemPageInner() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="pt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                   <div className="space-y-1.5">
                     <Label className="text-xs">课程名称</Label>
                     <Input
@@ -555,17 +554,7 @@ function AddSystemPageInner() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="md:col-span-2 space-y-1.5">
-                    <Label className="text-xs">课程简介</Label>
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="请输入课程简介..."
-                      rows={2}
-                      className="text-sm resize-y"
-                    />
-                  </div>
-                  <div className="md:col-span-2 space-y-1.5">
+                  <div className="space-y-1.5">
                     <Label className="text-xs">封面图片</Label>
                     <div className="flex items-start gap-4">
                       {coverImage ? (
@@ -600,6 +589,15 @@ function AddSystemPageInner() {
                         }}
                       />
                     </div>
+                  </div>
+                  <div className="md:col-span-3 space-y-1.5">
+                    <Label className="text-xs">课程简介</Label>
+                    <RichTextEditor
+                      value={description}
+                      onChange={setDescription}
+                      placeholder="请输入课程简介..."
+                      minHeight={280}
+                    />
                   </div>
                 </div>
               </CardContent>
