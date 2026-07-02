@@ -799,7 +799,7 @@ function AddSystemPageInner() {
                       {[
                         {
                           key: "upload" as const,
-                          label: "上传课程资源",
+                          label: "自定义编排节点资源",
                           desc: "自行上传并编辑课程资源",
                           icon: Upload,
                           color: "bg-blue-500",
