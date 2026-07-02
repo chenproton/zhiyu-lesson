@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/select"
 import { MAJORS } from "@/lib/types"
 import { EvaluationMethodSelector } from "../../../_components/assessment/evaluation-method-selector"
+import { TeachingResourceSelector } from "./teaching-resource-selector"
 
 // ==================== Types ====================
 
@@ -1000,10 +1001,9 @@ function PrePreviewModule({ data, onChange }: AtomicModuleProps) {
 function PreResourcesModule({ data, onChange }: AtomicModuleProps) {
   return (
     <CardContent>
-      <ResourceListEditor
+      <TeachingResourceSelector
         items={data.preClassResources}
         onChange={(v) => onChange({ preClassResources: v })}
-        addLabel="关联学习资源"
       />
     </CardContent>
   )
