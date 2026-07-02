@@ -17,6 +17,7 @@ import {
   FolderOpen,
   Award,
   PenTool,
+  Search,
 } from "lucide-react"
 import { CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,7 @@ import { Switch } from "@/components/ui/switch"
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -1267,11 +1269,13 @@ function ClassQuestionsModule({ data, onChange }: AtomicModuleProps) {
 }
 
 const MOCK_SCENARIOS = [
-  { id: "sc-1", title: "企业官网响应式布局实战", desc: "完成一个企业官网的响应式页面开发，包含首页、产品页、关于我们等模块。" },
-  { id: "sc-2", title: "电商商品详情页开发", desc: "实现电商平台的商品详情页，包含轮播图、规格选择、评价展示等。" },
-  { id: "sc-3", title: "个人博客前端开发", desc: "使用 React 搭建个人博客，包含文章列表、文章详情、评论功能。" },
-  { id: "sc-4", title: "数据可视化大屏", desc: "使用 ECharts 实现数据可视化大屏，包含多种图表类型和实时数据刷新。" },
-  { id: "sc-5", title: "后台管理系统界面", desc: "实现常见后台管理系统的页面布局与交互，包含表格、表单、权限菜单。" },
+  { id: "sc-1", title: "企业官网响应式布局实战", desc: "完成一个企业官网的响应式页面开发，包含首页、产品页、关于我们等模块。", post: "前端开发工程师", batch: "2026春", scope: "mine" as const },
+  { id: "sc-2", title: "电商商品详情页开发", desc: "实现电商平台的商品详情页，包含轮播图、规格选择、评价展示等。", post: "前端开发工程师", batch: "2026春", scope: "shared" as const },
+  { id: "sc-3", title: "个人博客前端开发", desc: "使用 React 搭建个人博客，包含文章列表、文章详情、评论功能。", post: "全栈工程师", batch: "2026秋", scope: "public" as const },
+  { id: "sc-4", title: "数据可视化大屏", desc: "使用 ECharts 实现数据可视化大屏，包含多种图表类型和实时数据刷新。", post: "数据可视化工程师", batch: "2026春", scope: "public" as const },
+  { id: "sc-5", title: "后台管理系统界面", desc: "实现常见后台管理系统的页面布局与交互，包含表格、表单、权限菜单。", post: "前端开发工程师", batch: "2026秋", scope: "mine" as const },
+  { id: "sc-6", title: "微服务网关配置实战", desc: "完成微服务网关的配置与限流策略实现。", post: "后端开发工程师", batch: "2026春", scope: "shared" as const },
+  { id: "sc-7", title: "用户画像分析平台", desc: "基于用户行为数据进行画像标签体系搭建与可视化。", post: "数据分析师", batch: "2026秋", scope: "public" as const },
 ]
 
 function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
@@ -1280,18 +1284,31 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
   const [addMode, setAddMode] = useState<"manual" | "scenario" | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedScenarioId, setSelectedScenarioId] = useState("")
+  const [scenarioScope, setScenarioScope] = useState<"mine" | "shared" | "public">("mine")
+  const [scenarioPost, setScenarioPost] = useState("全部")
+  const [scenarioBatch, setScenarioBatch] = useState("全部")
 
-  const filteredScenarios = MOCK_SCENARIOS.filter(
-    (s) =>
+  const uniquePosts = Array.from(new Set(MOCK_SCENARIOS.map((s) => s.post)))
+  const uniqueBatches = Array.from(new Set(MOCK_SCENARIOS.map((s) => s.batch)))
+
+  const filteredScenarios = MOCK_SCENARIOS.filter((s) => {
+    const matchScope = s.scope === scenarioScope
+    const matchPost = scenarioPost === "全部" || s.post === scenarioPost
+    const matchBatch = scenarioBatch === "全部" || s.batch === scenarioBatch
+    const matchSearch =
       s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.desc.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+    return matchScope && matchPost && matchBatch && matchSearch
+  })
 
   const resetDialog = () => {
     setDialogOpen(false)
     setAddMode(null)
     setSearchQuery("")
     setSelectedScenarioId("")
+    setScenarioScope("mine")
+    setScenarioPost("全部")
+    setScenarioBatch("全部")
   }
 
   const handleAddScenario = () => {
@@ -1380,9 +1397,9 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
       </Button>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>添加实践任务</DialogTitle>
+            <DialogTitle>{addMode === "scenario" ? "从实践场景库引用" : "添加实践任务"}</DialogTitle>
           </DialogHeader>
           {!addMode ? (
             <div className="grid grid-cols-2 gap-4 py-4">
@@ -1410,53 +1427,151 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
               </button>
             </div>
           ) : (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>搜索实践场景</Label>
+            <div className="space-y-4 py-2">
+              {/* Scope tabs */}
+              <div className="flex gap-2">
+                {[
+                  { key: "mine" as const, label: "我的" },
+                  { key: "shared" as const, label: "共建" },
+                  { key: "public" as const, label: "公共" },
+                ].map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => {
+                      setScenarioScope(t.key)
+                      setSelectedScenarioId("")
+                    }}
+                    className={`px-4 py-1.5 rounded-md text-sm transition-colors ${
+                      scenarioScope === t.key
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="输入场景名称或描述搜索"
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setSelectedScenarioId("")
+                  }}
+                  placeholder="搜索场景名称、描述..."
+                  className="pl-9 text-sm h-9"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>选择场景</Label>
-                <div className="border rounded-lg overflow-hidden max-h-[200px] overflow-y-auto">
+
+              {/* Filters */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label>所属岗位</Label>
+                  <Select
+                    value={scenarioPost}
+                    onValueChange={(v) => {
+                      setScenarioPost(v)
+                      setSelectedScenarioId("")
+                    }}
+                  >
+                    <SelectTrigger className="h-9 text-sm w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="全部">全部</SelectItem>
+                      {uniquePosts.map((p) => (
+                        <SelectItem key={p} value={p}>
+                          {p}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>所属批次</Label>
+                  <Select
+                    value={scenarioBatch}
+                    onValueChange={(v) => {
+                      setScenarioBatch(v)
+                      setSelectedScenarioId("")
+                    }}
+                  >
+                    <SelectTrigger className="h-9 text-sm w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="全部">全部</SelectItem>
+                      {uniqueBatches.map((b) => (
+                        <SelectItem key={b} value={b}>
+                          {b}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Scenario list */}
+              <div className="border-t pt-3">
+                <p className="text-xs text-gray-400 mb-2">
+                  共 {filteredScenarios.length} 个场景
+                  {selectedScenarioId && <span className="text-primary ml-2">已选择 1 个</span>}
+                </p>
+                <div className="space-y-2 max-h-[320px] overflow-y-auto">
                   {filteredScenarios.length === 0 ? (
-                    <div className="p-3 text-sm text-gray-400 text-center">无匹配场景</div>
+                    <p className="text-sm text-gray-400 text-center py-6">未找到匹配的场景</p>
                   ) : (
-                    filteredScenarios.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setSelectedScenarioId(s.id)}
-                        className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
-                          selectedScenarioId === s.id
-                            ? "bg-blue-50 text-blue-700 border-l-2 border-blue-500"
-                            : "hover:bg-gray-50 border-l-2 border-transparent"
-                        }`}
-                      >
-                        {s.title}
-                      </button>
-                    ))
+                    filteredScenarios.map((s) => {
+                      const selected = selectedScenarioId === s.id
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setSelectedScenarioId(selected ? "" : s.id)}
+                          className={`w-full text-left p-3 rounded-lg border transition-all ${
+                            selected
+                              ? "border-primary bg-primary/5 ring-1 ring-primary/10"
+                              : "border-gray-200 hover:border-gray-300 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
+                                selected ? "bg-primary border-primary" : "border-gray-300"
+                              }`}
+                            >
+                              {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                            </div>
+                            <span className="text-sm font-medium text-gray-800 truncate flex-1">
+                              {s.title}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1.5 pl-7 text-xs text-gray-500">
+                            {s.post && <span>{s.post}</span>}
+                            {s.post && s.batch && <span className="text-gray-300">|</span>}
+                            {s.batch && <span>{s.batch}</span>}
+                          </div>
+                          <div className="pl-7 mt-1 text-xs text-gray-400 line-clamp-2">{s.desc}</div>
+                        </button>
+                      )
+                    })
                   )}
                 </div>
               </div>
-              {selectedScenarioId && (
-                <div className="p-3 rounded-lg bg-gray-50 text-sm text-gray-600">
-                  {MOCK_SCENARIOS.find((s) => s.id === selectedScenarioId)?.desc}
-                </div>
-              )}
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setAddMode(null)}>
-                  返回
-                </Button>
-                <Button onClick={handleAddScenario} disabled={!selectedScenarioId}>
-                  确认引用
-                </Button>
-              </div>
             </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddMode(null)}>
+              返回
+            </Button>
+            <Button onClick={handleAddScenario} disabled={!selectedScenarioId}>
+              确认引用
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </CardContent>
