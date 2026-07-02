@@ -22,6 +22,7 @@ import {
   Link2,
   Search,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -68,16 +69,16 @@ import type {
 /* ---------- mock data ---------- */
 
 const MOCK_KNOWLEDGE_POOL: KnowledgePointItem[] = [
-  { id: "kp-1", name: "SQL注入", code: "KP-001", description: "常见的Web安全漏洞" },
-  { id: "kp-2", name: "XSS攻击", code: "KP-002", description: "跨站脚本攻击" },
-  { id: "kp-3", name: "CSRF防护", code: "KP-003", description: "跨站请求伪造防护" },
-  { id: "kp-4", name: "密码学", code: "KP-004", description: "加密与解密技术" },
-  { id: "kp-5", name: "渗透测试", code: "KP-005", description: "安全评估方法" },
-  { id: "kp-6", name: "缓冲区溢出", code: "KP-006", description: "内存安全问题" },
-  { id: "kp-7", name: "逆向工程", code: "KP-007", description: "程序分析与还原" },
-  { id: "kp-8", name: "恶意代码", code: "KP-008", description: "病毒与木马分析" },
-  { id: "kp-9", name: "安全编码", code: "KP-009", description: "防御性编程实践" },
-  { id: "kp-10", name: "漏洞挖掘", code: "KP-010", description: "发现未知漏洞的方法" },
+  { id: "kp-1", name: "SQL注入", code: "KP-001", description: "常见的Web安全漏洞", linked: false },
+  { id: "kp-2", name: "XSS攻击", code: "KP-002", description: "跨站脚本攻击", linked: false },
+  { id: "kp-3", name: "CSRF防护", code: "KP-003", description: "跨站请求伪造防护", linked: false },
+  { id: "kp-4", name: "密码学", code: "KP-004", description: "加密与解密技术", linked: false },
+  { id: "kp-5", name: "渗透测试", code: "KP-005", description: "安全评估方法", linked: false },
+  { id: "kp-6", name: "缓冲区溢出", code: "KP-006", description: "内存安全问题", linked: false },
+  { id: "kp-7", name: "逆向工程", code: "KP-007", description: "程序分析与还原", linked: false },
+  { id: "kp-8", name: "恶意代码", code: "KP-008", description: "病毒与木马分析", linked: false },
+  { id: "kp-9", name: "安全编码", code: "KP-009", description: "防御性编程实践", linked: false },
+  { id: "kp-10", name: "漏洞挖掘", code: "KP-010", description: "发现未知漏洞的方法", linked: false },
 ]
 
 const MOCK_RESOURCE_POOL: ResourceItem[] = [
@@ -786,8 +787,11 @@ function AddSystemPageInner() {
           <div className="relative min-w-0">
             {/* Node type hint / selector */}
             {selectedNode?.type === "original" && (
-              <div className="bg-purple-50 border border-purple-200 rounded-xl px-5 py-3 mt-5 relative z-20">
-                <p className="text-xs text-purple-700">
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-xl px-4 py-3 mt-5 relative z-20 flex items-center gap-3 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                </div>
+                <p className="text-sm text-purple-800">
                   当前节点的课程内容将被纳入颗粒课管理体系，支持跨课程复用。
                 </p>
               </div>
@@ -818,6 +822,8 @@ function AddSystemPageInner() {
                           desc: "自行上传并编辑课程资源",
                           icon: Upload,
                           color: "bg-blue-500",
+                          border: "border-blue-500",
+                          bg: "bg-blue-50/50",
                         },
                         {
                           key: "clone" as const,
@@ -825,6 +831,8 @@ function AddSystemPageInner() {
                           desc: "复制颗粒课内容生成独立节点",
                           icon: Copy,
                           color: "bg-amber-500",
+                          border: "border-amber-500",
+                          bg: "bg-amber-50/50",
                         },
                         {
                           key: "quote" as const,
@@ -832,6 +840,8 @@ function AddSystemPageInner() {
                           desc: "引用颗粒课内容，关联可同步编辑",
                           icon: Link2,
                           color: "bg-purple-500",
+                          border: "border-purple-500",
+                          bg: "bg-purple-50/50",
                         },
                       ].map((opt) => (
                         <button
@@ -839,14 +849,18 @@ function AddSystemPageInner() {
                           onClick={() =>
                             opt.key === "upload" ? handleSelectUploadMode() : openGrainSelector(opt.key)
                           }
-                          className="group flex flex-col items-center gap-3 p-5 rounded-xl border border-gray-200 bg-white hover:border-blue-400 hover:shadow-sm transition-all text-center"
+                          className={cn(
+                            "group flex flex-col items-center gap-3 p-5 rounded-xl border-2 bg-white text-center transition-all",
+                            "hover:-translate-y-0.5 hover:shadow-md",
+                            `hover:${opt.border} hover:${opt.bg}`
+                          )}
                         >
-                          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-white", opt.color)}>
-                            <opt.icon className="w-5 h-5" />
+                          <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-110", opt.color)}>
+                            <opt.icon className="w-6 h-6" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-800">{opt.label}</p>
-                            <p className="text-xs text-gray-500 mt-1">{opt.desc}</p>
+                            <p className="text-sm font-semibold text-gray-800">{opt.label}</p>
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">{opt.desc}</p>
                           </div>
                         </button>
                       ))}

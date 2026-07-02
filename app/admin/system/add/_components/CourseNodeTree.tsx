@@ -230,6 +230,10 @@ export default function CourseNodeTree({
   }
 
   const isRootAdd = newNodeParent === "root"
+  const parentNode = useMemo(
+    () => (!isRootAdd ? nodes.find((n) => n.id === newNodeParent) : null),
+    [isRootAdd, newNodeParent, nodes]
+  )
 
   return (
     <aside className="w-64 shrink-0">
@@ -262,27 +266,34 @@ export default function CourseNodeTree({
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle>{isRootAdd ? "添加节点" : "添加子节点"}</DialogTitle>
+            {!isRootAdd && parentNode && (
+              <p className="text-xs text-gray-500 mt-1">
+                将在「<span className="font-medium text-gray-700">{parentNode.name}</span>」下添加子节点
+              </p>
+            )}
           </DialogHeader>
 
-          <div className="py-2">
-            <Label>节点名称 <span className="text-red-500">*</span></Label>
-            <Input
-              value={newNodeName}
-              onChange={(e) => setNewNodeName(e.target.value)}
-              placeholder="请输入节点名称"
-              maxLength={50}
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-400 text-right mt-1">
-              {newNodeName.length} / 50
-            </p>
+          <div className="py-2 space-y-4">
+            <div>
+              <Label className="text-sm">节点名称 <span className="text-red-500">*</span></Label>
+              <Input
+                value={newNodeName}
+                onChange={(e) => setNewNodeName(e.target.value)}
+                placeholder="请输入节点名称"
+                maxLength={50}
+                className="mt-1.5"
+              />
+              <p className="text-xs text-gray-400 text-right mt-1">
+                {newNodeName.length} / 50
+              </p>
+            </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setAddDialogOpen(false)}>
               取消
             </Button>
-            <Button onClick={handleConfirmAdd} disabled={!newNodeName.trim()}>
+            <Button size="sm" onClick={handleConfirmAdd} disabled={!newNodeName.trim()}>
               确认添加
             </Button>
           </DialogFooter>
