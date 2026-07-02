@@ -118,6 +118,11 @@ interface QuizQuestion {
   score: number
 }
 
+interface AttachmentItem {
+  name: string
+  file: string
+}
+
 interface ResourceItem {
   name: string
   type: string
@@ -127,11 +132,22 @@ interface ResourceItem {
 interface TaskItem {
   name: string
   requirement: string
+  source?: "manual" | "scenario"
+  scenarioTitle?: string
+  attachments?: AttachmentItem[]
 }
 
 interface QuestionItem {
   stem: string
   answer: string
+  source?: "manual" | "bank"
+  bankTitle?: string
+}
+
+interface LectureSection {
+  name: string
+  content: string
+  attachments?: AttachmentItem[]
 }
 
 interface HomeworkItem {
@@ -149,14 +165,15 @@ interface ReportItem {
   name: string
   template: string
   required: boolean
+  attachments?: AttachmentItem[]
 }
 
 interface PhaseModules {
-  prePreview?: { preview: string }
+  prePreview?: { preview: string; attachments: AttachmentItem[] }
   preResources?: { resources: ResourceItem[] }
   preTasks?: { tasks: TaskItem[] }
   preQuizzes?: { quizzes: QuizQuestion[] }
-  lecture?: { content: string; pptUrl?: string }
+  lecture?: { sections: LectureSection[] }
   inClassTasks?: { tasks: TaskItem[] }
   inClassQuizzes?: { quizzes: QuizQuestion[] }
   classQuestions?: { questions: QuestionItem[] }
@@ -171,7 +188,11 @@ const PHASE_MODULES: Record<number, PhaseModules> = {}
 for (let s = 1; s <= 5; s++) {
   PHASE_MODULES[s] = {
     prePreview: {
-      preview: `### 第${s}周 课前预习\n\n本节预习将帮助你了解本周课程的核心知识体系，为课堂学习做好充分准备。\n\n**预习内容**\n\n1. 观看预习视频（约15分钟），了解整体框架\n2. 阅读配套文档，理解核心概念\n3. 记录疑问，带着问题进入课堂\n\n**核心概念**\n\n- 理解基本概念与原理\n- 掌握关键技术的应用场景\n- 了解前后知识的关联关系\n\n**预习要求**\n\n完成视频观看和文档阅读后，尝试回答：\n- 本周课程的核心知识点有哪些？\n- 这些知识在实际开发中如何应用？`,
+      preview: `### 第${s}周 课前预习\n\n本节预习将帮助你了解本周课程的核心知识体系，为课堂学习做好充分准备。\n\n**预习内容**\n\n1. 观看预习视频（约15分钟），了解整体框架\n2. 阅读配套文档，理解核心概念\n3. 记录疑问，带着问题进入课堂`,
+      attachments: [
+        { name: `第${s}周 预习导读.pdf`, file: `preview-guide-${s}.pdf` },
+        { name: `第${s}周 概念梳理表.pdf`, file: `concept-map-${s}.pdf` },
+      ],
     },
     preResources: {
       resources: [
@@ -183,8 +204,21 @@ for (let s = 1; s <= 5; s++) {
     },
     preTasks: {
       tasks: [
-        { name: "环境准备与配置", requirement: "按照预习文档中的步骤，完成开发环境的安装和配置。完成后截图保存，作为课前任务完成的凭证。" },
-        { name: "预习知识自测", requirement: "阅读预习材料后，完成以下自测题目，检测自己的预习效果。遇到不明白的概念记录下来。" },
+        {
+          name: "环境准备与配置",
+          requirement: "按照预习文档中的步骤，完成开发环境的安装和配置。完成后截图保存，作为课前任务完成的凭证。",
+          attachments: [
+            { name: "环境配置检查清单", file: "env-checklist.pdf" },
+            { name: "开发工具安装包", file: "dev-tools.zip" },
+          ],
+        },
+        {
+          name: "预习知识自测",
+          requirement: "阅读预习材料后，完成以下自测题目，检测自己的预习效果。遇到不明白的概念记录下来。",
+          attachments: [
+            { name: "自测题目与答案", file: "self-test.pdf" },
+          ],
+        },
       ],
     },
     preQuizzes: {
@@ -197,7 +231,23 @@ for (let s = 1; s <= 5; s++) {
       ],
     },
     lecture: {
-      content: `### 第${s}周 课堂讲授\n\n#### 一、核心概念\n\n本节课将深入探讨前端开发的核心技术，帮助同学们建立完整的知识体系。\n\n**知识框架**\n\n1. **基础知识回顾**：巩固前置课程的关键概念\n2. **新技术讲解**：介绍本周的新知识点\n3. **实战演练**：通过动手实践加深理解\n\n#### 二、重难点突破\n\n**重点内容**\n- 理解核心技术的工作原理\n- 掌握常用API和工具的使用方法\n- 学会调试和排查常见问题\n\n**难点解析**\n- 复杂概念通过实例演示加深理解\n- 提供多种解题思路和优化方案\n- 结合真实项目经验进行讲解\n\n#### 三、知识拓展\n\n- 了解相关技术的发展趋势\n- 掌握进阶技巧和最佳实践\n- 为后续课程做好知识储备`,
+      sections: [
+        {
+          name: "知识回顾与导入",
+          content: `#### 知识回顾\n\n复习第${s > 1 ? s - 1 : "一"}周的核心知识点，建立与本节课内容的联系。\n\n- 前置知识梳理\n- 常见问题回顾\n- 本节课学习目标说明`,
+          attachments: [{ name: "复习资料.pdf", file: "review.pdf" }],
+        },
+        {
+          name: "核心概念讲解",
+          content: `#### 核心概念\n\n本节课将深入探讨前端开发的核心技术，帮助同学们建立完整的知识体系。\n\n**重点内容**\n- 理解核心技术的工作原理\n- 掌握常用API和工具的使用方法\n- 学会调试和排查常见问题\n\n**难点解析**\n- 复杂概念通过实例演示加深理解\n- 提供多种解题思路和优化方案`,
+          attachments: [{ name: "核心概念PPT.pptx", file: "core-concepts.pptx" }],
+        },
+        {
+          name: "案例演示与总结",
+          content: `#### 案例与总结\n\n通过实际案例演示本节知识点的应用，并对本节课内容进行总结。\n\n- 真实项目案例分析\n- 代码演示与讲解\n- 课后练习与思考`,
+          attachments: [{ name: "案例源码.zip", file: "demo-source.zip" }],
+        },
+      ],
     },
     inClassTasks: {
       tasks: [
@@ -215,14 +265,25 @@ for (let s = 1; s <= 5; s++) {
     },
     classQuestions: {
       questions: [
-        { stem: "Flexbox和Grid布局分别适用于什么场景？", answer: "Flexbox适用于一维线性布局（如导航栏、工具栏、列表），强调单行或单列的弹性分配；Grid适用于二维网格布局（如页面整体布局、卡片阵列），同时控制行和列。" },
-        { stem: "什么是BFC（块级格式化上下文）？如何创建BFC？", answer: "BFC（Block Formatting Context）是一个独立的渲染区域，内部元素的布局不会影响外部元素。创建方式包括：overflow: hidden/auto/scroll, display: flow-root, float, position: absolute/fixed 等。" },
-        { stem: "CSS选择器的优先级是如何计算的？", answer: "CSS优先级按权重叠加计算：!important > 内联样式(1000) > ID选择器(100) > 类/属性/伪类(10) > 元素/伪元素(1)。权重会叠加但不会进位，例如11个类选择器权重为110，仍低于一个ID选择器的100。" },
+        { stem: "Flexbox和Grid布局分别适用于什么场景？", answer: "Flexbox适用于一维线性布局（如导航栏、工具栏、列表），强调单行或单列的弹性分配；Grid适用于二维网格布局（如页面整体布局、卡片阵列），同时控制行和列。", source: "manual" },
+        { stem: "CSS选择器的优先级是如何计算的？", answer: "CSS优先级按权重叠加计算：!important > 内联样式(1000) > ID选择器(100) > 类/属性/伪类(10) > 元素/伪元素(1)。权重会叠加但不会进位。", source: "manual" },
+        { stem: "React 中 useEffect 的依赖数组作用是什么？", answer: "", source: "bank", bankTitle: "React 中 useEffect 的依赖数组作用是什么？" },
       ],
     },
     practiceTasks: {
       tasks: [
-        { name: "实战项目：仿写网站首页", requirement: `使用HTML5语义化标签 + CSS3 Flexbox/Grid搭配，仿写一个网站首页。\n\n**要求：**\n1. 包含顶部搜索栏、主导航、轮播图区域、分类导航、商品列表、底部信息\n2. 适配PC端（>1200px）和移动端（<768px）两种屏幕\n3. 使用语义化标签（header, nav, main, article, section, aside, footer）\n4. 代码结构清晰，添加适当的注释\n\n**提交**：HTML/CSS/JS代码打包为.zip文件上传` },
+        {
+          name: "实战项目：仿写网站首页",
+          requirement: `使用HTML5语义化标签 + CSS3 Flexbox/Grid搭配，仿写一个网站首页。\n\n**要求：**\n1. 包含顶部搜索栏、主导航、轮播图区域、分类导航、商品列表、底部信息\n2. 适配PC端（>1200px）和移动端（<768px）两种屏幕\n3. 代码结构清晰，添加适当的注释\n\n**提交**：HTML/CSS/JS代码打包为.zip文件上传`,
+          source: "manual",
+          attachments: [{ name: "项目需求文档", file: "project-requirement.pdf" }],
+        },
+        {
+          name: "企业官网响应式布局实战",
+          requirement: "完成一个企业官网的响应式页面开发，包含首页、产品页、关于我们等模块。",
+          source: "scenario",
+          scenarioTitle: "企业官网响应式布局实战",
+        },
       ],
     },
     homeworks: {
@@ -232,15 +293,23 @@ for (let s = 1; s <= 5; s++) {
     },
     extensionMaterials: {
       materials: [
-        { name: "MDN Web Docs - 官方技术文档", type: "链接", source: "https://developer.mozilla.org" },
-        { name: "相关技术书籍推荐（中文版）", type: "PDF", source: "GitHub 开源" },
-        { name: "技术博客 - 进阶教程", type: "链接", source: "在线文章" },
-        { name: "CodeWars 编程挑战平台", type: "链接", source: "https://codewars.com" },
+        { name: "MDN Web Docs - 官方技术文档", type: "链接", source: "Mozilla Developer Network" },
+        { name: "相关技术书籍推荐（中文版）", type: "PDF", source: "GitHub 开源仓库" },
+        { name: "技术博客 - 进阶教程", type: "链接", source: "掘金社区" },
+        { name: "CodeWars 编程挑战平台", type: "链接", source: "codewars.com" },
       ],
     },
     trainingReports: {
       reports: [
-        { name: `第${s}周 实训报告`, template: "## 实训目的\n\n## 实训内容\n\n## 实验步骤与代码\n\n## 实验结果截图\n\n## 遇到的问题及解决方案\n\n## 心得体会", required: true },
+        {
+          name: `第${s}周 实训报告`,
+          template: "## 实训目的\n\n## 实训内容\n\n## 实验步骤与代码\n\n## 实验结果截图\n\n## 遇到的问题及解决方案\n\n## 心得体会",
+          required: true,
+          attachments: [
+            { name: "报告封面模板", file: "report-cover.docx" },
+            { name: "实验数据样例", file: "sample-data.xlsx" },
+          ],
+        },
       ],
     },
   }
@@ -268,8 +337,6 @@ for (let s = 1; s <= 5; s++) {
     ],
     homeworks: [
       { title: `第${s}周 课后编程作业`, count: 3, type: "作业" },
-      { title: `第${s}周 项目成果评价`, count: 5, type: "成果评价" },
-      { title: `第${s}周 代码评审`, count: 1, type: "在线评审" },
     ],
   }
 }
@@ -523,6 +590,25 @@ export default function HybridCourseLearnPage() {
                 {modules.prePreview && (
                   <ModuleCard icon={<BookOpen className="h-4 w-4 text-blue-500" />} title="课前预习" badge="课前" badgeClass={phaseColor("pre-class").badge}>
                     <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{modules.prePreview.preview}</div>
+                    {modules.prePreview.attachments && modules.prePreview.attachments.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-xs text-gray-400">预习资料附件</p>
+                        {modules.prePreview.attachments.map((att, i) => (
+                          <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-colors cursor-pointer">
+                            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                              <FileText className="w-4 h-4 text-blue-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-700 truncate">{att.name}</p>
+                              <p className="text-xs text-gray-400">{att.file}</p>
+                            </div>
+                            <Button variant="outline" size="sm" className="shrink-0 gap-1">
+                              <Download className="h-3.5 w-3.5" />下载
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </ModuleCard>
                 )}
 
@@ -559,6 +645,17 @@ export default function HybridCourseLearnPage() {
                             <span className="text-sm font-medium text-gray-700">{t.name}</span>
                           </div>
                           <p className="text-xs text-gray-500 ml-7 whitespace-pre-line">{t.requirement}</p>
+                          {t.attachments && t.attachments.length > 0 && (
+                            <div className="mt-2 ml-7 space-y-1.5">
+                              {t.attachments.map((att, j) => (
+                                <div key={j} className="flex items-center gap-2 text-xs text-gray-500">
+                                  <FileText className="h-3.5 w-3.5 text-blue-400" />
+                                  <span className="flex-1 truncate">{att.name}</span>
+                                  <span className="text-gray-400">{att.file}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -584,7 +681,28 @@ export default function HybridCourseLearnPage() {
                 {/* 课堂讲授 */}
                 {modules.lecture && (
                   <ModuleCard icon={<MonitorPlay className="h-4 w-4 text-green-500" />} title="课堂讲授" badge="课中" badgeClass={phaseColor("in-class").badge}>
-                    <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{modules.lecture.content}</div>
+                    <div className="space-y-4">
+                      {modules.lecture.sections.map((section, i) => (
+                        <div key={i} className="border rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="w-5 h-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center shrink-0">{i + 1}</span>
+                            <span className="text-sm font-medium text-gray-700">{section.name}</span>
+                          </div>
+                          <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed ml-7">{section.content}</div>
+                          {section.attachments && section.attachments.length > 0 && (
+                            <div className="mt-2 ml-7 space-y-1.5">
+                              {section.attachments.map((att, j) => (
+                                <div key={j} className="flex items-center gap-2 text-xs text-gray-500">
+                                  <FileText className="h-3.5 w-3.5 text-green-400" />
+                                  <span className="flex-1 truncate">{att.name}</span>
+                                  <span className="text-gray-400">{att.file}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </ModuleCard>
                 )}
 
@@ -622,15 +740,29 @@ export default function HybridCourseLearnPage() {
                     <div className="space-y-3">
                       {modules.classQuestions.questions.map((q, i) => (
                         <div key={i} className="p-3 rounded-lg border border-gray-100">
-                          <div className="flex items-start gap-2 mb-2">
-                            <HelpCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                            <p className="text-sm font-medium text-gray-700">{q.stem}</p>
-                          </div>
-                          <div className="ml-6 p-2 rounded bg-gray-50 border border-gray-100">
-                            <p className="text-xs text-gray-500">
-                              <span className="font-medium text-blue-600">参考答案：</span>{q.answer}
-                            </p>
-                          </div>
+                          {q.source === "bank" ? (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Database className="h-4 w-4 text-[#1890ff]" />
+                                <div>
+                                  <p className="text-sm font-medium">{q.bankTitle || q.stem}</p>
+                                  <p className="text-xs text-gray-400">来自题库</p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-start gap-2 mb-2">
+                                <HelpCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                <p className="text-sm font-medium text-gray-700">{q.stem}</p>
+                              </div>
+                              <div className="ml-6 p-2 rounded bg-gray-50 border border-gray-100">
+                                <p className="text-xs text-gray-500">
+                                  <span className="font-medium text-blue-600">参考答案：</span>{q.answer}
+                                </p>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -643,11 +775,35 @@ export default function HybridCourseLearnPage() {
                     <div className="space-y-3">
                       {modules.practiceTasks.tasks.map((t, i) => (
                         <div key={i} className="p-4 rounded-lg border border-gray-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Wrench className="w-4 h-4 text-pink-500" />
-                            <span className="text-sm font-medium text-gray-700">{t.name}</span>
-                          </div>
-                          <p className="text-xs text-gray-500 whitespace-pre-line ml-6">{t.requirement}</p>
+                          {t.source === "scenario" ? (
+                            <div className="flex items-start gap-2">
+                              <Database className="h-4 w-4 text-[#1890ff] shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-700">{t.scenarioTitle || t.name}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">来自实践场景库</p>
+                                <p className="text-xs text-gray-500 mt-2">{t.requirement}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Wrench className="w-4 h-4 text-pink-500" />
+                                <span className="text-sm font-medium text-gray-700">{t.name}</span>
+                              </div>
+                              <p className="text-xs text-gray-500 whitespace-pre-line ml-6">{t.requirement}</p>
+                              {t.attachments && t.attachments.length > 0 && (
+                                <div className="mt-2 ml-6 space-y-1.5">
+                                  {t.attachments.map((att, j) => (
+                                    <div key={j} className="flex items-center gap-2 text-xs text-gray-500">
+                                      <FileText className="h-3.5 w-3.5 text-pink-400" />
+                                      <span className="flex-1 truncate">{att.name}</span>
+                                      <span className="text-gray-400">{att.file}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          )}
                           <div className="mt-3 ml-6 flex items-center gap-3">
                             <Button size="sm" variant="outline">
                               <Upload className="w-3.5 h-3.5 mr-1" />提交成果
@@ -715,6 +871,18 @@ export default function HybridCourseLearnPage() {
                             <p className="text-xs text-gray-500 font-medium mb-1">报告模板：</p>
                             <pre className="text-xs text-gray-600 whitespace-pre-line">{r.template}</pre>
                           </div>
+                          {r.attachments && r.attachments.length > 0 && (
+                            <div className="mb-3 space-y-1.5">
+                              <p className="text-xs text-gray-400">报告附件</p>
+                              {r.attachments.map((att, j) => (
+                                <div key={j} className="flex items-center gap-2 text-xs text-gray-500">
+                                  <FileText className="h-3.5 w-3.5 text-purple-400" />
+                                  <span className="flex-1 truncate">{att.name}</span>
+                                  <span className="text-gray-400">{att.file}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           <Button size="sm" variant="outline">
                             <Upload className="w-3.5 h-3.5 mr-1" />提交报告
                           </Button>
