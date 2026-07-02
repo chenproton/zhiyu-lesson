@@ -127,8 +127,9 @@ export interface AbilityPointItem {
 }
 
 interface CourseEvaluationRulesDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  inline?: boolean
   evaluationMethods: string[]
   initialConfig?: Partial<CourseEvalRulesConfig>
   onChange?: (config: CourseEvalRulesConfig) => void
@@ -287,6 +288,7 @@ function makeDefaultConfig(methods: string[]): CourseEvalRulesConfig {
 export function CourseEvaluationRulesDialog({
   open,
   onOpenChange,
+  inline,
   evaluationMethods,
   initialConfig,
   onChange,
@@ -1881,120 +1883,115 @@ export function CourseEvaluationRulesDialog({
     )
   }
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[95vw] max-h-[95vh] h-[95vh] flex flex-col overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><div className="p-1.5 bg-primary/10 rounded"><Award className="h-5 w-5" /></div>{title}</DialogTitle>
-          <DialogDescription>配置各评价方式的测评对象、评价主体、测评资源与评价标准</DialogDescription>
-        </DialogHeader>
-        <div className="flex-1 overflow-hidden py-4">
-          {config.evaluationMethods.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 h-full">
-              <Target className="h-12 w-12 mb-3 opacity-50" />
-              <p className="text-sm">尚未配置评价方式</p>
-              <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
-            </div>
-          ) : (
-            <div className="h-full overflow-y-auto space-y-5 p-1">
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" className="text-xs h-9" onClick={() => setIsOrderConfigOpen(true)}><ListOrdered className="h-3.5 w-3.5 mr-1.5" />配置评价顺序</Button>
-                <Button variant="outline" size="sm" className="text-xs h-9" onClick={() => setIsWeightConfigOpen(true)}><Scale className="h-3.5 w-3.5 mr-1.5" />配置评价权重<span className={cn("ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium", methodWeightTotal === 100 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600")}>{methodWeightTotal}%</span></Button>
-              </div>
-
-              <Dialog open={isOrderConfigOpen} onOpenChange={setIsOrderConfigOpen}>
-                <DialogContent className="sm:max-w-lg">
-                  <DialogHeader><DialogTitle>评价方式顺序配置</DialogTitle><DialogDescription>点击箭头调整评价方式的执行顺序</DialogDescription></DialogHeader>
-                  <div className="space-y-1.5 py-4">
-                    {getMethodInstances().map(({ methodKey, instanceIndex }, index) => {
-                      const method = evaluationMethodOptions.find(o => o.key === methodKey)
-                      if (!method) return null
-                      const instanceCount = methodInstanceCounts[methodKey] || 1
-                      const displayLabel = instanceCount > 1 ? `${method.label} ${instanceIndex + 1}` : method.label
-                      return (
-                        <div key={`${methodKey}-${instanceIndex}`} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 bg-gray-50/50">
-                          <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 text-[10px] flex items-center justify-center font-medium">{index + 1}</span>
-                          <div className={cn("p-1.5 rounded-md", method.color)}>{method.icon}</div>
-                          <span className="text-sm font-medium flex-1">{displayLabel}</span>
-                          <div className="flex items-center gap-0.5">
-                            <button onClick={() => moveMethodUp(index)} disabled={index === 0} className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><ChevronUp className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => moveMethodDown(index)} disabled={index === getMethodInstances().length - 1} className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><ChevronDown className="h-3.5 w-3.5" /></button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  <DialogFooter><Button onClick={() => setIsOrderConfigOpen(false)}>完成</Button></DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog open={isWeightConfigOpen} onOpenChange={setIsWeightConfigOpen}>
-                <DialogContent className="sm:max-w-2xl">
-                  <DialogHeader><DialogTitle>评价方式权重配置</DialogTitle><DialogDescription>配置各评价方式的权重占比，合计需等于 100%</DialogDescription></DialogHeader>
-                  <div className="py-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className={cn("flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium", methodWeightTotal === 100 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600")}><span>合计</span><span>{methodWeightTotal}%</span>{methodWeightTotal !== 100 && <span className="text-[10px]">(需等于100%)</span>}</div>
-                      <Button variant="outline" size="sm" className="text-xs h-8" onClick={distributeMethodWeights}><RotateCcw className="h-3.5 w-3.5 mr-1" />一键平均</Button>
-                    </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      {getMethodInstances().map(({ methodKey, instanceIndex }) => {
-                        const method = evaluationMethodOptions.find(o => o.key === methodKey)
-                        if (!method) return null
-                        const instanceCount = methodInstanceCounts[methodKey] || 1
-                        const displayLabel = instanceCount > 1 ? `${method.label} ${instanceIndex + 1}` : method.label
-                        const weight = config.methodWeights[methodKey] || 0
-                        return (
-                          <div key={`${methodKey}-${instanceIndex}`} className="flex items-center gap-2.5 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
-                            <div className={cn("p-1.5 rounded-md shrink-0", method.color)}>{method.icon}</div>
-                            <div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-700 truncate">{displayLabel}</p><div className="flex items-center gap-1 mt-1"><Input type="number" value={weight} onChange={e => updateMethodWeight(methodKey, parseInt(e.target.value) || 0)} className="h-7 text-xs w-16 text-center" min={0} max={100} /><span className="text-xs text-gray-400">%</span></div></div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  <DialogFooter><Button onClick={() => setIsWeightConfigOpen(false)}>完成</Button></DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              {getMethodInstances().map(({ methodKey, instanceIndex }) => {
-                const method = evaluationMethodOptions.find(o => o.key === methodKey)
-                if (!method) return null
-                const instanceCount = methodInstanceCounts[methodKey] || 1
-                const displayLabel = instanceCount > 1 ? `${method.label} ${instanceIndex + 1}` : method.label
-                return (
-                  <div key={`${methodKey}-${instanceIndex}`} className="border rounded-xl p-4 bg-gray-50/50">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={cn("p-2 rounded-lg", method.color)}>{method.icon}</div>
-                      <div className="flex-1 min-w-0"><p className="text-sm font-semibold">{displayLabel}</p><p className="text-xs text-gray-400">{method.desc}</p></div>
-                      <button onClick={() => { if (confirm(`确定要复制「${method.label}」测评方式吗？`)) duplicateMethod(methodKey); }} className="flex items-center gap-1 px-2 py-1 rounded-md text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors text-xs" title="复制测评方式">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                        复制测评方式
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <ObjectCard methodKey={methodKey} onClick={() => openDialog("object", methodKey)} />
-                      <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">①</span><ArrowRight className="h-3.5 w-3.5" /></div>
-                      <SubjectCard methodKey={methodKey} onClick={() => openDialog("subject", methodKey)} />
-                      <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">②</span><ArrowRight className="h-3.5 w-3.5" /></div>
-                      <ResourceCard methodKey={methodKey} onClick={() => openDialog("resource", methodKey)} />
-                      <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">③</span><ArrowRight className="h-3.5 w-3.5" /></div>
-                      {(methodKey === "question_bank" || methodKey === "paper" || methodKey === "quiz") ? (
-                        <div className="flex-1 min-w-0 p-4 rounded-xl border text-left bg-green-50/50 border-green-100">
-                          <div className="flex items-center gap-2 mb-2"><Target className="h-4 w-4 text-green-500" /><span className="text-xs font-medium text-green-600">评价标准配置</span></div>
-                          <p className="text-sm font-semibold text-green-700">自动读取得分</p>
-                          <p className="text-xs text-green-500 truncate mt-0.5">系统将自动读取上一步测评资源的得分</p>
-                        </div>
-                      ) : <MethodCard methodKey={methodKey} onClick={() => openDialog("method", methodKey)} />}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+  const BodyContent = () => (
+    <>
+      {config.evaluationMethods.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-gray-400 py-12">
+          <Target className="h-12 w-12 mb-3 opacity-50" />
+          <p className="text-sm">尚未配置评价方式</p>
+          <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
         </div>
-        <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button><Button onClick={() => onOpenChange(false)}>保存</Button></DialogFooter>
-      </DialogContent>
+      ) : (
+        <div className="space-y-5 p-1">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" className="text-xs h-9" onClick={() => setIsOrderConfigOpen(true)}><ListOrdered className="h-3.5 w-3.5 mr-1.5" />配置评价顺序</Button>
+            <Button variant="outline" size="sm" className="text-xs h-9" onClick={() => setIsWeightConfigOpen(true)}><Scale className="h-3.5 w-3.5 mr-1.5" />配置评价权重<span className={cn("ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium", methodWeightTotal === 100 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600")}>{methodWeightTotal}%</span></Button>
+          </div>
 
+          <Dialog open={isOrderConfigOpen} onOpenChange={setIsOrderConfigOpen}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader><DialogTitle>评价方式顺序配置</DialogTitle><DialogDescription>点击箭头调整评价方式的执行顺序</DialogDescription></DialogHeader>
+              <div className="space-y-1.5 py-4">
+                {getMethodInstances().map(({ methodKey, instanceIndex }, index) => {
+                  const method = evaluationMethodOptions.find(o => o.key === methodKey)
+                  if (!method) return null
+                  const instanceCount = methodInstanceCounts[methodKey] || 1
+                  const displayLabel = instanceCount > 1 ? `${method.label} ${instanceIndex + 1}` : method.label
+                  return (
+                    <div key={`${methodKey}-${instanceIndex}`} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 bg-gray-50/50">
+                      <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 text-[10px] flex items-center justify-center font-medium">{index + 1}</span>
+                      <div className={cn("p-1.5 rounded-md", method.color)}>{method.icon}</div>
+                      <span className="text-sm font-medium flex-1">{displayLabel}</span>
+                      <div className="flex items-center gap-0.5">
+                        <button onClick={() => moveMethodUp(index)} disabled={index === 0} className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><ChevronUp className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => moveMethodDown(index)} disabled={index === getMethodInstances().length - 1} className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><ChevronDown className="h-3.5 w-3.5" /></button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <DialogFooter><Button onClick={() => setIsOrderConfigOpen(false)}>完成</Button></DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isWeightConfigOpen} onOpenChange={setIsWeightConfigOpen}>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader><DialogTitle>评价方式权重配置</DialogTitle><DialogDescription>配置各评价方式的权重占比，合计需等于 100%</DialogDescription></DialogHeader>
+              <div className="py-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className={cn("flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium", methodWeightTotal === 100 ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600")}><span>合计</span><span>{methodWeightTotal}%</span>{methodWeightTotal !== 100 && <span className="text-[10px]">(需等于100%)</span>}</div>
+                  <Button variant="outline" size="sm" className="text-xs h-8" onClick={distributeMethodWeights}><RotateCcw className="h-3.5 w-3.5 mr-1" />一键平均</Button>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {getMethodInstances().map(({ methodKey, instanceIndex }) => {
+                    const method = evaluationMethodOptions.find(o => o.key === methodKey)
+                    if (!method) return null
+                    const instanceCount = methodInstanceCounts[methodKey] || 1
+                    const displayLabel = instanceCount > 1 ? `${method.label} ${instanceIndex + 1}` : method.label
+                    const weight = config.methodWeights[methodKey] || 0
+                    return (
+                      <div key={`${methodKey}-${instanceIndex}`} className="flex items-center gap-2.5 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
+                        <div className={cn("p-1.5 rounded-md shrink-0", method.color)}>{method.icon}</div>
+                        <div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-700 truncate">{displayLabel}</p><div className="flex items-center gap-1 mt-1"><Input type="number" value={weight} onChange={e => updateMethodWeight(methodKey, parseInt(e.target.value) || 0)} className="h-7 text-xs w-16 text-center" min={0} max={100} /><span className="text-xs text-gray-400">%</span></div></div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              <DialogFooter><Button onClick={() => setIsWeightConfigOpen(false)}>完成</Button></DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {getMethodInstances().map(({ methodKey, instanceIndex }) => {
+            const method = evaluationMethodOptions.find(o => o.key === methodKey)
+            if (!method) return null
+            const instanceCount = methodInstanceCounts[methodKey] || 1
+            const displayLabel = instanceCount > 1 ? `${method.label} ${instanceIndex + 1}` : method.label
+            return (
+              <div key={`${methodKey}-${instanceIndex}`} className="border rounded-xl p-4 bg-gray-50/50">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={cn("p-2 rounded-lg", method.color)}>{method.icon}</div>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-semibold">{displayLabel}</p><p className="text-xs text-gray-400">{method.desc}</p></div>
+                  <button onClick={() => { if (confirm(`确定要复制「${method.label}」测评方式吗？`)) duplicateMethod(methodKey); }} className="flex items-center gap-1 px-2 py-1 rounded-md text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors text-xs" title="复制测评方式">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    复制测评方式
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <ObjectCard methodKey={methodKey} onClick={() => openDialog("object", methodKey)} />
+                  <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">①</span><ArrowRight className="h-3.5 w-3.5" /></div>
+                  <SubjectCard methodKey={methodKey} onClick={() => openDialog("subject", methodKey)} />
+                  <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">②</span><ArrowRight className="h-3.5 w-3.5" /></div>
+                  <ResourceCard methodKey={methodKey} onClick={() => openDialog("resource", methodKey)} />
+                  <div className="flex flex-col items-center justify-center text-gray-300 shrink-0 px-0.5"><span className="text-[10px] font-medium">③</span><ArrowRight className="h-3.5 w-3.5" /></div>
+                  {(methodKey === "question_bank" || methodKey === "paper" || methodKey === "quiz") ? (
+                    <div className="flex-1 min-w-0 p-4 rounded-xl border text-left bg-green-50/50 border-green-100">
+                      <div className="flex items-center gap-2 mb-2"><Target className="h-4 w-4 text-green-500" /><span className="text-xs font-medium text-green-600">评价标准配置</span></div>
+                      <p className="text-sm font-semibold text-green-700">自动读取得分</p>
+                      <p className="text-xs text-green-500 truncate mt-0.5">系统将自动读取上一步测评资源的得分</p>
+                    </div>
+                  ) : <MethodCard methodKey={methodKey} onClick={() => openDialog("method", methodKey)} />}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </>
+  )
+
+  const SubDialogs = () => (
+    <>
       <Dialog open={erDialogOpen === "object"} onOpenChange={v => !v && setErDialogOpen(null)}>
         <DialogContent className="sm:max-w-[63vw] max-w-[63vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>测评对象配置</DialogTitle><DialogDescription>配置 {erDialogMethod ? evaluationMethodOptions.find(o => o.key === erDialogMethod)?.label : ""} 的测评对象</DialogDescription></DialogHeader>
@@ -2185,6 +2182,40 @@ export function CourseEvaluationRulesDialog({
           <DialogFooter><Button onClick={() => setRubricAbDialogOpen(false)}>完成</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  )
+
+  if (inline) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 bg-primary/10 rounded"><Award className="h-5 w-5 text-primary" /></div>
+          <div>
+            <h3 className="text-base font-semibold">{title}</h3>
+            <p className="text-xs text-gray-500">配置各评价方式的测评对象、评价主体、测评资源与评价标准</p>
+          </div>
+        </div>
+        <div className="border rounded-xl p-4 bg-white">
+          <BodyContent />
+        </div>
+        <SubDialogs />
+      </div>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[95vw] max-h-[95vh] h-[95vh] flex flex-col overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><div className="p-1.5 bg-primary/10 rounded"><Award className="h-5 w-5" /></div>{title}</DialogTitle>
+          <DialogDescription>配置各评价方式的测评对象、评价主体、测评资源与评价标准</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 overflow-hidden py-4">
+          <BodyContent />
+        </div>
+        <DialogFooter><Button variant="outline" onClick={() => onOpenChange?.(false)}>取消</Button><Button onClick={() => onOpenChange?.(false)}>保存</Button></DialogFooter>
+      </DialogContent>
+      <SubDialogs />
     </Dialog>
   )
 }
