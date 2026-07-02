@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, Suspense, useMemo, useCallback } from "react"
+import { useState, useRef, Suspense, useMemo, useCallback, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -17,6 +17,11 @@ import {
   ChevronRight,
   Info,
   ImageUp,
+  Upload,
+  Copy,
+  Link2,
+  Search,
+  CheckCircle2,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -197,6 +202,19 @@ const MOCK_GRAIN_COURSES = [
   { id: "grain-8", name: "数据可视化", description: "常用图表制作与美化", source: "数据分析系", duration: 3 },
 ]
 
+/* ---------- node editing mode ---------- */
+
+type AddMode = "upload" | "clone" | "quote"
+
+interface NodeDraft {
+  hours: string
+  learningGoal: string
+  knowledgePoints: KnowledgePointItem[]
+  selectedResourceIds: string[]
+  selectedEvalMethods: string[]
+  difficulty: number
+}
+
 /* ---------- convert preview tree ---------- */
 
 interface PreviewTreeItem {
@@ -305,6 +323,7 @@ function AddSystemPageInner() {
       sourceName,
     }
     setNodes((prev) => [...prev, newNode])
+    setSelectedNodeId(newNode.id)
   }, [])
 
   const handleUpdateNode = useCallback((nodeId: string, updates: Partial<SystemCourseNode>) => {
@@ -354,37 +373,150 @@ function AddSystemPageInner() {
   /* ========== current node form state ========== */
   const selectedNode = nodes.find((n) => n.id === selectedNodeId)
 
+  /* node editing mode */
+  const [nodeModes, setNodeModes] = useState<Record<string, AddMode>>({})
+  const [showGrainSelector, setShowGrainSelector] = useState(false)
+  const [grainSelectorMode, setGrainSelectorMode] = useState<AddMode>("clone")
+  const [grainSearch, setGrainSearch] = useState("")
+  const [grainSelectedId, setGrainSelectedId] = useState<string | null>(null)
+
+  const filteredGrainCourses = useMemo(() => {
+    const kw = grainSearch.trim()
+    if (!kw) return MOCK_GRAIN_COURSES
+    return MOCK_GRAIN_COURSES.filter(
+      (g) =>
+        g.name.includes(kw) ||
+        g.description.includes(kw) ||
+        g.source.includes(kw)
+    )
+  }, [grainSearch])
+
+  /* per-node draft cache */
+  const [nodeDrafts, setNodeDrafts] = useState<Record<string, NodeDraft>>({})
+  const nodeDraftsRef = useRef(nodeDrafts)
+  nodeDraftsRef.current = nodeDrafts
+  const nodesRef = useRef(nodes)
+  nodesRef.current = nodes
+
   /* module 1: basic info */
   const [contentCode] = useState(isEdit ? "CNT-SQL001" : `CNT-${Date.now().toString(36).toUpperCase()}`)
-  const [hours, setHours] = useState(String(selectedNode?.duration || ""))
-  const [learningGoal, setLearningGoal] = useState(selectedNode?.teachingGoals || "")
-  const [difficulty, setDifficulty] = useState<number>(isEdit ? 4 : 0)
+  const [hours, setHours] = useState("")
+  const [learningGoal, setLearningGoal] = useState("")
+  const [difficulty, setDifficulty] = useState<number>(0)
 
   /* module 2: knowledge points */
-  const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePointItem[]>(
-    selectedNode?.knowledgePoints
-      ? selectedNode.knowledgePoints.map((kp, i) => ({
-          id: `kp-${i}`,
-          name: kp.name,
-          description: "",
-          linked: kp.linked,
-        }))
-      : []
-  )
+  const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePointItem[]>([])
 
   /* module 3: resources */
   const [resourcePool] = useState<ResourceItem[]>(MOCK_RESOURCE_POOL)
-  const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>(
-    isEdit ? ["res-1", "res-2"] : []
-  )
+  const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>([])
 
   /* module 4: assessment */
-  const [selectedEvalMethods, setSelectedEvalMethods] = useState<string[]>(
-    isEdit ? ["exam", "question_bank"] : []
-  )
+  const [selectedEvalMethods, setSelectedEvalMethods] = useState<string[]>([])
 
   /* module 5: evaluation rules */
-  const [evalRulesOpen, setEvalRulesOpen] = useState(false)
+
+  const resetFormFromNode = useCallback((node: SystemCourseNode | undefined) => {
+    if (!node) {
+      setHours("")
+      setLearningGoal("")
+      setKnowledgePoints([])
+      setSelectedResourceIds([])
+      setSelectedEvalMethods([])
+      setDifficulty(0)
+      return
+    }
+    setHours(String(node.duration || ""))
+    setLearningGoal(node.teachingGoals || "")
+    setKnowledgePoints(
+      (node.knowledgePoints || []).map((kp, i) => ({
+        id: `kp-${node.id}-${i}`,
+        name: kp.name,
+        description: "",
+        linked: kp.linked,
+      }))
+    )
+    setSelectedResourceIds((node.resources || []).map((r) => r.id))
+    const evalMethods: string[] = []
+    node.quizzes?.forEach((q) => {
+      if (q.type === "question_bank") evalMethods.push("question_bank")
+      else if (q.type === "paper") evalMethods.push("paper")
+    })
+    if (node.homeworks && node.homeworks.length > 0) evalMethods.push("exam")
+    setSelectedEvalMethods(Array.from(new Set(evalMethods)))
+    setDifficulty(0)
+  }, [])
+
+  /* load draft when selected node changes */
+  useEffect(() => {
+    const draft = selectedNodeId ? nodeDraftsRef.current[selectedNodeId] : undefined
+    const node = selectedNodeId ? nodesRef.current.find((n) => n.id === selectedNodeId) : undefined
+    if (draft) {
+      setHours(draft.hours)
+      setLearningGoal(draft.learningGoal)
+      setKnowledgePoints(draft.knowledgePoints)
+      setSelectedResourceIds(draft.selectedResourceIds)
+      setSelectedEvalMethods(draft.selectedEvalMethods)
+      setDifficulty(draft.difficulty)
+    } else if (node) {
+      resetFormFromNode(node)
+    } else {
+      resetFormFromNode(undefined)
+    }
+  }, [selectedNodeId, resetFormFromNode])
+
+  /* save draft when form changes */
+  useEffect(() => {
+    if (!selectedNodeId) return
+    setNodeDrafts((prev) => ({
+      ...prev,
+      [selectedNodeId]: {
+        hours,
+        learningGoal,
+        knowledgePoints,
+        selectedResourceIds,
+        selectedEvalMethods,
+        difficulty,
+      },
+    }))
+  }, [selectedNodeId, hours, learningGoal, knowledgePoints, selectedResourceIds, selectedEvalMethods, difficulty])
+
+  /* ---------- node mode selection handlers ---------- */
+  const openGrainSelector = useCallback((mode: AddMode) => {
+    setGrainSelectorMode(mode)
+    setGrainSearch("")
+    setGrainSelectedId(null)
+    setShowGrainSelector(true)
+  }, [])
+
+  const handleSelectUploadMode = useCallback(() => {
+    if (!selectedNodeId) return
+    setNodeModes((prev) => ({ ...prev, [selectedNodeId]: "upload" }))
+  }, [selectedNodeId])
+
+  const handleGrainConfirm = useCallback(() => {
+    if (!grainSelectedId || !selectedNodeId) return
+    const grain = MOCK_GRAIN_COURSES.find((g) => g.id === grainSelectedId)
+    if (!grain) return
+
+    const isQuote = grainSelectorMode === "quote"
+    const updates: Partial<SystemCourseNode> = {
+      name: grain.name,
+      sourceId: grain.id,
+      sourceName: grain.name,
+      duration: grain.duration,
+      teachingGoals: grain.description,
+      type: isQuote ? "original" : "normal",
+    }
+    handleUpdateNode(selectedNodeId, updates)
+    setNodeModes((prev) => ({ ...prev, [selectedNodeId]: grainSelectorMode }))
+    setHours(String(grain.duration))
+    setLearningGoal(grain.description)
+    setSelectedResourceIds([])
+    setSelectedEvalMethods([])
+    setDifficulty(0)
+    setShowGrainSelector(false)
+  }, [grainSelectedId, selectedNodeId, grainSelectorMode, handleUpdateNode])
 
   /* ---------- submit: convert complete nodes to grain ---------- */
   const [convertDialogOpen, setConvertDialogOpen] = useState(false)
@@ -643,7 +775,6 @@ function AddSystemPageInner() {
           <CourseNodeTree
             nodes={nodes}
             selectedNodeId={selectedNodeId}
-            grainCourses={MOCK_GRAIN_COURSES}
             onSelect={setSelectedNodeId}
             onAddNode={handleAddNode}
             onUpdateNode={handleUpdateNode}
@@ -663,170 +794,214 @@ function AddSystemPageInner() {
             )}
 
             <main className="space-y-5 min-w-0">
+              {!selectedNode && (
+                <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
+                  <Info className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm">请从左侧目录选择一个节点进行编辑</p>
+                </div>
+              )}
 
-            {!selectedNode && (
-              <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
-                <Info className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">请从左侧目录选择一个节点进行编辑</p>
-              </div>
-            )}
-
-            {selectedNode && (
-              <>
-                {/* Module 1: Basic Info */}
+              {selectedNode && selectedNode.type !== "original" && !nodeModes[selectedNode.id] && (
                 <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                  <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-[#1890ff]" />
-                      基本信息配置
+                      选择编辑方式
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">内容名称</Label>
-                        <Input
-                          value={selectedNode?.name || ""}
-                          onChange={(e) => {
-                            if (selectedNodeId) {
-                              handleUpdateNode(selectedNodeId, { name: e.target.value })
-                            }
-                          }}
-                          placeholder="请输入内容名称"
-                          className="h-9 text-sm"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">节点编码</Label>
-                        <Input value={contentCode} disabled className="h-9 text-sm bg-gray-50 text-gray-500" />
-                        <p className="text-[10px] text-gray-400">系统自动生成，不可修改</p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">预计课时</Label>
-                        <Input type="number" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="请输入课时数" className="h-9 text-sm" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">难度等级</Label>
-                        <div className="flex items-center gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button key={star} onClick={() => setDifficulty(star)} className="p-1 transition-colors">
-                              <Star className={`w-5 h-5 ${star <= difficulty ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
-                            </button>
-                          ))}
-                          <span className="text-xs text-gray-400 ml-2">{difficulty > 0 ? `${difficulty} 星` : "请选择难度"}</span>
-                        </div>
-                      </div>
-                      <div className="md:col-span-2 space-y-1.5">
-                        <Label className="text-xs">学习目标</Label>
-                        <RichTextEditor
-                          value={learningGoal}
-                          onChange={setLearningGoal}
-                          minHeight={280}
-                        />
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {[
+                        {
+                          key: "upload" as const,
+                          label: "上传课程资源",
+                          desc: "自行上传并编辑课程资源",
+                          icon: Upload,
+                          color: "bg-blue-500",
+                        },
+                        {
+                          key: "clone" as const,
+                          label: "克隆颗粒课",
+                          desc: "复制颗粒课内容生成独立节点",
+                          icon: Copy,
+                          color: "bg-amber-500",
+                        },
+                        {
+                          key: "quote" as const,
+                          label: "引用已有颗粒课",
+                          desc: "引用颗粒课内容，关联可同步编辑",
+                          icon: Link2,
+                          color: "bg-purple-500",
+                        },
+                      ].map((opt) => (
+                        <button
+                          key={opt.key}
+                          onClick={() =>
+                            opt.key === "upload" ? handleSelectUploadMode() : openGrainSelector(opt.key)
+                          }
+                          className="group flex flex-col items-center gap-3 p-5 rounded-xl border border-gray-200 bg-white hover:border-blue-400 hover:shadow-sm transition-all text-center"
+                        >
+                          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-white", opt.color)}>
+                            <opt.icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">{opt.label}</p>
+                            <p className="text-xs text-gray-500 mt-1">{opt.desc}</p>
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
+              )}
 
-                {/* Module 2: Knowledge Points */}
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                      <GraduationCap className="w-4 h-4 text-[#1890ff]" />
-                      关联知识点
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <KnowledgeSelector
-                      selected={knowledgePoints}
-                      pool={MOCK_KNOWLEDGE_POOL}
-                      onChange={setKnowledgePoints}
-                      onAddCustom={(name, description) => {
-                        const newKp: KnowledgePointItem = {
-                          id: `kp-custom-${Date.now()}`,
-                          name,
-                          description,
-                          linked: false,
-                        }
-                        setKnowledgePoints((prev) => [...prev, newKp])
-                      }}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Module 3: Resources */}
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-[#1890ff]" />
-                      配置课程资源
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <ResourceSelector
-                      pool={resourcePool}
-                      selectedIds={selectedResourceIds}
-                      onChange={setSelectedResourceIds}
-                      onUpload={(r) => {/* resourcePool is read-only in this simplified version */}}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Module 4: Assessment */}
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4 text-[#1890ff]" />
-                      配置课程测评方式
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <EvaluationMethodSelector
-                      selectedKeys={selectedEvalMethods}
-                      onChange={setSelectedEvalMethods}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Module 5: Evaluation Rules */}
-                <Card className="border-0 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                      <Award className="w-4 h-4 text-[#1890ff]" />
-                      配置课程评价规则
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 space-y-4">
-                    {selectedEvalMethods.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center text-gray-400 py-12">
-                        <Database className="h-12 w-12 mb-3 opacity-50" />
-                        <p className="text-sm">尚未配置评价方式</p>
-                        <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600 flex items-center justify-between">
-                          <span>已选择 {selectedEvalMethods.length} 种评价方式，点击按钮配置具体规则</span>
-                          <Button size="sm" onClick={() => setEvalRulesOpen(true)}>
-                            配置评价规则
-                          </Button>
+              {selectedNode && (selectedNode.type === "original" || nodeModes[selectedNode.id]) && (
+                <>
+                  {/* Module 1: Basic Info */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-[#1890ff]" />
+                        基本信息配置
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">内容名称</Label>
+                          <Input
+                            value={selectedNode?.name || ""}
+                            onChange={(e) => {
+                              if (selectedNodeId) {
+                                handleUpdateNode(selectedNodeId, { name: e.target.value })
+                              }
+                            }}
+                            placeholder="请输入内容名称"
+                            className="h-9 text-sm"
+                          />
                         </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">节点编码</Label>
+                          <Input value={contentCode} disabled className="h-9 text-sm bg-gray-50 text-gray-500" />
+                          <p className="text-[10px] text-gray-400">系统自动生成，不可修改</p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">预计课时</Label>
+                          <Input type="number" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="请输入课时数" className="h-9 text-sm" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">难度等级</Label>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button key={star} onClick={() => setDifficulty(star)} className="p-1 transition-colors">
+                                <Star className={`w-5 h-5 ${star <= difficulty ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
+                              </button>
+                            ))}
+                            <span className="text-xs text-gray-400 ml-2">{difficulty > 0 ? `${difficulty} 星` : "请选择难度"}</span>
+                          </div>
+                        </div>
+                        <div className="md:col-span-2 space-y-1.5">
+                          <Label className="text-xs">学习目标</Label>
+                          <RichTextEditor
+                            value={learningGoal}
+                            onChange={setLearningGoal}
+                            minHeight={280}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Module 2: Knowledge Points */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-[#1890ff]" />
+                        关联知识点
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <KnowledgeSelector
+                        selected={knowledgePoints}
+                        pool={MOCK_KNOWLEDGE_POOL}
+                        onChange={setKnowledgePoints}
+                        onAddCustom={(name, description) => {
+                          const newKp: KnowledgePointItem = {
+                            id: `kp-custom-${Date.now()}`,
+                            name,
+                            description,
+                            linked: false,
+                          }
+                          setKnowledgePoints((prev) => [...prev, newKp])
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Module 3: Resources */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-[#1890ff]" />
+                        配置课程资源
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <ResourceSelector
+                        pool={resourcePool}
+                        selectedIds={selectedResourceIds}
+                        onChange={setSelectedResourceIds}
+                        onUpload={(r) => {/* resourcePool is read-only in this simplified version */}}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Module 4: Assessment */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <ClipboardList className="w-4 h-4 text-[#1890ff]" />
+                        配置课程测评方式
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <EvaluationMethodSelector
+                        selectedKeys={selectedEvalMethods}
+                        onChange={setSelectedEvalMethods}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Module 5: Evaluation Rules */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <Award className="w-4 h-4 text-[#1890ff]" />
+                        配置课程评价规则
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0 space-y-4">
+                      {selectedEvalMethods.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center text-gray-400 py-12">
+                          <Database className="h-12 w-12 mb-3 opacity-50" />
+                          <p className="text-sm">尚未配置评价方式</p>
+                          <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
+                        </div>
+                      ) : (
                         <CourseEvaluationRulesDialog
-                          open={evalRulesOpen}
-                          onOpenChange={setEvalRulesOpen}
+                          inline
                           evaluationMethods={selectedEvalMethods}
                           title="配置节点评价规则"
                           knowledgePoints={knowledgePoints}
                         />
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              </>
-            )}
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              )}
 
-            {/* Bottom spacer */}
-            <div className="h-12" />
+              {/* Bottom spacer */}
+              <div className="h-12" />
             </main>
           </div>
 
@@ -858,6 +1033,76 @@ function AddSystemPageInner() {
               }}
             >
               确认
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Grain course selector dialog for clone / quote */}
+      <Dialog open={showGrainSelector} onOpenChange={setShowGrainSelector}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {grainSelectorMode === "clone" ? "选择要克隆的颗粒课" : "选择要引用的颗粒课"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                value={grainSearch}
+                onChange={(e) => setGrainSearch(e.target.value)}
+                placeholder="搜索颗粒课名称、来源..."
+                className="pl-9 text-sm h-9"
+              />
+            </div>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {filteredGrainCourses.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">未找到匹配的颗粒课</p>
+              ) : (
+                filteredGrainCourses.map((g) => {
+                  const selected = grainSelectedId === g.id
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => setGrainSelectedId(g.id)}
+                      className={cn(
+                        "w-full text-left p-3 rounded-lg border transition-all",
+                        selected
+                          ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                          : "border-gray-200 hover:border-gray-300 bg-white"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded-full border flex items-center justify-center",
+                              selected ? "bg-blue-500 border-blue-500" : "border-gray-300"
+                            )}
+                          >
+                            {selected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                          </div>
+                          <span className="text-sm font-medium text-gray-800">{g.name}</span>
+                        </div>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                          {g.source}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 pl-7">{g.description}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 pl-7">{g.duration} 课时</p>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGrainSelector(false)}>
+              取消
+            </Button>
+            <Button onClick={handleGrainConfirm} disabled={!grainSelectedId}>
+              确认选择
             </Button>
           </DialogFooter>
         </DialogContent>
