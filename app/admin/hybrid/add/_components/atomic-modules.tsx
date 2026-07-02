@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/select"
 import { MAJORS } from "@/lib/types"
 import { EvaluationMethodSelector } from "../../../_components/assessment/evaluation-method-selector"
+import { CourseEvaluationRulesDialog } from "../../../_components/assessment/course-evaluation-rules-dialog"
 import { TeachingResourceSelector } from "./teaching-resource-selector"
 
 // ==================== Types ====================
@@ -1124,6 +1125,7 @@ function PreTasksModule({ data, onChange }: AtomicModuleProps) {
 
 function PreQuizzesModule({ data, onChange }: AtomicModuleProps) {
   const methods = data.preQuizEvalMethods
+  const [rulesOpen, setRulesOpen] = useState(false)
   return (
     <CardContent className="space-y-4">
       <div>
@@ -1148,9 +1150,20 @@ function PreQuizzesModule({ data, onChange }: AtomicModuleProps) {
             <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
           </div>
         ) : (
-          <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
-            参考实践场景学习平台中的测评方式配置功能即可
-          </div>
+          <>
+            <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600 flex items-center justify-between">
+              <span>已选择 {methods.length} 种评价方式，点击按钮配置具体规则</span>
+              <Button size="sm" onClick={() => setRulesOpen(true)}>
+                配置评价规则
+              </Button>
+            </div>
+            <CourseEvaluationRulesDialog
+              open={rulesOpen}
+              onOpenChange={setRulesOpen}
+              evaluationMethods={methods}
+              title="配置课前测验评价规则"
+            />
+          </>
         )}
       </div>
     </CardContent>
@@ -1237,6 +1250,7 @@ function InClassTasksModule({ data, onChange }: AtomicModuleProps) {
 
 function InClassQuizzesModule({ data, onChange }: AtomicModuleProps) {
   const methods = data.inClassQuizEvalMethods
+  const [rulesOpen, setRulesOpen] = useState(false)
   return (
     <CardContent className="space-y-4">
       <div>
@@ -1261,9 +1275,20 @@ function InClassQuizzesModule({ data, onChange }: AtomicModuleProps) {
             <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
           </div>
         ) : (
-          <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
-            参考实践场景学习平台中的测评方式配置功能即可
-          </div>
+          <>
+            <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600 flex items-center justify-between">
+              <span>已选择 {methods.length} 种评价方式，点击按钮配置具体规则</span>
+              <Button size="sm" onClick={() => setRulesOpen(true)}>
+                配置评价规则
+              </Button>
+            </div>
+            <CourseEvaluationRulesDialog
+              open={rulesOpen}
+              onOpenChange={setRulesOpen}
+              evaluationMethods={methods}
+              title="配置课中测验评价规则"
+            />
+          </>
         )}
       </div>
     </CardContent>
@@ -1768,6 +1793,7 @@ function PracticeTasksModule({ data, onChange }: AtomicModuleProps) {
 
 function HomeworksModule({ data, onChange }: AtomicModuleProps) {
   const methods = data.homeworkEvalMethods
+  const [rulesOpen, setRulesOpen] = useState(false)
   return (
     <CardContent className="space-y-4">
       <div>
@@ -1793,9 +1819,20 @@ function HomeworksModule({ data, onChange }: AtomicModuleProps) {
             <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
           </div>
         ) : (
-          <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
-            参考实践场景学习平台中的测评方式配置功能即可
-          </div>
+          <>
+            <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600 flex items-center justify-between">
+              <span>已选择 {methods.length} 种评价方式，点击按钮配置具体规则</span>
+              <Button size="sm" onClick={() => setRulesOpen(true)}>
+                配置评价规则
+              </Button>
+            </div>
+            <CourseEvaluationRulesDialog
+              open={rulesOpen}
+              onOpenChange={setRulesOpen}
+              evaluationMethods={methods}
+              title="配置课后作业评价规则"
+            />
+          </>
         )}
       </div>
     </CardContent>

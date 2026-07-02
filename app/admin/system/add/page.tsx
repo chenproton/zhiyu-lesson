@@ -50,6 +50,7 @@ import type { SystemCourseNode, NodeResource, NodeRefType } from "@/lib/types"
 import { KnowledgeSelector } from "../../_components/knowledge/knowledge-selector"
 import { ResourceSelector, type ResourceItem } from "../../_components/resources/resource-selector"
 import { EvaluationMethodSelector } from "../../_components/assessment/evaluation-method-selector"
+import { CourseEvaluationRulesDialog } from "../../_components/assessment/course-evaluation-rules-dialog"
 import { RichTextEditor } from "../../_components/common/rich-text-editor"
 
 import CourseNodeTree from "./_components/CourseNodeTree"
@@ -383,6 +384,7 @@ function AddSystemPageInner() {
   )
 
   /* module 5: evaluation rules */
+  const [evalRulesOpen, setEvalRulesOpen] = useState(false)
 
   /* ---------- submit: convert complete nodes to grain ---------- */
   const [convertDialogOpen, setConvertDialogOpen] = useState(false)
@@ -802,9 +804,21 @@ function AddSystemPageInner() {
                         <p className="text-xs mt-1">请先在「配置课程测评方式」中选择评价类型</p>
                       </div>
                     ) : (
-                      <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600">
-                        参考实践场景学习平台中的测评方式配置功能即可
-                      </div>
+                      <>
+                        <div className="p-4 rounded-lg bg-gray-50 text-sm text-gray-600 flex items-center justify-between">
+                          <span>已选择 {selectedEvalMethods.length} 种评价方式，点击按钮配置具体规则</span>
+                          <Button size="sm" onClick={() => setEvalRulesOpen(true)}>
+                            配置评价规则
+                          </Button>
+                        </div>
+                        <CourseEvaluationRulesDialog
+                          open={evalRulesOpen}
+                          onOpenChange={setEvalRulesOpen}
+                          evaluationMethods={selectedEvalMethods}
+                          title="配置节点评价规则"
+                          knowledgePoints={knowledgePoints}
+                        />
+                      </>
                     )}
                   </CardContent>
                 </Card>
