@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback, useRef } from "react"
+import { useState, useMemo, useCallback, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -25,9 +25,6 @@ import {
   BookOpen,
   Search,
   CheckCircle2,
-  Upload,
-  Copy,
-  Link2,
 } from "lucide-react"
 import type { SystemCourseNode, NodeRefType } from "@/lib/types"
 import { NODE_REF_TYPE_LABELS, NODE_REF_TYPE_COLORS } from "@/lib/types"
@@ -111,6 +108,18 @@ export default function CourseNodeTree({
 
   const tree = useMemo(() => buildTree(nodes), [nodes])
 
+  /* auto-fill node name when quoting a grain course */
+  useEffect(() => {
+    if (addMode === "quote") {
+      if (selectedGrainId) {
+        const grain = grainCourses.find((g) => g.id === selectedGrainId)
+        if (grain) setNewNodeName(grain.name)
+      } else {
+        setNewNodeName("")
+      }
+    }
+  }, [addMode, selectedGrainId, grainCourses])
+
   const filteredGrains = useMemo(() => {
     const kw = grainSearch.trim()
     if (!kw) return grainCourses
@@ -158,11 +167,12 @@ export default function CourseNodeTree({
       if (!selectedGrainId) return
       const grain = grainCourses.find((g) => g.id === selectedGrainId)
       if (!grain) return
+      const nodeType: NodeRefType = addMode === "quote" ? "original" : "normal"
       onAddNode(
         parentId,
         newNodeName.trim(),
         nextOrderRef.current,
-        "normal",
+        nodeType,
         grain.id,
         grain.name
       )
@@ -208,25 +218,10 @@ export default function CourseNodeTree({
     setDragOverId(null)
   }
 
-  const modeOptions: { key: AddMode; label: string; desc: string; icon: React.ReactNode }[] = [
-    {
-      key: "upload",
-      label: "上传课程资源",
-      desc: "创建普通课程节点，自行编辑内容",
-      icon: <Upload className="w-4 h-4" />,
-    },
-    {
-      key: "clone",
-      label: "克隆颗粒课",
-      desc: "复制颗粒课内容，生成可独立编辑的节点",
-      icon: <Copy className="w-4 h-4" />,
-    },
-    {
-      key: "quote",
-      label: "引用已有颗粒课",
-      desc: "引用颗粒课内容，关联可同步编辑",
-      icon: <Link2 className="w-4 h-4" />,
-    },
+  const modeOptions: { key: AddMode; label: string }[] = [
+    { key: "upload", label: "上传课程资源" },
+    { key: "clone", label: "克隆颗粒课" },
+    { key: "quote", label: "引用已有颗粒课" },
   ]
 
   const renderTreeNode = (item: TreeItem, indexPath: string) => {
@@ -342,9 +337,10 @@ export default function CourseNodeTree({
               <Input
                 value={newNodeName}
                 onChange={(e) => setNewNodeName(e.target.value)}
-                placeholder="请输入节点名称"
+                placeholder={addMode === "quote" ? "选择颗粒课后自动回填" : "请输入节点名称"}
                 maxLength={50}
-                className="mt-1"
+                disabled={addMode === "quote"}
+                className="mt-1 disabled:bg-gray-50 disabled:text-gray-500"
               />
               <p className="text-xs text-gray-400 text-right mt-1">
                 {newNodeName.length} / 50
@@ -353,39 +349,26 @@ export default function CourseNodeTree({
 
             <div className="space-y-2">
               <Label>编辑方式</Label>
-              <div className="grid grid-cols-1 gap-2">
+              <div className="flex items-center gap-6">
                 {modeOptions.map((opt) => (
-                  <button
+                  <label
                     key={opt.key}
-                    onClick={() => {
-                      setAddMode(opt.key)
-                      setSelectedGrainId(null)
-                    }}
-                    className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
-                      addMode === opt.key
-                        ? "border-blue-500 bg-blue-50/50 ring-1 ring-blue-200"
-                        : "border-gray-200 hover:border-gray-300 bg-white"
-                    )}
+                    className="flex items-center gap-2 cursor-pointer"
                   >
-                    <div
-                      className={cn(
-                        "w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5",
-                        addMode === opt.key
-                          ? "bg-blue-500 border-blue-500"
-                          : "border-gray-300"
-                      )}
-                    >
-                      {addMode === opt.key && <CheckCircle2 className="w-3 h-3 text-white" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-gray-800">
-                        {opt.icon}
-                        {opt.label}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
-                    </div>
-                  </button>
+                    <input
+                      type="radio"
+                      name="addMode"
+                      value={opt.key}
+                      checked={addMode === opt.key}
+                      onChange={() => {
+                        setAddMode(opt.key)
+                        setSelectedGrainId(null)
+                        if (opt.key !== "quote") setNewNodeName("")
+                      }}
+                      className="h-4 w-4 accent-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{opt.label}</span>
+                  </label>
                 ))}
               </div>
             </div>
