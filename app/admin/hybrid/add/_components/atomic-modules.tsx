@@ -125,6 +125,7 @@ export interface NodeModuleData {
   teachingDesignContent: string
   postLessonReviewContent: string
   teachingDesignSharedNodeIds: string[]
+  moduleModes: Record<AtomicModuleKey, "online" | "offline">
   previewContent: string
   preClassResources: ResourceItem[]
   preClassTasks: TaskItem[]
@@ -210,6 +211,7 @@ export function createDefaultNodeModuleData(
 ● 考核方式`,
     postLessonReviewContent: "请输入课后总结内容",
     teachingDesignSharedNodeIds: [],
+    moduleModes: {},
     previewContent: "",
     preClassResources: [],
     preClassTasks: [],

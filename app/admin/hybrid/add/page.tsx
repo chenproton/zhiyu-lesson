@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { MAJORS } from "@/lib/types"
 import { ArrowLeft, Save, Send, Info, Plus, X, BookOpen, Layers, BookMarked, Microscope, Briefcase, Database, FileStack, Monitor, CheckCircle2, BarChart3, ClipboardList, Zap, Shuffle, MessageSquare, HelpCircle, ChevronDown, ChevronRight, Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, ImageUp, Link as LinkIcon, AlignLeft } from "lucide-react"
@@ -412,6 +413,7 @@ function HybridCourseAddForm() {
     const meta = ATOMIC_MODULES_BY_KEY[key]
     const Icon = meta.icon
     const Component = meta.component
+    const mode = data.moduleModes?.[key] ?? "online"
     return (
       <Card key={key} className="overflow-visible">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -419,14 +421,33 @@ function HybridCourseAddForm() {
             <Icon className="h-4 w-4 text-blue-500" />
             {meta.label}
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-gray-400 hover:text-red-500"
-            onClick={() => removeModule(key)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Switch
+                id={`module-mode-${selectedNodeId}-${key}`}
+                checked={mode === "online"}
+                onCheckedChange={(checked) =>
+                  updateNodeData({
+                    moduleModes: { ...data.moduleModes, [key]: checked ? "online" : "offline" },
+                  })
+                }
+              />
+              <Label
+                htmlFor={`module-mode-${selectedNodeId}-${key}`}
+                className="text-xs text-gray-500 cursor-pointer"
+              >
+                {mode === "online" ? "线上" : "线下"}
+              </Label>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-gray-400 hover:text-red-500"
+              onClick={() => removeModule(key)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </CardHeader>
         <Component nodeId={selectedNodeId} data={data} onChange={updateNodeData} />
       </Card>

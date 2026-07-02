@@ -27,6 +27,7 @@ interface ModuleItem {
   icon: React.ComponentType<{ className?: string }>
   status: "done" | "in_progress" | "pending"
   desc: string
+  mode: "online" | "offline"
 }
 
 interface TeachingSession {
@@ -47,9 +48,9 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：前端技术栈全景介绍、开发环境搭建（VSCode + Node.js + Git）\n教学难点：理解前后端分离架构、Git工作流概念理解\n教学方法：在线预习视频 + 课堂讲解 + 实操演示",
     review: "本节课顺利完成课程导论与开发环境搭建。学生整体对前端技术栈有了初步了解，90%的学生成功完成环境搭建。",
     modules: [
-      { key: "prePreview", label: "课前预习", phase: "pre-class", icon: BookOpen, status: "done", desc: "观看课程导论视频（15min），了解前端技术栈体系" },
-      { key: "preResources", label: "学习资源", phase: "pre-class", icon: FolderOpen, status: "done", desc: "阅读开发环境搭建指南.pdf" },
-      { key: "preTasks", label: "课前任务", phase: "pre-class", icon: ClipboardList, status: "done", desc: "完成环境搭建自检清单" },
+      { key: "prePreview", label: "课前预习", phase: "pre-class", icon: BookOpen, status: "done", desc: "观看课程导论视频（15min），了解前端技术栈体系", mode: "online" },
+      { key: "preResources", label: "学习资源", phase: "pre-class", icon: FolderOpen, status: "done", desc: "阅读开发环境搭建指南.pdf", mode: "online" },
+      { key: "preTasks", label: "课前任务", phase: "pre-class", icon: ClipboardList, status: "done", desc: "完成环境搭建自检清单", mode: "online" },
     ],
   },
   {
@@ -57,11 +58,11 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：HTML5语义化标签、CSS3 Flexbox/Grid布局、响应式设计原理\n教学难点：Grid布局的网格线概念、媒体查询与移动端适配\n教学方法：课前预习微课 + 课堂案例演示 + 随堂练习 + 项目实践",
     review: "课堂互动积极，学生掌握了Flexbox布局核心属性。随堂测验平均分82分，整体情况良好。",
     modules: [
-      { key: "preQuizzes", label: "课前测验", phase: "pre-class", icon: PenTool, status: "done", desc: "HTML/CSS基础概念测验（10题）" },
-      { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "done", desc: "HTML5语义化标签 + CSS3 Flexbox/Grid布局" },
-      { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "in_progress", desc: "响应式网页布局实战练习" },
-      { key: "inClassQuizzes", label: "随堂测验", phase: "in-class", icon: CheckCircle2, status: "done", desc: "Flexbox布局测验，平均分82" },
-      { key: "practiceTasks", label: "实践任务", phase: "in-class", icon: BookMarked, status: "in_progress", desc: "仿写京东首页静态布局" },
+      { key: "preQuizzes", label: "课前测验", phase: "pre-class", icon: PenTool, status: "done", desc: "HTML/CSS基础概念测验（10题）", mode: "online" },
+      { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "done", desc: "HTML5语义化标签 + CSS3 Flexbox/Grid布局", mode: "offline" },
+      { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "in_progress", desc: "响应式网页布局实战练习", mode: "offline" },
+      { key: "inClassQuizzes", label: "随堂测验", phase: "in-class", icon: CheckCircle2, status: "done", desc: "Flexbox布局测验，平均分82", mode: "offline" },
+      { key: "practiceTasks", label: "实践任务", phase: "in-class", icon: BookMarked, status: "in_progress", desc: "仿写京东首页静态布局", mode: "offline" },
     ],
   },
   {
@@ -69,9 +70,9 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：JS变量与数据类型、函数与作用域、DOM操作与事件处理\n教学难点：闭包的理解与应用、事件委托机制",
     review: "JavaScript基础讲授完成。闭包概念对部分学生仍较难理解，建议下次课前发布针对性预习视频。",
     modules: [
-      { key: "homeworks", label: "课后作业", phase: "post-class", icon: FileText, status: "in_progress", desc: "实现一个Todo List应用（截止2026-07-15）" },
-      { key: "extensionMaterials", label: "拓展资料", phase: "post-class", icon: BookMarked, status: "done", desc: "阅读MDN JavaScript高级教程" },
-      { key: "trainingReports", label: "实训报告", phase: "post-class", icon: ClipboardList, status: "pending", desc: "撰写DOM操作实训报告" },
+      { key: "homeworks", label: "课后作业", phase: "post-class", icon: FileText, status: "in_progress", desc: "实现一个Todo List应用（截止2026-07-15）", mode: "online" },
+      { key: "extensionMaterials", label: "拓展资料", phase: "post-class", icon: BookMarked, status: "done", desc: "阅读MDN JavaScript高级教程", mode: "online" },
+      { key: "trainingReports", label: "实训报告", phase: "post-class", icon: ClipboardList, status: "pending", desc: "撰写DOM操作实训报告", mode: "offline" },
     ],
   },
   {
@@ -79,9 +80,9 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：ES6+新特性（箭头函数、解构、模板字符串）、异步编程（Promise、async/await）、模块化编程\n教学难点：Promise链式调用与错误处理",
     review: "",
     modules: [
-      { key: "prePreview", label: "课前预习", phase: "pre-class", icon: BookOpen, status: "in_progress", desc: "观看ES6新特性教学视频（20min）" },
-      { key: "preResources", label: "学习资源", phase: "pre-class", icon: FolderOpen, status: "done", desc: "阅读ES6标准入门.pdf" },
-      { key: "preTasks", label: "课前任务", phase: "pre-class", icon: ClipboardList, status: "pending", desc: "完成Promise编程练习题5道" },
+      { key: "prePreview", label: "课前预习", phase: "pre-class", icon: BookOpen, status: "in_progress", desc: "观看ES6新特性教学视频（20min）", mode: "online" },
+      { key: "preResources", label: "学习资源", phase: "pre-class", icon: FolderOpen, status: "done", desc: "阅读ES6标准入门.pdf", mode: "online" },
+      { key: "preTasks", label: "课前任务", phase: "pre-class", icon: ClipboardList, status: "pending", desc: "完成Promise编程练习题5道", mode: "online" },
     ],
   },
   {
@@ -89,8 +90,8 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：React核心概念与JSX、组件Props与State管理、Hooks（useState, useEffect）\n教学难点：State不可变更新、useEffect的依赖管理",
     review: "",
     modules: [
-      { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "pending", desc: "React核心概念、JSX、组件化思想" },
-      { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "pending", desc: "编写第一个React组件并进行调试" },
+      { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "pending", desc: "React核心概念、JSX、组件化思想", mode: "offline" },
+      { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "pending", desc: "编写第一个React组件并进行调试", mode: "offline" },
     ],
   },
   {
@@ -98,7 +99,7 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：组件拆分与组合、状态提升与Context、自定义Hooks\n教学难点：组件通信方案选型、自定义Hooks的封装思维",
     review: "",
     modules: [
-      { key: "homeworks", label: "课后作业", phase: "post-class", icon: FileText, status: "pending", desc: "实现天气查询应用（React + 公开API）" },
+      { key: "homeworks", label: "课后作业", phase: "post-class", icon: FileText, status: "pending", desc: "实现天气查询应用（React + 公开API）", mode: "online" },
     ],
   },
   {
@@ -106,8 +107,8 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：TypeScript类型系统、Vite构建工具配置、ESLint/Prettier代码规范\n教学难点：泛型与高级类型、tsconfig.json配置",
     review: "",
     modules: [
-      { key: "prePreview", label: "课前预习", phase: "pre-class", icon: BookOpen, status: "pending", desc: "阅读TypeScript入门指南" },
-      { key: "preResources", label: "学习资源", phase: "pre-class", icon: FolderOpen, status: "pending", desc: "TypeScript类型体操练习仓库" },
+      { key: "prePreview", label: "课前预习", phase: "pre-class", icon: BookOpen, status: "pending", desc: "阅读TypeScript入门指南", mode: "online" },
+      { key: "preResources", label: "学习资源", phase: "pre-class", icon: FolderOpen, status: "pending", desc: "TypeScript类型体操练习仓库", mode: "online" },
     ],
   },
   {
@@ -115,9 +116,9 @@ const SESSIONS: TeachingSession[] = [
     design: "教学重点：项目需求分析与架构设计、前后端分离开发流程、项目打包与部署\n教学难点：前后端接口联调、项目性能优化",
     review: "",
     modules: [
-      { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "pending", desc: "项目管理流程与团队协作方案" },
-      { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "pending", desc: "分组选题与技术方案评审" },
-      { key: "practiceTasks", label: "实践任务", phase: "in-class", icon: BookMarked, status: "pending", desc: "完成小组项目核心功能开发" },
+      { key: "lecture", label: "课堂讲授", phase: "in-class", icon: MonitorPlay, status: "pending", desc: "项目管理流程与团队协作方案", mode: "offline" },
+      { key: "inClassTasks", label: "课堂任务", phase: "in-class", icon: ClipboardList, status: "pending", desc: "分组选题与技术方案评审", mode: "offline" },
+      { key: "practiceTasks", label: "实践任务", phase: "in-class", icon: BookMarked, status: "pending", desc: "完成小组项目核心功能开发", mode: "offline" },
     ],
   },
 ]
@@ -276,27 +277,43 @@ function CatalogNav({
   )
 }
 
+function aggregateSessionMode(modules: ModuleItem[]): "online" | "offline" | "mixed" {
+  const modes = new Set(modules.map((m) => m.mode))
+  if (modes.size <= 1) {
+    return modules[0]?.mode ?? "online"
+  }
+  return "mixed"
+}
+
 function TreeView({ sessions, courseId }: { sessions: TeachingSession[]; courseId: string }) {
   return (
     <div className="space-y-1">
-      {sessions.map((s) => (
-        <div key={s.id}>
-          <div className="flex items-center gap-2 rounded-md px-3 py-2 transition-colors bg-gray-50 font-medium text-gray-800">
-            <FileText className="w-4 h-4 text-[#1890ff] shrink-0" />
-            <span className="flex-1 truncate text-sm">{s.name}</span>
-            <div className="flex items-center gap-2 shrink-0">
-              <Badge variant={s.mode === "online" ? "default" : "secondary"} className="text-[10px] px-1.5 h-4">
-                {s.mode === "online" ? "线上" : "线下"}
-              </Badge>
+      {sessions.map((s) => {
+        const sessionMode = aggregateSessionMode(s.modules)
+        const modeConfig = {
+          online: { label: "线上", variant: "default" as const, className: "bg-[#1890ff] hover:bg-[#1890ff]" },
+          offline: { label: "线下", variant: "secondary" as const, className: "" },
+          mixed: { label: "线上线下混合", variant: "outline" as const, className: "border-orange-300 text-orange-600 bg-orange-50 hover:bg-orange-50" },
+        }[sessionMode]
+        return (
+          <div key={s.id}>
+            <div className="flex items-center gap-2 rounded-md px-3 py-2 transition-colors bg-gray-50 font-medium text-gray-800">
+              <FileText className="w-4 h-4 text-[#1890ff] shrink-0" />
+              <span className="flex-1 truncate text-sm">{s.name}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <Badge variant={modeConfig.variant} className={`text-[10px] px-1.5 h-4 ${modeConfig.className}`}>
+                  {modeConfig.label}
+                </Badge>
+              </div>
+              <Link href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}`}>
+                <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">
+                  <PlayCircle className="w-3 h-3 mr-1" />开始学习
+                </Button>
+              </Link>
             </div>
-            <Link href={`/learn/courses/hybrid/${courseId}/learn?session=${s.id}`}>
-              <Button size="sm" className="h-7 text-xs bg-[#1890ff] hover:bg-[#40a9ff]">
-                <PlayCircle className="w-3 h-3 mr-1" />开始学习
-              </Button>
-            </Link>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
